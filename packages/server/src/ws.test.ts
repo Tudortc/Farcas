@@ -6,6 +6,7 @@ import { PROTOCOL_VERSION } from '@bool/shared'
 
 let app: FastifyInstance
 let url: string
+let sessionCookie: string
 
 beforeAll(async () => {
   app = buildApp()
@@ -13,6 +14,16 @@ beforeAll(async () => {
   const addr = app.server.address()
   if (addr === null || typeof addr === 'string') throw new Error('no address')
   url = `ws://127.0.0.1:${addr.port}/ws`
+
+  // Sign up and capture session cookie for authenticated WS connections
+  const name = `w${Math.floor(performance.now() * 1000) % 1_000_000}`
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/auth/sign-up/email',
+    payload: { email: `${name}@example.test`, password: 'password1234', name, username: name },
+  })
+  const c = res.headers['set-cookie']
+  sessionCookie = Array.isArray(c) ? c.join('; ') : String(c)
 })
 
 afterAll(async () => {
@@ -32,24 +43,27 @@ function once<T>(ws: WebSocket, send: object): Promise<T> {
 
 describe('websocket /ws', () => {
   it('replies welcome to hello', async () => {
-    const reply = await once<{ type: string; protocolVersion: number }>(new WebSocket(url), {
-      type: 'hello',
-      clientVersion: 1,
-    })
+    const reply = await once<{ type: string; protocolVersion: number }>(
+      new WebSocket(url, { headers: { cookie: sessionCookie } }),
+      { type: 'hello', clientVersion: 1 },
+    )
     expect(reply.type).toBe('welcome')
     expect(reply.protocolVersion).toBe(PROTOCOL_VERSION)
   })
 
   it('replies pong echoing t', async () => {
-    const reply = await once<{ type: string; t: number }>(new WebSocket(url), {
-      type: 'ping',
-      t: 42,
-    })
+    const reply = await once<{ type: string; t: number }>(
+      new WebSocket(url, { headers: { cookie: sessionCookie } }),
+      { type: 'ping', t: 42 },
+    )
     expect(reply).toMatchObject({ type: 'pong', t: 42 })
   })
 
   it('replies error on garbage', async () => {
-    const reply = await once<{ type: string }>(new WebSocket(url), { type: 'garbage' })
+    const reply = await once<{ type: string }>(
+      new WebSocket(url, { headers: { cookie: sessionCookie } }),
+      { type: 'garbage' },
+    )
     expect(reply.type).toBe('error')
   })
 })
