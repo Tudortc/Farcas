@@ -42,24 +42,10 @@ function ReplyButton({ msgid }: ReplyButtonProps) {
   const setReplyTarget = useChat((s) => s.setReplyTarget)
   return (
     <button
+      type="button"
       aria-label="Reply"
       className="reply-btn"
       onClick={() => setReplyTarget(msgid)}
-      style={{
-        display: 'none', // shown via .msg:hover .reply-btn / .cont:hover .reply-btn in CSS
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1px 6px',
-        borderRadius: 'var(--radius-sm)',
-        border: '1px solid var(--line-2)',
-        background: 'var(--bg-3)',
-        color: 'var(--ink-2)',
-        fontSize: 'var(--meta-fs)',
-        fontFamily: 'var(--sans)',
-        cursor: 'pointer',
-        lineHeight: 1.4,
-        flexShrink: 0,
-      }}
     >
       ↩ Reply
     </button>

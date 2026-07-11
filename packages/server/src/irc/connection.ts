@@ -115,6 +115,8 @@ export class IrcConnection {
     client.on('tagmsg', (e: any) => {
       const tags: Record<string, string> = e.tags ?? {}
       if (tags['+typing'] !== undefined) {
+        // Note: +typing has 3 states (active/paused/done); we coerce `paused` → `active`
+        // since our model only tracks active vs done.
         const state = tags['+typing'] === 'done' ? 'done' : 'active'
         this.sink({ type: 'typing:update', networkId: nid, target: e.target, nick: e.nick ?? '', state })
       } else if (tags['+draft/react'] !== undefined) {
@@ -178,7 +180,8 @@ export class IrcConnection {
       if (capEnabled) {
         this.client.say(target, text, { '+draft/reply': replyTo })
       } else {
-        this.client.say(target, '> ' + text)
+        // Degraded reply: no message-tags cap, so prefix text to label it clearly
+        this.client.say(target, '(reply) ' + text)
       }
     } else {
       this.client.say(target, text)

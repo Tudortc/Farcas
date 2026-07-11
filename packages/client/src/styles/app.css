@@ -1192,29 +1192,59 @@
   white-space: nowrap;
 }
 
-/* ---- Reply button (shown on .msg/.cont hover) ---- */
+/* ---- Focus rings — shared :focus-visible indicator ---- */
+.net-btn:focus-visible,
+.reply-btn:focus-visible,
+.rx-pill:focus-visible,
+.rx-add:focus-visible,
+.reply-chip-cancel:focus-visible,
+.chan:focus-visible,
+.tb-btn:focus-visible,
+.appearance-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+/* ---- Reply button (shown on .msg/.cont hover or focus-within) ---- */
 .msg,
 .cont {
   position: relative;
-}
-
-.msg:hover .reply-btn,
-.cont:hover .reply-btn {
-  display: inline-flex !important;
 }
 
 .reply-btn {
   position: absolute;
   top: 4px;
   right: 8px;
-  opacity: 0.75;
+  opacity: 0;
   transition: opacity 0.12s, background 0.12s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-2);
+  background: var(--bg-3);
+  color: var(--ink-2);
+  font-size: var(--meta-fs);
+  font-family: var(--sans);
+  cursor: pointer;
+  line-height: 1.4;
+  flex-shrink: 0;
 }
 
-.reply-btn:hover {
+.msg:hover .reply-btn,
+.cont:hover .reply-btn,
+.msg:focus-within .reply-btn,
+.cont:focus-within .reply-btn,
+.reply-btn:focus-visible {
+  opacity: 0.75;
+}
+
+.reply-btn:hover,
+.reply-btn:focus-visible {
   opacity: 1;
-  background: var(--bg-4) !important;
-  border-color: var(--line-2) !important;
+  background: var(--bg-4);
+  border-color: var(--line-2);
 }
 
 /* ---- Reply chip in Composer ---- */

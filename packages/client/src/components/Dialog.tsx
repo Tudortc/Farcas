@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useId } from 'react'
 
 // ---------------------------------------------------------------------------
 // Shared hook: restores focus to the element that was focused before `open`
@@ -34,9 +34,10 @@ const FOCUSABLE_SELECTORS = [
 ].join(', ')
 
 function getFocusableElements(container: HTMLElement): HTMLElement[] {
-  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS)).filter(
-    (el) => !el.closest('[hidden]') && getComputedStyle(el).display !== 'none',
-  )
+  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS)).filter((el) => {
+    const cs = getComputedStyle(el)
+    return !el.closest('[hidden]') && cs.display !== 'none' && cs.visibility !== 'hidden'
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -59,6 +60,7 @@ export function Dialog({ open, onClose, title, children }: DialogProps) {
   const bodyRef = useRef<HTMLDivElement>(null)
   // Remember the element that was focused before the dialog opened
   const previousFocusRef = useRef<HTMLElement | null>(null)
+  const titleId = useId()
 
   // Capture previously focused element when dialog opens; restore on close
   useEffect(() => {
@@ -143,7 +145,7 @@ export function Dialog({ open, onClose, title, children }: DialogProps) {
           position: 'fixed',
           inset: 0,
           zIndex: 900,
-          background: 'rgba(0,0,0,0.6)',
+          background: 'var(--scrim)',
           backdropFilter: 'blur(2px)',
         }}
       />
@@ -153,7 +155,7 @@ export function Dialog({ open, onClose, title, children }: DialogProps) {
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label={title}
+        aria-labelledby={titleId}
         tabIndex={-1}
         onKeyDown={handleKeyDown}
         style={{
@@ -172,7 +174,7 @@ export function Dialog({ open, onClose, title, children }: DialogProps) {
             background: 'var(--bg-2)',
             border: '1px solid var(--line-2)',
             borderRadius: 'var(--radius)',
-            boxShadow: '0 8px 40px -8px rgba(0,0,0,0.7)',
+            boxShadow: `0 8px 40px -8px var(--shadow-overlay)`,
             width: 'min(560px, 92vw)',
             maxHeight: '85vh',
             display: 'flex',
@@ -192,6 +194,7 @@ export function Dialog({ open, onClose, title, children }: DialogProps) {
             }}
           >
             <span
+              id={titleId}
               style={{
                 fontFamily: 'var(--mono)',
                 fontSize: 13,

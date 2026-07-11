@@ -1,11 +1,7 @@
 import { useChat } from '../store/chat-store.js'
+import { truncate } from '../utils/truncate.js'
 
 const SNIPPET_MAX = 80
-
-function truncate(text: string): string {
-  if (text.length <= SNIPPET_MAX) return text
-  return text.slice(0, SNIPPET_MAX) + '…'
-}
 
 export interface ReplyContextProps {
   replyTo: string
@@ -39,7 +35,7 @@ export function ReplyContext({ replyTo }: ReplyContextProps) {
     )
   }
 
-  const snippet = truncate(referenced.body)
+  const snippet = truncate(referenced.body, SNIPPET_MAX)
 
   return (
     <div

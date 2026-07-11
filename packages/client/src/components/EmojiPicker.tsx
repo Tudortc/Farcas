@@ -14,7 +14,7 @@ export function EmojiPicker({ onSelect }: EmojiPickerProps) {
     <Picker
       data={data}
       onEmojiSelect={handleEmojiSelect}
-      theme="dark"
+      theme="auto"
       set="native"
       previewPosition="none"
       skinTonePosition="none"

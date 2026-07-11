@@ -98,10 +98,10 @@ describe('IrcConnection tag features — cap disabled (graceful degradation)', (
     expect((client as any).tagmsg).not.toHaveBeenCalled()
   })
 
-  it('say() with replyTo degrades to a "> " quote prefix when cap is not enabled', () => {
+  it('say() with replyTo degrades to a "(reply) " prefix when cap is not enabled', () => {
     const { conn, client } = makeConn(false)
     conn.say('#x', 'my reply', 'msgid-abc')
-    expect(client.say).toHaveBeenCalledWith('#x', '> my reply')
+    expect(client.say).toHaveBeenCalledWith('#x', '(reply) my reply')
   })
 
   it('say() without replyTo works normally when cap is not enabled', () => {

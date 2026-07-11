@@ -1,12 +1,8 @@
 import { useState, useRef, useEffect, type KeyboardEvent } from 'react'
 import { useChat } from '../store/chat-store.js'
+import { truncate } from '../utils/truncate.js'
 
 const REPLY_SNIPPET_MAX = 60
-
-function truncate(text: string): string {
-  if (text.length <= REPLY_SNIPPET_MAX) return text
-  return text.slice(0, REPLY_SNIPPET_MAX) + '…'
-}
 
 interface SlashCommand {
   cmd: string
@@ -142,7 +138,7 @@ export function Composer({ onSend, placeholder = 'Message · / for commands' }: 
               <>
                 <strong>{replyMsg.sender}</strong>
                 {': '}
-                {truncate(replyMsg.body)}
+                {truncate(replyMsg.body, REPLY_SNIPPET_MAX)}
               </>
             ) : (
               <em>(message)</em>

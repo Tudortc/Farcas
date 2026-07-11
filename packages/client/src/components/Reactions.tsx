@@ -64,7 +64,7 @@ export function Reactions({ msgid }: ReactionsProps) {
         return (
           <button
             key={emoji}
-            role="button"
+            className="rx-pill"
             aria-label={`${emoji} ${nicks.length}`}
             aria-pressed={mine}
             onClick={() => handlePillClick(emoji, mine)}
@@ -91,6 +91,7 @@ export function Reactions({ msgid }: ReactionsProps) {
 
       <button
         ref={addBtnRef}
+        className="rx-add"
         aria-label="Add reaction"
         onClick={() => setPickerOpen((v) => !v)}
         style={{
