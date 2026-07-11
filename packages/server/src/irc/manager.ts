@@ -50,14 +50,10 @@ export class IrcManager {
       }
       this.hub.publish(userId, msg)
       if (msg.type === 'chat:msg') {
-        try {
-          void maybeNotify(userId, msg, {
-            selfNick: conn.currentNick(),
-            activeSockets: this.hub.subscriberCount(userId),
-          })
-        } catch (err) {
-          console.error('[IrcManager] persistingSink: maybeNotify failed', err)
-        }
+        maybeNotify(userId, msg, {
+          selfNick: conn.currentNick(),
+          activeSockets: this.hub.subscriberCount(userId),
+        }).catch((err) => console.error('[IrcManager] maybeNotify failed', err))
       }
     }
     const conn = new IrcConnection(

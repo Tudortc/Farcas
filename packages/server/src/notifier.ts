@@ -72,6 +72,10 @@ export async function maybeNotify(
   }
 
   const sendFn = ctx.send ?? sendPushToUser
-  await sendFn(userId, payload)
+  try {
+    await sendFn(userId, payload)
+  } catch (err) {
+    console.error('[maybeNotify] send failed', err)
+  }
   return true
 }

@@ -115,6 +115,12 @@ describe('maybeNotify', () => {
     const msg = dmMsg({ target: 'alice' })
     const fired = await maybeNotify('user1', msg, { selfNick: 'alice', activeSockets: 0 })
     // isPushConfigured() is false in test env, so sendPushToUser returns 0 → fired still true (send was called, returned 0)
-    expect(typeof fired).toBe('boolean')
+    expect(fired).toBe(true)
+  })
+
+  it('resolves to true even when the injected send rejects', async () => {
+    const send = vi.fn().mockRejectedValue(new Error('boom'))
+    const msg = dmMsg({ target: 'alice' })
+    await expect(maybeNotify('user1', msg, { selfNick: 'alice', activeSockets: 0, send })).resolves.toBe(true)
   })
 })
