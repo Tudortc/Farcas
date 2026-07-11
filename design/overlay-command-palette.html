@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bool — Cmd-K Command Palette</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Cmd-K palette — shown over a dimmed Direction-A backdrop */
+:root{
+  --bg-0:#0a0c0d;--bg-1:#0e1113;--bg-2:#101416;--bg-3:#151a1d;--bg-4:#1b2226;
+  --line:#20282c;--line-2:#2a343a;--ink-0:#e6efe9;--ink-1:#9fb1ab;--ink-2:#63756f;--ink-3:#455049;
+  --green:#39e08b;--green-dim:#1f7a4c;--amber:#ffb454;--cyan:#4fd6e0;--blue:#7aa2f7;--violet:#b48ead;
+  --mono:'JetBrains Mono',ui-monospace,monospace;--sans:'IBM Plex Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg-0);color:var(--ink-0);height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+/* faux app backdrop */
+.backdrop{position:fixed;inset:0;background:
+  radial-gradient(120% 80% at 100% 0%, rgba(57,224,139,.05), transparent 60%),var(--bg-0);
+  display:grid;grid-template-columns:56px 232px 1fr;filter:blur(2px) brightness(.5);pointer-events:none}
+.bd-col{border-right:1px solid var(--line)}
+.bd-1{background:var(--bg-1)}.bd-2{background:var(--bg-1)}.bd-3{background:var(--bg-2)}
+.scrim{position:fixed;inset:0;background:rgba(4,6,7,.68);backdrop-filter:blur(3px);animation:fade .18s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{opacity:0;transform:translate(-50%,-46%) scale(.97)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+
+.palette{
+  position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(640px,92vw);background:var(--bg-1);
+  border:1px solid var(--line-2);border-radius:14px;
+  box-shadow:0 40px 120px -20px rgba(0,0,0,.8), 0 0 0 1px rgba(57,224,139,.06), 0 0 60px -30px rgba(57,224,139,.4);
+  overflow:hidden;animation:pop .2s cubic-bezier(.3,1.1,.4,1);
+}
+.p-search{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.p-search .pmt{font-family:var(--mono);color:var(--green);font-weight:700;font-size:18px}
+.p-search input{flex:1;background:none;border:none;outline:none;color:var(--ink-0);font-family:var(--sans);font-size:17px}
+.p-search input::placeholder{color:var(--ink-3)}
+.p-search .esc{font-family:var(--mono);font-size:10px;color:var(--ink-2);border:1px solid var(--line-2);border-radius:4px;padding:3px 6px}
+
+.p-scope{display:flex;gap:6px;padding:10px 16px 4px;flex-wrap:wrap}
+.chip{font-family:var(--mono);font-size:11px;color:var(--ink-2);background:var(--bg-3);border:1px solid var(--line);border-radius:20px;padding:4px 11px;cursor:pointer}
+.chip.on{color:var(--green);border-color:var(--green-dim);background:rgba(57,224,139,.06)}
+
+.p-list{max-height:400px;overflow-y:auto;padding:6px 8px 10px}
+.p-sec{font-family:var(--mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-3);padding:12px 10px 5px}
+.row{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:8px;cursor:pointer;position:relative}
+.row.sel{background:var(--bg-4)}
+.row.sel::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:2px;background:var(--green);box-shadow:0 0 8px var(--green)}
+.row .ic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex:none;font-family:var(--mono);font-weight:700;font-size:13px}
+.ic.hash{background:var(--bg-3);color:var(--green);border:1px solid var(--line)}
+.ic.dm{color:#0a0c0d}
+.ic.act{background:var(--bg-3);color:var(--cyan);border:1px solid var(--line)}
+.ic.act svg{width:16px;height:16px}
+.row .main{min-width:0;flex:1}
+.row .name{font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px}
+.row .name b{color:var(--green);font-weight:600}
+.row .sub{font-family:var(--mono);font-size:11px;color:var(--ink-2);margin-top:1px}
+.row .net-tag{font-family:var(--mono);font-size:10px;color:var(--ink-2);background:var(--bg-3);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+.row .badge{font-family:var(--mono);font-size:10px;font-weight:700;background:var(--amber);color:#1a1200;border-radius:8px;padding:1px 6px}
+.row .kbd{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--ink-2);display:flex;gap:4px}
+.row .kbd span{border:1px solid var(--line-2);border-radius:4px;padding:1px 5px}
+.row .pres{width:7px;height:7px;border-radius:50%}
+.pres.on{background:var(--green)}.pres.idle{background:var(--amber)}
+
+.p-foot{display:flex;align-items:center;gap:16px;padding:9px 16px;border-top:1px solid var(--line);background:var(--bg-0);font-family:var(--mono);font-size:10.5px;color:var(--ink-3)}
+.p-foot .k{border:1px solid var(--line-2);border-radius:4px;padding:1px 5px;color:var(--ink-2);margin-right:4px}
+.p-foot .r{margin-left:auto;color:var(--ink-2)}
+.title-hint{position:fixed;top:20px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:11px;color:var(--ink-2);letter-spacing:1px;z-index:5}
+</style>
+</head>
+<body>
+<div class="backdrop"><div class="bd-col bd-1"></div><div class="bd-col bd-2"></div><div class="bd-col bd-3"></div></div>
+<div class="scrim"></div>
+<div class="title-hint">bool · Command Palette (⌘K) — mockup, Direction A theme</div>
+
+<div class="palette">
+  <div class="p-search">
+    <span class="pmt">›</span>
+    <input value="py" placeholder="Jump to a channel, DM, or run a command…" autofocus>
+    <span class="esc">ESC</span>
+  </div>
+
+  <div class="p-scope">
+    <span class="chip on">All</span>
+    <span class="chip">Channels</span>
+    <span class="chip">People</span>
+    <span class="chip">Actions</span>
+    <span class="chip">Recent</span>
+  </div>
+
+  <div class="p-list">
+    <div class="p-sec">Channels</div>
+    <div class="row sel">
+      <div class="ic hash">#</div>
+      <div class="main">
+        <div class="name"><b>#py</b>thon</div>
+        <div class="sub">1,204 online · last active 2m ago</div>
+      </div>
+      <span class="net-tag">Libera.Chat</span>
+      <div class="kbd"><span>↵</span> jump</div>
+    </div>
+    <div class="row">
+      <div class="ic hash">#</div>
+      <div class="main">
+        <div class="name"><b>#py</b>thon-dev</div>
+        <div class="sub">312 online</div>
+      </div>
+      <span class="net-tag">Libera.Chat</span>
+    </div>
+    <div class="row">
+      <div class="ic hash">#</div>
+      <div class="main">
+        <div class="name"><b>#py</b>pi</div>
+        <div class="sub">88 online</div>
+      </div>
+      <span class="net-tag">OFTC</span>
+      <span class="badge">3</span>
+    </div>
+
+    <div class="p-sec">People</div>
+    <div class="row">
+      <div class="ic dm" style="background:#7aa2f7">P</div>
+      <div class="main">
+        <div class="name"><b>py</b>rate · phillmac</div>
+        <div class="sub">Direct message · online</div>
+      </div>
+      <span class="pres on"></span>
+    </div>
+
+    <div class="p-sec">Actions & Commands</div>
+    <div class="row">
+      <div class="ic act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+      <div class="main"><div class="name">Join a channel…</div><div class="sub">/join #channel</div></div>
+      <div class="kbd"><span>⌘</span><span>J</span></div>
+    </div>
+    <div class="row">
+      <div class="ic act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
+      <div class="main"><div class="name">Search all history…</div><div class="sub">Full-text search across every network</div></div>
+      <div class="kbd"><span>⌘</span><span>⇧</span><span>F</span></div>
+    </div>
+    <div class="row">
+      <div class="ic act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/></svg></div>
+      <div class="main"><div class="name">Toggle density · Compact ⇄ Comfortable</div><div class="sub">Currently: Compact</div></div>
+      <div class="kbd"><span>⌘</span><span>D</span></div>
+    </div>
+    <div class="row">
+      <div class="ic act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></div>
+      <div class="main"><div class="name">Switch theme · Dark ⇄ Light</div><div class="sub">Appearance</div></div>
+    </div>
+  </div>
+
+  <div class="p-foot">
+    <span><span class="k">↑</span><span class="k">↓</span>navigate</span>
+    <span><span class="k">↵</span>select</span>
+    <span><span class="k">Tab</span>filter scope</span>
+    <span class="r">fuzzy · powered by cmdk</span>
+  </div>
+</div>
+</body>
+</html>

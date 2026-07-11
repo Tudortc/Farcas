@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bool — Design Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0e10;--surface:#14171a;--surface-2:#1a1e22;--line:#242a2f;--line-2:#333b42;
+  --ink:#eef2f0;--ink-1:#a9b5b0;--ink-2:#6f7d77;
+  --accent:#39e08b;
+  --serif:'Fraunces',serif;--sans:'Spline Sans',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(80% 50% at 50% -10%,rgba(57,224,139,.08),transparent 60%);min-height:100vh}
+.wrap{max-width:1120px;margin:0 auto;padding:56px 32px 80px}
+header{margin-bottom:48px}
+.brand{font-family:var(--serif);font-size:15px;font-weight:600;font-style:italic;color:var(--accent);letter-spacing:.5px}
+h1{font-family:var(--serif);font-size:52px;font-weight:600;letter-spacing:-1.5px;margin:14px 0 10px;line-height:1.05}
+h1 em{font-style:italic;color:var(--accent)}
+.lede{font-size:17px;color:var(--ink-1);max-width:640px;line-height:1.55}
+.lede b{color:var(--ink)}
+.tags{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:11px;color:var(--ink-1);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:5px 12px}
+
+.sec-label{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-2);margin:44px 0 18px;display:flex;align-items:center;gap:12px}
+.sec-label::after{content:"";flex:1;height:1px;background:var(--line)}
+
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;text-decoration:none;color:inherit;transition:.22s cubic-bezier(.3,1,.4,1)}
+.card:hover{transform:translateY(-4px);border-color:var(--line-2);box-shadow:0 24px 60px -30px rgba(0,0,0,.8)}
+.thumb{height:150px;position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+.thumb .mini{position:absolute;inset:0;display:grid;grid-template-columns:14px 32px 1fr 24px;gap:0}
+.mini > div{height:100%}
+.card-body{padding:18px 18px 20px}
+.card .key{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:1px}
+.card h3{font-family:var(--serif);font-size:22px;font-weight:600;margin:6px 0 8px;letter-spacing:-.4px}
+.card p{font-size:13.5px;color:var(--ink-1);line-height:1.5}
+.card .meta{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap}
+.card .m{font-family:var(--mono);font-size:10px;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:3px 7px}
+.card .go{margin-top:16px;font-family:var(--mono);font-size:12px;color:var(--ink);display:flex;align-items:center;gap:8px}
+.card .go .arr{transition:.2s}.card:hover .go .arr{transform:translateX(4px);color:var(--accent)}
+
+/* direction A mini */
+.a-1{background:#0e1113}.a-2{background:#0e1113;border-right:1px solid #20282c}.a-3{background:#101416}.a-4{background:#0e1113;border-left:1px solid #20282c}
+/* B */
+.b-1{background:#1e1a15}.b-2{background:#1e1a15;border-right:1px solid #332a20}.b-3{background:#201b16}.b-4{background:#1e1a15;border-left:1px solid #332a20}
+/* C */
+.c-1{background:#111024}.c-2{background:#111024;border-right:1px solid #242243}.c-3{background:#0e0e1e}.c-4{background:#111024;border-left:1px solid #242243}
+.thumb .glow{position:absolute;inset:0;pointer-events:none}
+.a-glow{background:radial-gradient(60% 60% at 80% 10%,rgba(57,224,139,.16),transparent 60%)}
+.b-glow{background:radial-gradient(60% 70% at 20% 10%,rgba(232,167,107,.2),transparent 60%)}
+.c-glow{background:radial-gradient(60% 70% at 30% 0%,rgba(139,125,255,.28),transparent 60%),radial-gradient(50% 60% at 100% 100%,rgba(255,110,199,.2),transparent 60%)}
+/* faux rows in mini preview col 3 */
+.rows{position:absolute;left:calc(14px + 32px + 12px);right:34px;top:22px;display:flex;flex-direction:column;gap:9px}
+.rr{height:6px;border-radius:3px;background:rgba(255,255,255,.09)}
+.rr.s{width:40%}.rr.m{width:70%}.rr.l{width:88%}
+.rr.acc{background:rgba(57,224,139,.4)}
+.b .rr.acc{background:rgba(232,167,107,.5)}
+.c .rr.acc{background:rgba(139,125,255,.55)}
+
+.overlay-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.olink{display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;text-decoration:none;color:inherit;transition:.2s}
+.olink:hover{transform:translateY(-3px);border-color:var(--line-2)}
+.olink .ico{width:46px;height:46px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--accent);flex:none}
+.olink .ico svg{width:22px;height:22px}
+.olink h4{font-family:var(--serif);font-size:18px;font-weight:600;margin-bottom:3px}
+.olink p{font-size:13px;color:var(--ink-1)}
+.olink .k{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink-2);border:1px solid var(--line);border-radius:6px;padding:3px 8px}
+
+.notes-link{display:inline-flex;align-items:center;gap:10px;margin-top:28px;font-family:var(--mono);font-size:13px;color:var(--ink-1);text-decoration:none;border:1px solid var(--line);border-radius:10px;padding:11px 16px;transition:.2s}
+.notes-link:hover{border-color:var(--accent);color:var(--ink)}
+footer{margin-top:56px;padding-top:24px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--ink-2);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+@media (max-width:840px){.grid,.overlay-grid{grid-template-columns:1fr}h1{font-size:40px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">bool · design study</div>
+    <h1>Three ways to build a <em>beautiful</em> IRC client.</h1>
+    <p class="lede">bool is an open-source, self-hosted <b>IRCCloud</b> — always-on, fast, IRCv3-native. Design is priority #1. These are three genuinely distinct visual directions for the core three-pane chat view, each <b>compact by default</b> with a real density toggle. Open any of them in your browser; toggle theme and density live in the top bar.</p>
+    <div class="tags">
+      <span class="tag">Static HTML/CSS · no build</span>
+      <span class="tag">Dark + light themes</span>
+      <span class="tag">Compact ⇄ Comfortable</span>
+      <span class="tag">Realistic IRC content</span>
+    </div>
+  </header>
+
+  <div class="sec-label">Visual directions</div>
+  <div class="grid">
+
+    <a class="card a" href="direction-a/index.html">
+      <div class="thumb">
+        <div class="mini"><div class="a-1"></div><div class="a-2"></div><div class="a-3"></div><div class="a-4"></div></div>
+        <div class="rows"><div class="rr l"></div><div class="rr m"></div><div class="rr acc s"></div><div class="rr l"></div><div class="rr m"></div><div class="rr s"></div></div>
+        <div class="glow a-glow"></div>
+      </div>
+      <div class="card-body">
+        <div class="key">DIRECTION A</div>
+        <h3>Terminal-Modern</h3>
+        <p>Dense, monospace-accented, hacker-native. Near-black with phosphor-green and amber. IRC-authentic gutters, prompt-style composer, maximum information density.</p>
+        <div class="meta"><span class="m">JetBrains Mono</span><span class="m">IBM Plex Sans</span><span class="m">phosphor green</span></div>
+        <div class="go">Open mockup <span class="arr">→</span></div>
+      </div>
+    </a>
+
+    <a class="card b" href="direction-b/index.html">
+      <div class="thumb">
+        <div class="mini"><div class="b-1"></div><div class="b-2"></div><div class="b-3"></div><div class="b-4"></div></div>
+        <div class="rows"><div class="rr m"></div><div class="rr l"></div><div class="rr acc s"></div><div class="rr l"></div><div class="rr m"></div><div class="rr s"></div></div>
+        <div class="glow b-glow"></div>
+      </div>
+      <div class="card-body">
+        <div class="key">DIRECTION B</div>
+        <h3>Soft-Editorial</h3>
+        <p>Warm, premium, literary. Espresso-and-parchment palette, Fraunces serif headings, italic topics. Spacious-but-efficient — a consumer app you'd pay for.</p>
+        <div class="meta"><span class="m">Fraunces</span><span class="m">Spline Sans</span><span class="m">warm amber</span></div>
+        <div class="go">Open mockup <span class="arr">→</span></div>
+      </div>
+    </a>
+
+    <a class="card c" href="direction-c/index.html">
+      <div class="thumb">
+        <div class="mini"><div class="c-1"></div><div class="c-2"></div><div class="c-3"></div><div class="c-4"></div></div>
+        <div class="rows"><div class="rr l"></div><div class="rr m"></div><div class="rr acc m"></div><div class="rr l"></div><div class="rr s"></div><div class="rr m"></div></div>
+        <div class="glow c-glow"></div>
+      </div>
+      <div class="card-body">
+        <div class="key">DIRECTION C</div>
+        <h3>Neo-Aurora</h3>
+        <p>Community-first, colorful, glossy. Midnight indigo with aurora violet→pink gradients. Familiar to Discord refugees but cleaner, calmer, and more legible.</p>
+        <div class="meta"><span class="m">Sora</span><span class="m">Outfit</span><span class="m">aurora gradient</span></div>
+        <div class="go">Open mockup <span class="arr">→</span></div>
+      </div>
+    </a>
+
+  </div>
+
+  <div class="sec-label">Same-studio option — shimmer family</div>
+  <div class="grid" style="grid-template-columns:1fr">
+    <a class="card" href="direction-shimmer/index.html" style="max-width:none">
+      <div class="thumb" style="background:#1a1611">
+        <div class="rows"><div class="rr l"></div><div class="rr m"></div><div class="rr s" style="background:rgba(157,182,101,.5)"></div><div class="rr l"></div><div class="rr m"></div><div class="rr s"></div></div>
+        <div class="glow" style="background:radial-gradient(60% 70% at 25% 0%,rgba(157,182,101,.16),transparent 60%),radial-gradient(50% 60% at 100% 100%,rgba(224,129,89,.12),transparent 60%)"></div>
+      </div>
+      <div class="card-body">
+        <div class="key" style="color:#9db665">DIRECTION · SHIMMER-FAMILY</div>
+        <h3>Warm Dark (shimmer sibling)</h3>
+        <p>A same-studio continuation of your <b>shimmer</b> design system, adapted to a dense dark IRC client. Roasted-coffee ground, olive-glow accent, terracotta mentions, Fraunces + Nunito Sans + JetBrains Mono. Cozy-terminal feel; clearly a shimmer sibling.</p>
+        <div class="meta"><span class="m">Fraunces</span><span class="m">Nunito Sans</span><span class="m">warm espresso dark</span><span class="m">shimmer tokens</span></div>
+        <div class="go">Open mockup <span class="arr">→</span></div>
+      </div>
+    </a>
+  </div>
+
+  <div class="sec-label">Overlay mockups</div>
+  <div class="overlay-grid">
+    <a class="olink" href="overlay-command-palette.html">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 9h8M8 13h5"/></svg></div>
+      <div><h4>Cmd-K Command Palette</h4><p>Fuzzy switcher for channels, DMs, actions and /commands with teachable shortcuts.</p></div>
+      <span class="k">⌘K</span>
+    </a>
+    <a class="olink" href="overlay-search.html">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
+      <div><h4>Global Search</h4><p>Slack-style full-text search with in:#channel / from:user filters, context and permalinks.</p></div>
+      <span class="k">⌘⇧F</span>
+    </a>
+  </div>
+
+  <a class="notes-link" href="DESIGN-NOTES.md">📄 Read DESIGN-NOTES.md — rationale, design tokens & recommendation</a>
+
+  <footer>
+    <span>bool — modern self-hosted web IRC client · design study 2026-07-11</span>
+    <span>recommendation inside → Direction A (Terminal-Modern) as the base</span>
+  </footer>
+</div>
+</body>
+</html>
