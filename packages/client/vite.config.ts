@@ -1,7 +1,15 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { fileURLToPath } from 'node:url'
+
+const sharedSrc = fileURLToPath(new URL('../shared/src/index.ts', import.meta.url))
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@bool/shared': sharedSrc,
+    },
+  },
   plugins: [react()],
   server: {
     proxy: {
