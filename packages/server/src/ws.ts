@@ -73,7 +73,7 @@ export function registerWebSocket(app: FastifyInstance): void {
           break
         case 'net:disconnect':
           ircManager.disconnectNetwork(userId, msg.networkId)
-          send({ type: 'net:state', networkId: msg.networkId, name: '', state: 'closed' })
+          sendNetList()
           break
         case 'chan:join':
           ircManager.join(userId, msg.networkId, msg.channel)

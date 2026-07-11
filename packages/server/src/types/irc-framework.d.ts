@@ -1,3 +1,5 @@
+// Hand-written type stubs pinned to irc-framework@4.14.0.
+// If you upgrade irc-framework, verify these types still match.
 declare module 'irc-framework' {
   import { EventEmitter } from 'node:events'
 

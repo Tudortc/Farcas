@@ -14,6 +14,11 @@ function fakeClient() {
   ee.quit = vi.fn()
   ee.changeNick = vi.fn()
   ee.raw = vi.fn()
+  ee.removeAllListeners = vi.fn((...args: any[]) => {
+    // Also call the real EventEmitter removeAllListeners so listeners are actually removed
+    EventEmitter.prototype.removeAllListeners.apply(ee, args)
+    return ee as any
+  })
   return ee
 }
 
@@ -68,5 +73,72 @@ describe('IrcConnection', () => {
     const { conn, client } = makeConn()
     conn.say('#x', 'hello')
     expect(client.say).toHaveBeenCalledWith('#x', 'hello')
+  })
+
+  it('disconnect() calls removeAllListeners and quit on the client', () => {
+    const { conn, client } = makeConn()
+    conn.disconnect()
+    expect(client.removeAllListeners).toHaveBeenCalled()
+    expect(client.quit).toHaveBeenCalledWith('bool bouncer')
+    expect(conn.isConnected()).toBe(false)
+  })
+
+  it('reconnect after disconnect tears down the old client and wires a new one', () => {
+    const clients: ReturnType<typeof fakeClient>[] = []
+    const out: ServerMessage[] = []
+    const conn = new IrcConnection(
+      1,
+      { name: 'TestNet', host: 'h', port: 6697, tls: true, nick: 'bool' },
+      (m) => out.push(m),
+      () => {
+        const c = fakeClient()
+        clients.push(c)
+        return c
+      },
+    )
+
+    // First connect
+    conn.connect()
+    expect(clients).toHaveLength(1)
+    const firstClient = clients[0]
+
+    // Disconnect — should teardown first client
+    conn.disconnect()
+    expect(firstClient!.removeAllListeners).toHaveBeenCalled()
+    expect(firstClient!.quit).toHaveBeenCalledWith('bool bouncer')
+
+    // Reconnect — should create a second client; first client should be torn down
+    conn.connect()
+    expect(clients).toHaveLength(2)
+    // The second client should have connect called on it
+    expect(clients[1]!.connect).toHaveBeenCalled()
+    // The first client should still have quit called (from disconnect step)
+    expect(firstClient!.quit).toHaveBeenCalledTimes(1)
+  })
+
+  it('calling connect() twice tears down the first client before wiring the second', () => {
+    const clients: ReturnType<typeof fakeClient>[] = []
+    const out: ServerMessage[] = []
+    const conn = new IrcConnection(
+      1,
+      { name: 'TestNet', host: 'h', port: 6697, tls: true, nick: 'bool' },
+      (m) => out.push(m),
+      () => {
+        const c = fakeClient()
+        clients.push(c)
+        return c
+      },
+    )
+
+    conn.connect()
+    const firstClient = clients[0]!
+    conn.connect()
+
+    // First client must have been torn down
+    expect(firstClient.removeAllListeners).toHaveBeenCalled()
+    expect(firstClient.quit).toHaveBeenCalledWith('bool bouncer')
+    // Second client was created
+    expect(clients).toHaveLength(2)
+    expect(clients[1]!.connect).toHaveBeenCalled()
   })
 })

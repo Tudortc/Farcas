@@ -27,4 +27,20 @@ describe('NetworkStore', () => {
     const raw = getDb().prepare('SELECT sasl_password FROM networks WHERE id = ?').get(n.id) as { sasl_password: string }
     expect(raw.sasl_password).not.toContain('plaintextpw')
   })
+
+  it('removeNetwork returns the number of deleted rows', () => {
+    const n = createNetwork('userDel', { name: 'Del', host: 'h', port: 6697, tls: true, nick: 'd' })
+    const changes = removeNetwork('userDel', n.id)
+    expect(changes).toBe(1)
+    const missing = removeNetwork('userDel', n.id)
+    expect(missing).toBe(0)
+  })
+
+  it('enforces a per-user limit of 50 networks', () => {
+    const userId = 'userLimit'
+    for (let i = 0; i < 50; i++) {
+      createNetwork(userId, { name: `N${i}`, host: 'h', port: 6697, tls: true, nick: 'n' })
+    }
+    expect(() => createNetwork(userId, { name: 'overflow', host: 'h', port: 6697, tls: true, nick: 'n' })).toThrow('network limit reached')
+  })
 })

@@ -11,6 +11,7 @@ export interface IrcClientLike {
   quit(message?: string): void
   changeNick(nick: string): void
   raw(...args: any[]): void
+  removeAllListeners(event?: string): void
   user: { nick: string }
   network: { name: string; cap: { enabled: string[]; isEnabled(c: string): boolean } }
 }
@@ -40,7 +41,21 @@ export class IrcConnection {
     private readonly factory: IrcClientFactory = () => new Client() as unknown as IrcClientLike,
   ) {}
 
+  private teardown(): void {
+    if (this.client) {
+      this.client.removeAllListeners()
+      this.client.quit('bool bouncer')
+      this.client = null
+      this.connected = false
+    }
+  }
+
   connect(): void {
+    // If there is an existing client, tear it down first to avoid listener/socket leaks.
+    if (this.client) {
+      this.teardown()
+    }
+
     const client = this.factory()
     this.client = client
     this.wire(client)
@@ -130,8 +145,7 @@ export class IrcConnection {
     this.client?.say(target, text)
   }
   disconnect(): void {
-    this.client?.quit('bool')
-    this.connected = false
+    this.teardown()
   }
   isConnected(): boolean {
     return this.connected

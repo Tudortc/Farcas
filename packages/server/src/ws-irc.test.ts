@@ -23,6 +23,10 @@ beforeAll(async () => {
     ee.quit = vi.fn()
     ee.changeNick = vi.fn()
     ee.raw = vi.fn()
+    ee.removeAllListeners = vi.fn((...args: any[]) => {
+      EventEmitter.prototype.removeAllListeners.apply(ee, args)
+      return ee
+    })
     lastClient = ee
     return ee
   }
@@ -32,7 +36,14 @@ beforeAll(async () => {
   if (addr === null || typeof addr === 'string') throw new Error('no address')
   base = `127.0.0.1:${addr.port}`
 })
+
 afterAll(async () => {
+  // Disconnect all live IRC connections in the singleton manager.
+  const conns = (ircManager as any).conns as Map<string, any>
+  for (const conn of conns.values()) {
+    try { conn.disconnect() } catch { /* ignore */ }
+  }
+  conns.clear()
   await app.close()
 })
 
@@ -47,26 +58,61 @@ async function signUpCookie(): Promise<string> {
   return Array.isArray(c) ? c.join('; ') : String(c)
 }
 
-function collect(cookie: string, script: (ws: WebSocket) => void, until: (msgs: any[]) => boolean): Promise<any[]> {
+/**
+ * Opens a WebSocket, runs `script`, and resolves when `until(msgs)` returns true.
+ * The `script` receives a function `send` (type-safe wrapper) and a `waitFor`
+ * function that resolves once a matching message has arrived (event-gated, not time-gated).
+ */
+function collect(
+  cookie: string,
+  script: (ws: WebSocket, waitFor: (pred: (msgs: any[]) => boolean) => Promise<void>) => void,
+  until: (msgs: any[]) => boolean,
+): Promise<any[]> {
   return new Promise((resolve, reject) => {
     const msgs: any[] = []
+    const waiters: Array<{ pred: (msgs: any[]) => boolean; resolve: () => void }> = []
+
     const ws = new WebSocket(`ws://${base}/ws`, { headers: { cookie } })
-    ws.on('open', () => script(ws))
+
+    function drainWaiters() {
+      for (let i = waiters.length - 1; i >= 0; i--) {
+        if (waiters[i]!.pred(msgs)) {
+          waiters[i]!.resolve()
+          waiters.splice(i, 1)
+        }
+      }
+    }
+
+    const waitFor = (pred: (msgs: any[]) => boolean): Promise<void> =>
+      new Promise<void>((res) => {
+        if (pred(msgs)) { res(); return }
+        waiters.push({ pred, resolve: res })
+      })
+
+    ws.on('open', () => script(ws, waitFor))
     ws.on('message', (d) => {
       msgs.push(JSON.parse(d.toString()))
+      drainWaiters()
       if (until(msgs)) {
-        resolve(msgs)
         ws.close()
+        resolve(msgs)
       }
     })
     ws.on('error', reject)
-    setTimeout(() => resolve(msgs), 8000)
+    const timer = setTimeout(() => {
+      ws.close()
+      resolve(msgs)
+    }, 8000)
+    // Clear the timeout if we resolve early
+    ws.on('close', () => clearTimeout(timer))
   })
 }
 
 describe('ws irc integration', () => {
   it('adds a network, connects, joins, sends — over the WS protocol', async () => {
     const cookie = await signUpCookie()
+
+    // Step 1: add network, wait for net:list
     const msgs = await collect(
       cookie,
       (ws) => {
@@ -80,13 +126,17 @@ describe('ws irc integration', () => {
     expect(list.networks.length).toBeGreaterThanOrEqual(1)
     const netId = list.networks[0].id
 
+    // Step 2: connect, wait for registered, then send chat, then join — event-gated
     const after = await collect(
       cookie,
-      (ws) => {
+      async (ws, waitFor) => {
         ws.send(JSON.stringify({ type: 'hello', clientVersion: 1 }))
         ws.send(JSON.stringify({ type: 'net:connect', networkId: netId }))
-        setTimeout(() => ws.send(JSON.stringify({ type: 'chat:send', networkId: netId, target: '#x', text: 'hello' })), 50)
-        setTimeout(() => ws.send(JSON.stringify({ type: 'chan:join', networkId: netId, channel: '#x' })), 150)
+        // Wait for registered before sending chat (avoids "not connected" race)
+        await waitFor((m) => m.some((x) => x.type === 'net:state' && x.state === 'registered'))
+        ws.send(JSON.stringify({ type: 'chat:send', networkId: netId, target: '#x', text: 'hello' }))
+        // Wait for registered (already done) then join
+        ws.send(JSON.stringify({ type: 'chan:join', networkId: netId, channel: '#x' }))
       },
       (m) => m.some((x) => x.type === 'chan:join' && x.channel === '#x'),
     )

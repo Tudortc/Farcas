@@ -48,7 +48,18 @@ function toRow(r: DbRow): NetworkRow {
   }
 }
 
+// TODO(follow-up): add host allowlist / deny-private-IP-ranges (SSRF hardening) before
+// this server is exposed to untrusted users — the outbound dial must not reach internal
+// services (e.g. 10.x, 172.16.x, 192.168.x, 127.x, ::1, link-local, metadata endpoints).
+
+const NETWORK_LIMIT = 50
+
 export function createNetwork(userId: string, input: NetworkInput): NetworkRow {
+  const existing = getDb().prepare('SELECT COUNT(*) as cnt FROM networks WHERE user_id = ?').get(userId) as { cnt: number }
+  if (existing.cnt >= NETWORK_LIMIT) {
+    throw new Error('network limit reached')
+  }
+
   const enc = input.saslPassword ? encryptSecret(input.saslPassword) : null
   const info = getDb()
     .prepare(
@@ -68,6 +79,7 @@ export function getNetwork(userId: string, id: number): NetworkRow | null {
   return r ? toRow(r) : null
 }
 
-export function removeNetwork(userId: string, id: number): void {
-  getDb().prepare('DELETE FROM networks WHERE user_id = ? AND id = ?').run(userId, id)
+export function removeNetwork(userId: string, id: number): number {
+  const result = getDb().prepare('DELETE FROM networks WHERE user_id = ? AND id = ?').run(userId, id)
+  return result.changes
 }

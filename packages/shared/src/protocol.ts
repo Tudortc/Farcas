@@ -11,7 +11,7 @@ export const netAddSchema = z.object({
   type: z.literal('net:add'),
   name: z.string(),
   host: z.string(),
-  port: z.number().int(),
+  port: z.number().int().min(1).max(65535),
   tls: z.boolean(),
   nick: z.string(),
   username: z.string().optional(),

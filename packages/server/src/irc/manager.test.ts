@@ -56,4 +56,17 @@ describe('IrcManager', () => {
     const mgr = new IrcManager(() => fakeClient())
     expect(mgr.say('nobody', 999, '#x', 'hi')).toBe(false)
   })
+
+  it('disconnectNetwork removes the connection and marks it disconnected', () => {
+    const mgr = new IrcManager(() => fakeClient())
+    const net = createNetwork('userDN', { name: 'N', host: 'h', port: 6697, tls: true, nick: 'bool' })
+    mgr.connectNetwork('userDN', net.id, () => {})
+    expect(mgr.getConnection('userDN', net.id)).toBeDefined()
+    expect(mgr.isConnected('userDN', net.id)).toBe(true)
+
+    mgr.disconnectNetwork('userDN', net.id)
+
+    expect(mgr.getConnection('userDN', net.id)).toBeUndefined()
+    expect(mgr.isConnected('userDN', net.id)).toBe(false)
+  })
 })

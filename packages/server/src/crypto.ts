@@ -1,9 +1,16 @@
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'node:crypto'
 
+// Memoize the derived key: re-derive only if the secret changes.
+let _cachedKey: Buffer | null = null
+let _cachedSecret: string | null = null
+
 function key(): Buffer {
   const secret = process.env.BETTER_AUTH_SECRET
   if (!secret) throw new Error('BETTER_AUTH_SECRET is required for secret encryption')
-  return scryptSync(secret, 'bool-secret-salt', 32)
+  if (_cachedKey && _cachedSecret === secret) return _cachedKey
+  _cachedKey = scryptSync(secret, 'bool-secret-salt', 32)
+  _cachedSecret = secret
+  return _cachedKey
 }
 
 export function encryptSecret(plain: string): string {
@@ -15,7 +22,9 @@ export function encryptSecret(plain: string): string {
 }
 
 export function decryptSecret(blob: string): string {
-  const [ivB, tagB, ctB] = blob.split(':')
+  const parts = blob.split(':')
+  if (parts.length !== 3) throw new Error('malformed secret blob')
+  const [ivB, tagB, ctB] = parts
   if (!ivB || !tagB || !ctB) throw new Error('malformed secret blob')
   const decipher = createDecipheriv('aes-256-gcm', key(), Buffer.from(ivB, 'base64'))
   decipher.setAuthTag(Buffer.from(tagB, 'base64'))
