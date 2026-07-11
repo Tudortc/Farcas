@@ -9,5 +9,10 @@ export default defineConfig({
       BETTER_AUTH_URL: 'http://localhost:3030',
     },
     pool: 'forks',
+    poolOptions: {
+      forks: {
+        maxForks: 4,
+      },
+    },
   },
 })
