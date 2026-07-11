@@ -19,6 +19,16 @@ export function createWsClient(opts: {
   const factory = opts.socketFactory ?? ((u: string) => new WebSocket(u) as unknown as WebSocketLike)
   const sock = factory(opts.url)
   const handlers: ((msg: ServerMessage) => void)[] = []
+  let isOpen = false
+  const queue: string[] = []
+
+  sock.addEventListener('open', () => {
+    isOpen = true
+    for (const json of queue) {
+      sock.send(json)
+    }
+    queue.length = 0
+  })
 
   sock.addEventListener('message', (ev) => {
     const data = (ev as { data: string }).data
@@ -32,7 +42,14 @@ export function createWsClient(opts: {
   })
 
   return {
-    send: (msg) => sock.send(JSON.stringify(msg)),
+    send: (msg) => {
+      const json = JSON.stringify(msg)
+      if (isOpen) {
+        sock.send(json)
+      } else {
+        queue.push(json)
+      }
+    },
     onMessage: (cb) => handlers.push(cb),
     close: () => sock.close(),
   }

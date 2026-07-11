@@ -27,9 +27,34 @@ describe('ws-client', () => {
   })
 
   it('serializes outgoing client messages', () => {
-    const { sock } = fakeSocket()
+    const { sock, emit } = fakeSocket()
     const client = createWsClient({ url: 'ws://x/ws', socketFactory: () => sock })
+    emit('open', {})
     client.send({ type: 'ping', t: 9 })
     expect(sock.send).toHaveBeenCalledWith(JSON.stringify({ type: 'ping', t: 9 }))
+  })
+
+  it('buffers sends before open and flushes on open', () => {
+    const { sock, emit } = fakeSocket()
+    const client = createWsClient({ url: 'ws://x/ws', socketFactory: () => sock })
+
+    client.send({ type: 'ping', t: 1 })
+    expect(sock.send).not.toHaveBeenCalled()
+
+    emit('open', {})
+    expect(sock.send).toHaveBeenCalledWith(JSON.stringify({ type: 'ping', t: 1 }))
+
+    client.send({ type: 'ping', t: 2 })
+    expect(sock.send).toHaveBeenCalledWith(JSON.stringify({ type: 'ping', t: 2 }))
+  })
+
+  it('drops unparseable inbound messages without throwing or invoking handler', () => {
+    const { sock, emit } = fakeSocket()
+    const client = createWsClient({ url: 'ws://x/ws', socketFactory: () => sock })
+    const handler = vi.fn()
+    client.onMessage(handler)
+
+    expect(() => emit('message', { data: 'not-json' })).not.toThrow()
+    expect(handler).not.toHaveBeenCalled()
   })
 })
