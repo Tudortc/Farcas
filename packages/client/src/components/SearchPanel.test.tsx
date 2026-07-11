@@ -153,6 +153,8 @@ describe('SearchPanel', () => {
   it('shows result count when results are present', () => {
     seedResults()
     render(<SearchPanel open onClose={() => {}} />)
-    expect(screen.getByText(/2/)).toBeInTheDocument()
+    // Assert the count element specifically — a loose /2/ regex also matched
+    // timestamps like "11:23 PM" (clock-dependent flake).
+    expect(screen.getByText('2', { selector: 'strong' })).toBeInTheDocument()
   })
 })
