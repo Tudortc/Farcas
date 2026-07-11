@@ -2,6 +2,7 @@ import '../styles/app.css'
 import { useChat } from '../store/chat-store.js'
 import { Sidebar } from './Sidebar.js'
 import { MainPane } from './MainPane.js'
+import { CommandPalette, usePaletteShortcut } from './CommandPalette.js'
 
 /** Connection status dot — driven by useChat().connection */
 function ConnDot() {
@@ -16,8 +17,13 @@ function ConnDot() {
 }
 
 export function AppShell() {
+  const [paletteOpen, closePalette] = usePaletteShortcut()
+
   return (
     <div className="app">
+      {/* Global Cmd-K command palette */}
+      <CommandPalette open={paletteOpen} onClose={closePalette} />
+
       {/* Sidebar renders the rail + channel sidebar as two grid columns */}
       <Sidebar />
 
