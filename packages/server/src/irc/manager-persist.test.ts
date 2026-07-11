@@ -38,23 +38,24 @@ function fakeClient(): IrcClientLike {
 beforeAll(() => ensureAppSchema(getDb()))
 
 describe('IrcManager persistence', () => {
-  it('persists relayed chat messages and still relays them', () => {
+  it('persists relayed chat messages and still relays them via hub', () => {
     let client!: any
     const mgr = new IrcManager(() => (client = fakeClient()))
     const net = createNetwork('userP', { name: 'N', host: 'h', port: 6697, tls: true, nick: 'bool' })
     const relayed: any[] = []
-    mgr.connectNetwork('userP', net.id, (m) => relayed.push(m))
+    mgr.getHub().subscribe('userP', (m) => relayed.push(m))
+    mgr.connectNetwork('userP', net.id)
 
     client.emit('message', { type: 'privmsg', nick: 'zed', target: '#p', message: 'persist this needle', tags: {}, time: 5 })
 
-    expect(relayed.some((m) => m.type === 'chat:msg')).toBe(true) // still relayed
+    expect(relayed.some((m) => m.type === 'chat:msg')).toBe(true) // still relayed via hub
     const found = searchMessages('userP', 'needle')
     expect(found).toHaveLength(1)
     expect(found[0]!.sender).toBe('zed')
     expect(found[0]!.networkId).toBe(net.id)
   })
 
-  it('still relays privmsg to sink even when storeMessage throws (failure isolation)', () => {
+  it('still relays privmsg via hub even when storeMessage throws (failure isolation)', () => {
     // Force storeMessage to throw once
     vi.mocked(storeMessage).mockImplementationOnce(() => {
       throw new Error('simulated DB failure')
@@ -69,9 +70,10 @@ describe('IrcManager persistence', () => {
 
     const net = createNetwork('uIsolation', { name: 'N', host: 'h', port: 6697, tls: true, nick: 'bool' })
     const received: ServerMessage[] = []
-    mgr.connectNetwork('uIsolation', net.id, (m) => received.push(m))
+    mgr.getHub().subscribe('uIsolation', (m) => received.push(m))
+    mgr.connectNetwork('uIsolation', net.id)
 
-    // Emit a privmsg — storeMessage will throw, but the message must still reach the sink
+    // Emit a privmsg — storeMessage will throw, but the message must still reach the hub
     lastClient.emit('message', {
       type: 'privmsg',
       nick: 'alice',

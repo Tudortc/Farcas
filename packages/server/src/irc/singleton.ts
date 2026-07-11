@@ -1,4 +1,5 @@
+import { Hub } from './hub.js'
 import { IrcManager } from './manager.js'
 
-// One process-wide manager so IRC connections outlive individual WebSocket sockets.
-export const ircManager = new IrcManager()
+export const hub = new Hub()
+export const ircManager = new IrcManager(undefined, hub)

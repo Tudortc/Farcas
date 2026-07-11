@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { parseClientMessage, PROTOCOL_VERSION, type ServerMessage } from '@bool/shared'
 import { getSessionFromHeaders } from './auth-routes.js'
-import { ircManager } from './irc/singleton.js'
+import { hub, ircManager } from './irc/singleton.js'
 import { createNetwork, removeNetwork, listNetworks } from './networks.js'
 import { searchMessages, getHistory } from './messages.js'
 
@@ -20,9 +20,12 @@ export function registerWebSocket(app: FastifyInstance): void {
       return
     }
     const userId = session.user.id
-    // Single-socket relay: the sink forwards manager ServerMessages to this socket only.
-    // Full multi-device fan-out (re-binding all of a user's live sockets) is Milestone 4 (Sync gateway).
+    // Subscribe this socket to the hub so IRC messages reach it.
+    // Full per-network subscribe/unsubscribe wiring is Task 4; this minimal subscribe
+    // keeps the existing integration test green while hub fan-out is established.
     const sink = (msg: ServerMessage) => send(msg)
+    const unsubFromHub = hub.subscribe(userId, sink)
+    socket.on('close', () => unsubFromHub())
 
     const sendNetList = () => {
       send({
@@ -70,7 +73,7 @@ export function registerWebSocket(app: FastifyInstance): void {
           sendNetList()
           break
         case 'net:connect':
-          ircManager.connectNetwork(userId, msg.networkId, sink)
+          ircManager.connectNetwork(userId, msg.networkId)
           break
         case 'net:disconnect':
           ircManager.disconnectNetwork(userId, msg.networkId)
