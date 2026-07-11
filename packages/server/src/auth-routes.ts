@@ -22,7 +22,7 @@ export async function registerAuth(app: FastifyInstance): Promise<void> {
   })
 
   app.route({
-    method: ['GET', 'POST'],
+    method: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     url: '/api/auth/*',
     async handler(request, reply) {
       const url = new URL(request.url, `http://${request.headers.host}`)
@@ -33,7 +33,13 @@ export async function registerAuth(app: FastifyInstance): Promise<void> {
       })
       const response = await auth.handler(req)
       reply.status(response.status)
-      response.headers.forEach((value, key) => reply.header(key, value))
+      for (const [key, value] of response.headers.entries()) {
+        if (key.toLowerCase() === 'set-cookie') continue
+        reply.header(key, value)
+      }
+      for (const cookie of response.headers.getSetCookie()) {
+        reply.header('set-cookie', cookie) // Fastify accumulates repeated calls into an array
+      }
       return reply.send(response.body ? await response.text() : null)
     },
   })
