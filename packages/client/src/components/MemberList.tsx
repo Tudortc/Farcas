@@ -41,7 +41,7 @@ function MemberRow({ entry, sigil, sigilColor }: MemberRowProps) {
   return (
     <div className="mem" title={entry.nick}>
       <div className="av" style={{ background: color }}>
-        <span style={{ color: '#0a0c0d', fontFamily: 'var(--mono)', fontWeight: 700, fontSize: '10px' }}>
+        <span style={{ color: 'var(--bg-0)', fontFamily: 'var(--mono)', fontWeight: 700, fontSize: '10px' }}>
           {initial}
         </span>
       </div>

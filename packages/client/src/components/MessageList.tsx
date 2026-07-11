@@ -13,8 +13,10 @@ export function MessageList() {
   const msgs: StoredMsg[] = selected != null ? (messages[selected] ?? []) : []
   const virtuosoRef = useRef<VirtuosoHandle>(null)
   const prevSelected = useRef<string | null>(null)
+  // Debounce timer for marking read on incoming messages
+  const markReadTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // When selected target changes: load history + mark read
+  // When selected target changes: load history + mark read immediately (no debounce)
   useEffect(() => {
     if (!selected) return
     if (selected !== prevSelected.current) {
@@ -25,11 +27,20 @@ export function MessageList() {
     }
   }, [selected, loadHistory, markRead, msgs])
 
-  // Also mark read when new messages arrive for the selected target
+  // Also mark read when new messages arrive for the selected target — debounced 400ms
   useEffect(() => {
     if (!selected || msgs.length === 0) return
+    // Skip if this is just the initial target-select (already handled above)
+    if (selected !== prevSelected.current) return
     const latest = msgs[msgs.length - 1]!.ts
-    markRead(selected, latest)
+    if (markReadTimer.current != null) clearTimeout(markReadTimer.current)
+    markReadTimer.current = setTimeout(() => {
+      markRead(selected, latest)
+      markReadTimer.current = null
+    }, 400)
+    return () => {
+      if (markReadTimer.current != null) clearTimeout(markReadTimer.current)
+    }
   }, [msgs.length, selected, markRead])
 
   if (!selected) return null

@@ -15,6 +15,7 @@ const emptyState: ChatState = {
   readMarkers: {},
   selected: null,
   searchResults: null,
+  lastError: null,
 }
 
 let _msgIdCounter = 0
@@ -44,7 +45,8 @@ function mergeMessages(existing: StoredMsg[], incoming: StoredMsg[]): StoredMsg[
 
   // Sort ascending by ts
   all.sort((a, b) => a.ts - b.ts)
-  return all
+  // Cap to most recent 500 to prevent unbounded growth in long sessions
+  return all.length > 500 ? all.slice(all.length - 500) : all
 }
 
 function inferKind(target: string): TargetKind {
@@ -237,6 +239,12 @@ function reduceServerMessage(state: ChatState, msg: ServerMessage): Partial<Chat
       }
     }
 
+    case 'net:error': {
+      return {
+        lastError: { networkId: msg.networkId, message: msg.message },
+      }
+    }
+
     case 'search:results': {
       return {
         searchResults: { query: msg.query, results: msg.results },
@@ -271,6 +279,9 @@ function createActions(
 
       const client = createWsClient({ url: '/ws', socketFactory })
       _send = (msg) => client.send(msg)
+
+      client.onOpen(() => set({ connection: 'open' }))
+      client.onClose(() => set({ connection: 'closed' }))
 
       client.onMessage((msg: ServerMessage) => {
         set((state) => reduceServerMessage(state, msg))

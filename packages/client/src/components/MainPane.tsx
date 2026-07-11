@@ -1,5 +1,5 @@
 import '../styles/app.css'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useChat } from '../store/chat-store.js'
 import { MessageList } from './MessageList.js'
 import { Composer } from './Composer.js'
@@ -10,6 +10,27 @@ export function MainPane() {
   const targets = useChat((s) => s.targets)
   const send = useChat((s) => s.send)
   const [showAppearance, setShowAppearance] = useState(false)
+  const appearanceRef = useRef<HTMLDivElement>(null)
+  const appearanceBtnRef = useRef<HTMLButtonElement>(null)
+
+  // Close appearance popup on click-outside or Escape
+  useEffect(() => {
+    if (!showAppearance) return
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setShowAppearance(false)
+    }
+    function onPointerDown(e: PointerEvent) {
+      const inPopup = appearanceRef.current?.contains(e.target as Node)
+      const inBtn = appearanceBtnRef.current?.contains(e.target as Node)
+      if (!inPopup && !inBtn) setShowAppearance(false)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('pointerdown', onPointerDown)
+    }
+  }, [showAppearance])
 
   const target = selected != null ? targets[selected] : null
   const isChannel = target?.kind === 'channel'
@@ -44,6 +65,7 @@ export function MainPane() {
           </div>
         )}
         <button
+          ref={appearanceBtnRef}
           type="button"
           className="tb-btn"
           title="Appearance (theme / density)"
@@ -59,7 +81,7 @@ export function MainPane() {
       </header>
 
       {showAppearance && (
-        <div className="appearance-popup" role="dialog" aria-label="Appearance settings">
+        <div ref={appearanceRef} className="appearance-popup" role="dialog" aria-label="Appearance settings">
           <AppearanceMenu />
         </div>
       )}

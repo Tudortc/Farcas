@@ -350,10 +350,6 @@ export function CommandPalette({ open, onClose, onOpenSearch }: CommandPalettePr
             <span className="cp-foot-key">↵</span>
             {' select'}
           </span>
-          <span>
-            <span className="cp-foot-key">Tab</span>
-            {' filter scope'}
-          </span>
           <span className="cp-foot-right">fuzzy · powered by cmdk</span>
         </div>
       </div>

@@ -28,7 +28,7 @@ body {
 /* ---- Selection ---- */
 ::selection {
   background: var(--green-dim);
-  color: #fff;
+  color: var(--ink-0);
 }
 
 /* ---- Custom scrollbars (Direction A style) ---- */
@@ -43,7 +43,7 @@ body {
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #33403a;
+  background: var(--line-2);
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -55,7 +55,7 @@ body {
   grid-template-columns: 56px 232px 1fr 200px;
   height: 100vh;
   background:
-    radial-gradient(120% 80% at 100% 0%, rgba(57, 224, 139, .04), transparent 60%),
+    radial-gradient(120% 80% at 100% 0%, var(--glow), transparent 60%),
     var(--bg-0);
 }
 

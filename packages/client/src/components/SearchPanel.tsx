@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useChat, targetKey } from '../store/chat-store.js'
 import type { StoredMsg } from '@bool/shared'
+import { IrcBody } from './IrcBody.js'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -96,7 +97,7 @@ function Hit({ msg, networkName, onSelect }: HitProps) {
             })}
           </span>
           <span className="sp-n">{msg.sender}</span>
-          <span className="sp-m">{msg.body}</span>
+          <span className="sp-m"><IrcBody text={msg.body} /></span>
         </div>
       </div>
     </div>

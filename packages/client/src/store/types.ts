@@ -39,6 +39,7 @@ export interface ChatState {
   readMarkers: Record<string, number>
   selected: string | null
   searchResults: SearchResults | null
+  lastError: { networkId: number; message: string } | null
 }
 
 export interface ChatActions {

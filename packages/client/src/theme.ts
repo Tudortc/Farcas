@@ -6,7 +6,7 @@ export type Density = 'compact' | 'comfortable'
 export function applyAppearance(theme: ThemeId, density: Density): void {
   const el = document.documentElement
   if (theme === 'a') el.removeAttribute('data-theme')
-  else el.setAttribute('data-theme', theme === 'b' || theme === 'c' || theme === 'shimmer' ? theme : 'a')
+  else el.setAttribute('data-theme', theme)
   el.setAttribute('data-density', density)
 }
 

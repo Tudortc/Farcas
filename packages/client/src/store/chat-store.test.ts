@@ -11,7 +11,8 @@ function fakeSocket() {
   }
   const emitServer = (msg: unknown) => (listeners['message'] ?? []).forEach((cb) => cb({ data: JSON.stringify(msg) }))
   const open = () => (listeners['open'] ?? []).forEach((cb) => cb({}))
-  return { sock, emitServer, open }
+  const close = () => (listeners['close'] ?? []).forEach((cb) => cb({}))
+  return { sock, emitServer, open, close }
 }
 
 beforeEach(() => useChat.setState(useChat.getInitialState?.() ?? {}, true) as any)
@@ -46,5 +47,39 @@ describe('chat store', () => {
     expect(useChat.getState().targets[key]!.unread).toBe(1)
     useChat.getState().markRead(key, 9)
     expect(useChat.getState().targets[key]!.unread).toBe(0)
+  })
+
+  it('sets connection to "open" when socket opens and "closed" when it closes', () => {
+    const { sock, open, close } = fakeSocket()
+    useChat.getState().init(() => sock)
+    expect(useChat.getState().connection).toBe('connecting')
+    open()
+    expect(useChat.getState().connection).toBe('open')
+    close()
+    expect(useChat.getState().connection).toBe('closed')
+  })
+
+  it('sets lastError on net:error', () => {
+    const { sock, emitServer, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    emitServer({ type: 'net:error', networkId: 3, message: 'Connection refused' })
+    expect(useChat.getState().lastError).toEqual({ networkId: 3, message: 'Connection refused' })
+  })
+
+  it('caps messages to 500 per target — 501st message drops the oldest', () => {
+    const { sock, emitServer, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    const key = targetKey(1, '#cap')
+    // Send 501 messages
+    for (let i = 0; i < 501; i++) {
+      emitServer({ type: 'chat:msg', networkId: 1, target: '#cap', from: 'bot', kind: 'privmsg', text: `msg${i}`, self: false, time: i })
+    }
+    const msgs = useChat.getState().messages[key]!
+    expect(msgs.length).toBe(500)
+    // Oldest (time=0) should have been dropped; newest (time=500) should be last
+    expect(msgs[0]!.ts).toBe(1)
+    expect(msgs[499]!.ts).toBe(500)
   })
 })

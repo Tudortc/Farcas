@@ -45,6 +45,11 @@
   --radius: 6px;
   --radius-sm: 4px;
 
+  /* ---- Semantic tokens — reskin targets ---- */
+  --on-accent: #0a0c0d;  /* readable ink on accent/amber surfaces (Direction A darkest bg) */
+  --glow: color-mix(in srgb, var(--green) 12%, transparent);
+  --glow-strong: color-mix(in srgb, var(--green) 40%, transparent);
+
   /* DENSITY TOKENS — compact (default) */
   --row-py: 2px;
   --row-gap: 1px;
@@ -67,24 +72,7 @@
   --group-gap: 18px;
 }
 
-/* ---- Direction A: Light variant ---- */
-[data-theme="light"] {
-  --bg-0: #f4f6f5;
-  --bg-1: #eaeeec;
-  --bg-2: #ffffff;
-  --bg-3: #f2f5f4;
-  --bg-4: #e6ece9;
-  --line: #dde4e1;
-  --line-2: #cdd6d2;
-  --ink-0: #141a18;
-  --ink-1: #41504a;
-  --ink-2: #6d7d76;
-  --ink-3: #a3b0aa;
-  --green: #0f9d58;
-  --green-dim: #a7e0c2;
-  --amber: #c47f00;
-  --amber-dim: #f0dcb0;
-}
+/* TODO(m6): light mode — needs a full token set (mIRC palette, --on-accent, --glow, etc.) + wiring into ThemeId/menus before enabling */
 
 /* ---- Direction B: Soft-Editorial — warm espresso dark ---- */
 /* Ported from design/direction-b/index.html :root block.    */
@@ -127,6 +115,11 @@
 
   --radius: 12px;
   --radius-sm: 9px;
+
+  /* Semantic tokens */
+  --on-accent: #17130f;  /* darkest bg — ink on accent surfaces in B */
+  --glow: color-mix(in srgb, var(--green) 12%, transparent);
+  --glow-strong: color-mix(in srgb, var(--green) 40%, transparent);
 }
 
 /* ---- Direction C: Neo-Aurora — midnight indigo with aurora accents ---- */
@@ -168,6 +161,11 @@
 
   --radius: 14px;
   --radius-sm: 10px;
+
+  /* Semantic tokens */
+  --on-accent: #0b0b16;  /* darkest bg — ink on accent surfaces in C */
+  --glow: color-mix(in srgb, var(--green) 12%, transparent);
+  --glow-strong: color-mix(in srgb, var(--green) 40%, transparent);
 }
 
 /* ---- Shimmer: warm-dark editorial — roasted espresso ---- */
@@ -210,4 +208,9 @@
 
   --radius: 8px;
   --radius-sm: 8px;
+
+  /* Semantic tokens */
+  --on-accent: #141109;  /* darkest bg — ink on accent surfaces in shimmer */
+  --glow: color-mix(in srgb, var(--green) 12%, transparent);
+  --glow-strong: color-mix(in srgb, var(--green) 40%, transparent);
 }
