@@ -1191,3 +1191,77 @@
   color: var(--ink-2);
   white-space: nowrap;
 }
+
+/* ---- Reply button (shown on .msg/.cont hover) ---- */
+.msg,
+.cont {
+  position: relative;
+}
+
+.msg:hover .reply-btn,
+.cont:hover .reply-btn {
+  display: inline-flex !important;
+}
+
+.reply-btn {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  opacity: 0.75;
+  transition: opacity 0.12s, background 0.12s;
+}
+
+.reply-btn:hover {
+  opacity: 1;
+  background: var(--bg-4) !important;
+  border-color: var(--line-2) !important;
+}
+
+/* ---- Reply chip in Composer ---- */
+.reply-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--bg-3);
+  border-top: 1px solid var(--line);
+  font-size: var(--meta-fs);
+  color: var(--ink-2);
+  font-family: var(--sans);
+}
+
+.reply-chip .reply-chip-label {
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.reply-chip .reply-chip-label strong {
+  color: var(--ink-1);
+  font-weight: 600;
+}
+
+.reply-chip-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-2);
+  background: var(--bg-3);
+  color: var(--ink-2);
+  font-size: 11px;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: color 0.12s, background 0.12s;
+}
+
+.reply-chip-cancel:hover {
+  color: var(--red);
+  background: var(--bg-4);
+}

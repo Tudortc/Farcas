@@ -18,6 +18,7 @@ const emptyState: ChatState = {
   lastError: null,
   typing: {},
   reactions: {},
+  replyingTo: null,
 }
 
 let _msgIdCounter = 0
@@ -439,6 +440,10 @@ function createActions(
       const networkId = Number(selected.slice(0, colonIdx))
       const target = selected.slice(colonIdx + 1)
       _send?.({ type: 'chat:send', networkId, target, text, replyTo: replyToMsgid })
+    },
+
+    setReplyTarget(msgid: string | null) {
+      set({ replyingTo: msgid })
     },
   }
 }

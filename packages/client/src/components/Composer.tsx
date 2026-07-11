@@ -1,6 +1,13 @@
 import { useState, useRef, useEffect, type KeyboardEvent } from 'react'
 import { useChat } from '../store/chat-store.js'
 
+const REPLY_SNIPPET_MAX = 60
+
+function truncate(text: string): string {
+  if (text.length <= REPLY_SNIPPET_MAX) return text
+  return text.slice(0, REPLY_SNIPPET_MAX) + '…'
+}
+
 interface SlashCommand {
   cmd: string
   desc: string
@@ -39,6 +46,17 @@ export function Composer({ onSend, placeholder = 'Message · / for commands' }: 
   const lastTypingSentRef = useRef<number>(0)
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Reply state
+  const replyingTo = useChat((s) => s.replyingTo)
+  const setReplyTarget = useChat((s) => s.setReplyTarget)
+  const sendReply = useChat((s) => s.sendReply)
+  const messages = useChat((s) => s.messages)
+
+  // Look up the message being replied to for the chip preview
+  const replyMsg = replyingTo && selected
+    ? (messages[selected] ?? []).find((m) => m.msgid === replyingTo) ?? null
+    : null
+
   // Clean up timers on unmount
   useEffect(() => {
     return () => {
@@ -74,7 +92,12 @@ export function Composer({ onSend, placeholder = 'Message · / for commands' }: 
       e.preventDefault()
       const trimmed = value.trim()
       if (!trimmed) return
-      onSend(trimmed)
+      if (replyingTo) {
+        sendReply(trimmed, replyingTo)
+        setReplyTarget(null)
+      } else {
+        onSend(trimmed)
+      }
       setValue('')
       setSelectedHint(0)
       // Clear idle timer and send done immediately on send
@@ -111,6 +134,31 @@ export function Composer({ onSend, placeholder = 'Message · / for commands' }: 
 
   return (
     <div className="composer">
+      {replyingTo && (
+        <div className="reply-chip" aria-label="Replying to message">
+          <span className="reply-chip-label">
+            ↩ Replying to{' '}
+            {replyMsg ? (
+              <>
+                <strong>{replyMsg.sender}</strong>
+                {': '}
+                {truncate(replyMsg.body)}
+              </>
+            ) : (
+              <em>(message)</em>
+            )}
+          </span>
+          <button
+            type="button"
+            className="reply-chip-cancel"
+            aria-label="Cancel reply"
+            onClick={() => setReplyTarget(null)}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {showHints && matchedCommands.length > 0 && (
         <div className="autocomplete" role="listbox" aria-label="Slash commands">
           <div className="ac-h">

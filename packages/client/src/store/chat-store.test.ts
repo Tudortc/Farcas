@@ -172,4 +172,35 @@ describe('chat store', () => {
       JSON.stringify({ type: 'typing:set', networkId: 1, target: '#chat', state: 'active' })
     )
   })
+
+  // --- setReplyTarget() UI action ---
+  it('setReplyTarget(msgid) sets replyingTo in state', () => {
+    const { sock, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    useChat.getState().setReplyTarget('m1')
+    expect(useChat.getState().replyingTo).toBe('m1')
+  })
+
+  it('setReplyTarget(null) clears replyingTo in state', () => {
+    const { sock, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    useChat.getState().setReplyTarget('m1')
+    useChat.getState().setReplyTarget(null)
+    expect(useChat.getState().replyingTo).toBeNull()
+  })
+
+  it('sendReply sends chat:send with replyTo and setReplyTarget(null) clears it', () => {
+    const { sock, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    useChat.getState().select(targetKey(3, '#general'))
+    useChat.getState().setReplyTarget('m1')
+    expect(useChat.getState().replyingTo).toBe('m1')
+    useChat.getState().sendReply('hi', 'm1')
+    expect(sock.send).toHaveBeenCalledWith(
+      JSON.stringify({ type: 'chat:send', networkId: 3, target: '#general', text: 'hi', replyTo: 'm1' })
+    )
+  })
 })

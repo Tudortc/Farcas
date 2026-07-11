@@ -44,6 +44,8 @@ export interface ChatState {
   typing: Record<string, Record<string, number>>
   /** msgid → emoji → nicks[] */
   reactions: Record<string, Record<string, string[]>>
+  /** The msgid of the message currently being replied to, or null */
+  replyingTo: string | null
 }
 
 export interface ChatActions {
@@ -74,6 +76,8 @@ export interface ChatActions {
   react(msgid: string, emoji: string, add: boolean): void
   /** Send chat:send with replyTo set to replyToMsgid, using the currently selected target. */
   sendReply(text: string, replyToMsgid: string): void
+  /** Set the msgid of the message being replied to (null to clear). */
+  setReplyTarget(msgid: string | null): void
 }
 
 export type ChatStore = ChatState & ChatActions
