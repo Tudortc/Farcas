@@ -1,6 +1,7 @@
 import { buildApp } from './app.js'
 import { firstAdminHint } from './bootstrap-admin.js'
 import { getDb } from './db.js'
+import { ensureAppSchema } from './schema.js'
 
 const port = Number(process.env.PORT ?? 3030)
 const host = process.env.HOST ?? '0.0.0.0'
@@ -13,6 +14,7 @@ app
     // eslint-disable-next-line no-console
     console.log(`bool server listening on ${address}`)
     try {
+      ensureAppSchema(getDb())
       const admins = getDb()
         .prepare("SELECT COUNT(*) AS n FROM user WHERE role = 'admin'")
         .get() as { n: number }

@@ -2,6 +2,8 @@ import { execSync } from 'node:child_process'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import Database from 'better-sqlite3'
+import { ensureAppSchema } from '../src/schema.js'
 
 export default function setup() {
   const dir = mkdtempSync(join(tmpdir(), 'bool-auth-'))
@@ -14,6 +16,10 @@ export default function setup() {
     env: { ...process.env, BOOL_DB: dbPath, BETTER_AUTH_SECRET: secret, BETTER_AUTH_URL: 'http://localhost:3030' },
     stdio: 'inherit',
   })
+
+  const db = new Database(dbPath)
+  ensureAppSchema(db)
+  db.close()
 
   // Make the same DB + secret visible to test workers (inherited via process.env).
   process.env.BOOL_DB = dbPath
