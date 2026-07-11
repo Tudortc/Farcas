@@ -2,15 +2,23 @@ import type { ServerMessage } from '@bool/shared'
 import { IrcConnection, type IrcClientFactory } from './connection.js'
 import { getNetwork } from '../networks.js'
 import { storeMessage } from '../messages.js'
+import { Hub } from './hub.js'
 
 const keyOf = (userId: string, networkId: number) => `${userId}:${networkId}`
 
 export class IrcManager {
   private conns = new Map<string, IrcConnection>()
+  private hub: Hub
 
-  constructor(private readonly factory?: IrcClientFactory) {}
+  constructor(private readonly factory?: IrcClientFactory, hub?: Hub) {
+    this.hub = hub ?? new Hub()
+  }
 
-  connectNetwork(userId: string, networkId: number, sink: (msg: ServerMessage) => void): void {
+  getHub(): Hub {
+    return this.hub
+  }
+
+  connectNetwork(userId: string, networkId: number): void {
     const k = keyOf(userId, networkId)
     const existing = this.conns.get(k)
     if (existing) {
@@ -19,7 +27,7 @@ export class IrcManager {
     }
     const cfg = getNetwork(userId, networkId)
     if (!cfg) {
-      sink({ type: 'net:error', networkId, message: 'network not found' })
+      this.hub.publish(userId, { type: 'net:error', networkId, message: 'network not found' })
       return
     }
     const persistingSink = (msg: ServerMessage) => {
@@ -35,10 +43,10 @@ export class IrcManager {
             ...(msg.msgid ? { msgid: msg.msgid } : {}),
           })
         } catch (err) {
-          console.error('[IrcManager] persistingSink: storeMessage failed (message still relayed):', err)
+          console.error('[IrcManager] persistingSink: storeMessage failed', err)
         }
       }
-      sink(msg)
+      this.hub.publish(userId, msg)
     }
     const conn = new IrcConnection(
       networkId,

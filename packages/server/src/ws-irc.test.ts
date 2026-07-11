@@ -112,16 +112,18 @@ describe('ws irc integration', () => {
   it('adds a network, connects, joins, sends — over the WS protocol', async () => {
     const cookie = await signUpCookie()
 
-    // Step 1: add network, wait for net:list
+    // Step 1: add network, wait for net:list with at least one entry.
+    // The server now sends an initial net:list on connect (may be empty), so
+    // we wait for the one that arrives after net:add (which has networks.length >= 1).
     const msgs = await collect(
       cookie,
       (ws) => {
         ws.send(JSON.stringify({ type: 'hello', clientVersion: 1 }))
         ws.send(JSON.stringify({ type: 'net:add', name: 'TestNet', host: 'h', port: 6697, tls: true, nick: 'bool' }))
       },
-      (m) => m.some((x) => x.type === 'net:list'),
+      (m) => m.some((x) => x.type === 'net:list' && x.networks.length >= 1),
     )
-    const list = msgs.find((m) => m.type === 'net:list')
+    const list = msgs.filter((m) => m.type === 'net:list').find((m) => m.networks.length >= 1)
     expect(list, 'net:list not received — likely DB contention timeout').toBeDefined()
     expect(list.networks.length).toBeGreaterThanOrEqual(1)
     const netId = list.networks[0].id

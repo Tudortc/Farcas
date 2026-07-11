@@ -1,9 +1,10 @@
 import type { FastifyInstance } from 'fastify'
 import { parseClientMessage, PROTOCOL_VERSION, type ServerMessage } from '@bool/shared'
 import { getSessionFromHeaders } from './auth-routes.js'
-import { ircManager } from './irc/singleton.js'
+import { hub, ircManager } from './irc/singleton.js'
 import { createNetwork, removeNetwork, listNetworks } from './networks.js'
 import { searchMessages, getHistory } from './messages.js'
+import { setReadMarker, listReadMarkers } from './read-markers.js'
 
 export function serverTimeNow(): number {
   return Date.now()
@@ -20,9 +21,9 @@ export function registerWebSocket(app: FastifyInstance): void {
       return
     }
     const userId = session.user.id
-    // Single-socket relay: the sink forwards manager ServerMessages to this socket only.
-    // Full multi-device fan-out (re-binding all of a user's live sockets) is Milestone 4 (Sync gateway).
-    const sink = (msg: ServerMessage) => send(msg)
+    // Subscribe this socket to the hub so all IRC + fan-out messages reach it.
+    const unsubFromHub = hub.subscribe(userId, (msg: ServerMessage) => send(msg))
+    socket.on('close', () => unsubFromHub())
 
     const sendNetList = () => {
       send({
@@ -38,6 +39,10 @@ export function registerWebSocket(app: FastifyInstance): void {
         })),
       })
     }
+
+    // Send current state to the freshly-subscribed socket.
+    sendNetList()
+    send({ type: 'read:list', markers: listReadMarkers(userId) })
 
     const handleMessage = (msg: ReturnType<typeof parseClientMessage>) => {
       switch (msg.type) {
@@ -70,7 +75,7 @@ export function registerWebSocket(app: FastifyInstance): void {
           sendNetList()
           break
         case 'net:connect':
-          ircManager.connectNetwork(userId, msg.networkId, sink)
+          ircManager.connectNetwork(userId, msg.networkId)
           break
         case 'net:disconnect':
           ircManager.disconnectNetwork(userId, msg.networkId)
@@ -92,6 +97,16 @@ export function registerWebSocket(app: FastifyInstance): void {
           break
         case 'history:request':
           send({ type: 'history:batch', networkId: msg.networkId, target: msg.target, messages: getHistory(userId, msg.networkId, msg.target, msg.limit, msg.before) })
+          break
+        case 'read:set': {
+          const { ts, changed } = setReadMarker(userId, msg.networkId, msg.target, msg.ts)
+          if (changed) {
+            hub.publish(userId, { type: 'read:update', networkId: msg.networkId, target: msg.target, ts })
+          }
+          break
+        }
+        case 'read:list':
+          send({ type: 'read:list', markers: listReadMarkers(userId) })
           break
       }
     }

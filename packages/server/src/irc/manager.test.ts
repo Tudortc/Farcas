@@ -24,7 +24,7 @@ function fakeClient(): IrcClientLike {
 beforeAll(() => ensureAppSchema(getDb()))
 
 describe('IrcManager', () => {
-  it('connects a network and routes events to the sink; say() delegates', () => {
+  it('connects a network and routes events to the hub; say() delegates', () => {
     const clients: any[] = []
     const mgr = new IrcManager(() => {
       const c = fakeClient()
@@ -33,7 +33,8 @@ describe('IrcManager', () => {
     })
     const net = createNetwork('userM', { name: 'TestNet', host: 'h', port: 6697, tls: true, nick: 'bool' })
     const out: ServerMessage[] = []
-    mgr.connectNetwork('userM', net.id, (m) => out.push(m))
+    mgr.getHub().subscribe('userM', (m) => out.push(m))
+    mgr.connectNetwork('userM', net.id)
 
     expect(mgr.isConnected('userM', net.id)).toBe(true)
     expect(out.some((m) => m.type === 'net:state' && (m as any).state === 'registered')).toBe(true)
@@ -45,9 +46,9 @@ describe('IrcManager', () => {
   it('is idempotent per user:network and isolates users', () => {
     const mgr = new IrcManager(() => fakeClient())
     const netA = createNetwork('userA2', { name: 'N', host: 'h', port: 1, tls: false, nick: 'a' })
-    mgr.connectNetwork('userA2', netA.id, () => {})
+    mgr.connectNetwork('userA2', netA.id)
     const first = mgr.getConnection('userA2', netA.id)
-    mgr.connectNetwork('userA2', netA.id, () => {})
+    mgr.connectNetwork('userA2', netA.id)
     expect(mgr.getConnection('userA2', netA.id)).toBe(first) // reused
     expect(mgr.getConnection('userB2', netA.id)).toBeUndefined() // other user isolated
   })
@@ -60,7 +61,7 @@ describe('IrcManager', () => {
   it('disconnectNetwork removes the connection and marks it disconnected', () => {
     const mgr = new IrcManager(() => fakeClient())
     const net = createNetwork('userDN', { name: 'N', host: 'h', port: 6697, tls: true, nick: 'bool' })
-    mgr.connectNetwork('userDN', net.id, () => {})
+    mgr.connectNetwork('userDN', net.id)
     expect(mgr.getConnection('userDN', net.id)).toBeDefined()
     expect(mgr.isConnected('userDN', net.id)).toBe(true)
 

@@ -52,14 +52,22 @@ describe('ws auth gate', () => {
   })
 
   it('accepts an authenticated connection and replies welcome', async () => {
+    // The server sends net:list + read:list immediately on connect before
+    // processing any client messages, so we wait for the 'welcome' type
+    // specifically rather than grabbing the first message.
     const reply = await new Promise<any>((resolve, reject) => {
       const ws = new WebSocket(`ws://${base}/ws`, { headers: { cookie: sessionCookie } })
+      const timer = setTimeout(() => { ws.close(); reject(new Error('timeout')) }, 5000)
       ws.on('open', () => ws.send(JSON.stringify({ type: 'hello', clientVersion: 1 })))
       ws.on('message', (d) => {
-        resolve(JSON.parse(d.toString()))
-        ws.close()
+        const msg = JSON.parse(d.toString())
+        if (msg.type === 'welcome') {
+          clearTimeout(timer)
+          resolve(msg)
+          ws.close()
+        }
       })
-      ws.on('error', reject)
+      ws.on('error', (err) => { clearTimeout(timer); reject(err) })
     })
     expect(reply.type).toBe('welcome')
   })
