@@ -37,5 +37,12 @@ export function ensureAppSchema(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_messages_hist ON messages(user_id, network_id, target, ts);
     CREATE INDEX IF NOT EXISTS idx_messages_ts ON messages(ts);
     CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(body, sender, target, content='messages', content_rowid='id');
+    CREATE TABLE IF NOT EXISTS read_markers (
+      user_id TEXT NOT NULL,
+      network_id INTEGER NOT NULL,
+      target TEXT NOT NULL,
+      ts INTEGER NOT NULL,
+      PRIMARY KEY (user_id, network_id, target)
+    );
   `)
 }
