@@ -25,7 +25,7 @@ function ConnectedApp() {
       <header>
         <span>{session?.user.username}</span>
         {isAdmin && <button onClick={() => setShowAdmin((v) => !v)}>Admin</button>}
-        <button onClick={() => authClient.signOut()}>Sign out</button>
+        <button onClick={() => void authClient.signOut()}>Sign out</button>
       </header>
       <p>{connected ? 'Connected' : 'Connecting…'}</p>
       {showAdmin && isAdmin && <AdminPanel />}

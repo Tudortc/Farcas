@@ -12,12 +12,19 @@ app
   .then((address) => {
     // eslint-disable-next-line no-console
     console.log(`bool server listening on ${address}`)
-    const admins = getDb()
-      .prepare("SELECT COUNT(*) AS n FROM user WHERE role = 'admin'")
-      .get() as { n: number }
-    if (admins.n === 0 && (process.env.BOOL_ADMIN_IDS ?? '') === '') {
+    try {
+      const admins = getDb()
+        .prepare("SELECT COUNT(*) AS n FROM user WHERE role = 'admin'")
+        .get() as { n: number }
+      if (admins.n === 0 && (process.env.BOOL_ADMIN_IDS ?? '') === '') {
+        // eslint-disable-next-line no-console
+        console.log(firstAdminHint())
+      }
+    } catch {
       // eslint-disable-next-line no-console
-      console.log(firstAdminHint())
+      console.log(
+        'Database not migrated yet — run: pnpm --filter @bool/server db:migrate',
+      )
     }
   })
   .catch((err) => {

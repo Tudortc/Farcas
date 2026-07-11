@@ -46,6 +46,7 @@ describe('ws auth gate', () => {
     })
     expect(closed).toBe(true)
     expect(msg?.type).toBe('error')
+    expect(msg?.message).toBe('unauthorized')
   })
 
   it('accepts an authenticated connection and replies welcome', async () => {

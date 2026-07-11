@@ -15,7 +15,7 @@ export async function registerAuth(app: FastifyInstance): Promise<void> {
 
   await app.register(cors, {
     origin: origins,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     credentials: true,
     maxAge: 86400,
@@ -26,9 +26,12 @@ export async function registerAuth(app: FastifyInstance): Promise<void> {
     url: '/api/auth/*',
     async handler(request, reply) {
       const url = new URL(request.url, `http://${request.headers.host}`)
+      const forwardedHeaders = fromNodeHeaders(request.headers)
+      forwardedHeaders.delete('content-length')
+      forwardedHeaders.delete('content-encoding')
       const req = new Request(url.toString(), {
         method: request.method,
-        headers: fromNodeHeaders(request.headers),
+        headers: forwardedHeaders,
         ...(request.body ? { body: JSON.stringify(request.body) } : {}),
       })
       const response = await auth.handler(req)
