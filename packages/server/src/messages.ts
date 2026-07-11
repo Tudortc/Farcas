@@ -9,6 +9,7 @@ export interface MessageInput {
   body: string
   ts: number
   msgid?: string
+  replyTo?: string
 }
 
 interface DbRow {
@@ -20,6 +21,7 @@ interface DbRow {
   body: string
   msgid: string | null
   ts: number
+  reply_to: string | null
 }
 
 function toStored(r: DbRow): StoredMsg {
@@ -32,15 +34,16 @@ function toStored(r: DbRow): StoredMsg {
     body: r.body,
     ts: r.ts,
     ...(r.msgid ? { msgid: r.msgid } : {}),
+    ...(r.reply_to ? { replyTo: r.reply_to } : {}),
   }
 }
 
 export function storeMessage(userId: string, m: MessageInput): number {
   const db = getDb()
-  const insertMsg = db.prepare('INSERT INTO messages (user_id, network_id, target, sender, kind, body, msgid, ts) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+  const insertMsg = db.prepare('INSERT INTO messages (user_id, network_id, target, sender, kind, body, msgid, ts, reply_to) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
   const insertFts = db.prepare('INSERT INTO messages_fts (rowid, body, sender, target) VALUES (?, ?, ?, ?)')
   const tx = db.transaction(() => {
-    const info = insertMsg.run(userId, m.networkId, m.target, m.sender, m.kind, m.body, m.msgid ?? null, m.ts)
+    const info = insertMsg.run(userId, m.networkId, m.target, m.sender, m.kind, m.body, m.msgid ?? null, m.ts, m.replyTo ?? null)
     const id = Number(info.lastInsertRowid)
     insertFts.run(id, m.body, m.sender, m.target)
     return id

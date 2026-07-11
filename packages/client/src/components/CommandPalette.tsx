@@ -9,6 +9,7 @@ import {
 } from 'cmdk'
 import { useChat } from '../store/chat-store.js'
 import { useAppearance, type ThemeId } from '../theme.js'
+import { useFocusRestore } from './Dialog.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -80,7 +81,9 @@ export function usePaletteShortcut(): [boolean, () => void] {
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      // Cmd/Ctrl-K toggles the palette; Cmd/Ctrl-P also opens it (and
+      // suppresses the browser's print dialog, which would otherwise hijack it).
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'p')) {
         e.preventDefault()
         setOpen((v) => !v)
       }
@@ -105,6 +108,9 @@ const THEMES: { id: ThemeId; label: string }[] = [
 ]
 
 export function CommandPalette({ open, onClose, onOpenSearch }: CommandPaletteProps) {
+  // Restore focus to the previously focused element when the palette closes
+  useFocusRestore(open)
+
   const targets = useChat((s) => s.targets)
   const networks = useChat((s) => s.networks)
   const select = useChat((s) => s.select)

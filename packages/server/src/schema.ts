@@ -32,7 +32,8 @@ export function ensureAppSchema(db: Database.Database): void {
       kind TEXT NOT NULL,
       body TEXT NOT NULL,
       msgid TEXT,
-      ts INTEGER NOT NULL
+      ts INTEGER NOT NULL,
+      reply_to TEXT
     );
     CREATE INDEX IF NOT EXISTS idx_messages_hist ON messages(user_id, network_id, target, ts);
     CREATE INDEX IF NOT EXISTS idx_messages_ts ON messages(ts);
@@ -45,4 +46,11 @@ export function ensureAppSchema(db: Database.Database): void {
       PRIMARY KEY (user_id, network_id, target)
     );
   `)
+
+  // Idempotent migration: add reply_to column to existing databases.
+  try {
+    db.exec('ALTER TABLE messages ADD COLUMN reply_to TEXT')
+  } catch (e: any) {
+    if (!e?.message?.includes('duplicate column name')) throw e
+  }
 }

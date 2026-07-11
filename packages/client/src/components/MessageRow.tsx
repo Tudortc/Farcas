@@ -1,5 +1,8 @@
 import type { StoredMsg } from '@bool/shared'
 import { IrcBody } from './IrcBody.js'
+import { Reactions } from './Reactions.js'
+import { ReplyContext } from './ReplyContext.js'
+import { useChat } from '../store/chat-store.js'
 
 // ---- Nick color hashing ----
 // Deterministically map a nick to one of the --m-* palette variables.
@@ -29,6 +32,26 @@ function formatTime(ts: number): string {
   return `${h}:${m}`
 }
 
+// ---- ReplyButton ----
+
+interface ReplyButtonProps {
+  msgid: string
+}
+
+function ReplyButton({ msgid }: ReplyButtonProps) {
+  const setReplyTarget = useChat((s) => s.setReplyTarget)
+  return (
+    <button
+      type="button"
+      aria-label="Reply"
+      className="reply-btn"
+      onClick={() => setReplyTarget(msgid)}
+    >
+      ↩ Reply
+    </button>
+  )
+}
+
 // ---- MessageRow ----
 
 export interface MessageRowProps {
@@ -47,11 +70,14 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
         <div className="cont">
           <div className="gutter">{time}</div>
           <div className="body">
+            {msg.replyTo && <ReplyContext replyTo={msg.replyTo} />}
             <div className="text" style={{ fontStyle: 'italic', color: 'var(--ink-1)' }}>
               * <span style={{ color: nickColor }}>{msg.sender}</span>{' '}
               <IrcBody text={msg.body} />
             </div>
+            {msg.msgid && <Reactions msgid={msg.msgid} />}
           </div>
+          {msg.msgid && <ReplyButton msgid={msg.msgid} />}
         </div>
       )
     }
@@ -59,11 +85,14 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
       <div className="msg">
         <div className="gutter">{time}</div>
         <div className="body">
+          {msg.replyTo && <ReplyContext replyTo={msg.replyTo} />}
           <div className="text" style={{ fontStyle: 'italic', color: 'var(--ink-1)' }}>
             * <span style={{ color: nickColor }}>{msg.sender}</span>{' '}
             <IrcBody text={msg.body} />
           </div>
+          {msg.msgid && <Reactions msgid={msg.msgid} />}
         </div>
+        {msg.msgid && <ReplyButton msgid={msg.msgid} />}
       </div>
     )
   }
@@ -74,6 +103,7 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
         <div className="cont">
           <div className="gutter">{time}</div>
           <div className="body">
+            {msg.replyTo && <ReplyContext replyTo={msg.replyTo} />}
             <div
               className="text"
               style={{
@@ -85,7 +115,9 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
             >
               <IrcBody text={msg.body} />
             </div>
+            {msg.msgid && <Reactions msgid={msg.msgid} />}
           </div>
+          {msg.msgid && <ReplyButton msgid={msg.msgid} />}
         </div>
       )
     }
@@ -98,6 +130,7 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
               -{msg.sender}-
             </span>
           </div>
+          {msg.replyTo && <ReplyContext replyTo={msg.replyTo} />}
           <div
             className="text"
             style={{
@@ -109,7 +142,9 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
           >
             <IrcBody text={msg.body} />
           </div>
+          {msg.msgid && <Reactions msgid={msg.msgid} />}
         </div>
+        {msg.msgid && <ReplyButton msgid={msg.msgid} />}
       </div>
     )
   }
@@ -120,10 +155,13 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
       <div className="cont">
         <div className="gutter">{time}</div>
         <div className="body">
+          {msg.replyTo && <ReplyContext replyTo={msg.replyTo} />}
           <div className="text">
             <IrcBody text={msg.body} />
           </div>
+          {msg.msgid && <Reactions msgid={msg.msgid} />}
         </div>
+        {msg.msgid && <ReplyButton msgid={msg.msgid} />}
       </div>
     )
   }
@@ -137,10 +175,13 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
             {msg.sender}
           </span>
         </div>
+        {msg.replyTo && <ReplyContext replyTo={msg.replyTo} />}
         <div className="text">
           <IrcBody text={msg.body} />
         </div>
+        {msg.msgid && <Reactions msgid={msg.msgid} />}
       </div>
+      {msg.msgid && <ReplyButton msgid={msg.msgid} />}
     </div>
   )
 }

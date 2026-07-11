@@ -49,6 +49,9 @@
   --on-accent: #0a0c0d;  /* readable ink on accent/amber surfaces (Direction A darkest bg) */
   --glow: color-mix(in srgb, var(--green) 12%, transparent);
   --glow-strong: color-mix(in srgb, var(--green) 40%, transparent);
+  --focus: var(--green);              /* keyboard focus ring color; themes inherit */
+  --scrim: rgba(0,0,0,0.6);          /* dialog backdrop */
+  --shadow-overlay: rgba(0,0,0,0.7); /* dialog panel shadow color */
 
   /* DENSITY TOKENS — compact (default) */
   --row-py: 2px;

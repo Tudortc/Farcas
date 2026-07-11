@@ -24,6 +24,7 @@ declare module 'irc-framework' {
     network: { name: string; cap: { enabled: string[]; isEnabled(c: string): boolean } }
     connect(options: ConnectOptions): void
     say(target: string, message: string, tags?: Record<string, string>): void
+    tagmsg(target: string, tags: Record<string, string>): void
     notice(target: string, message: string): void
     join(channel: string, key?: string): void
     part(channel: string, message?: string): void

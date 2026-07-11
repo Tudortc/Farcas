@@ -1,4 +1,8 @@
-import { useState, useRef, type KeyboardEvent } from 'react'
+import { useState, useRef, useEffect, type KeyboardEvent } from 'react'
+import { useChat } from '../store/chat-store.js'
+import { truncate } from '../utils/truncate.js'
+
+const REPLY_SNIPPET_MAX = 60
 
 interface SlashCommand {
   cmd: string
@@ -24,10 +28,54 @@ interface ComposerProps {
   placeholder?: string
 }
 
+const THROTTLE_MS = 2000
+const IDLE_MS = 5000
+
 export function Composer({ onSend, placeholder = 'Message · / for commands' }: ComposerProps) {
   const [value, setValue] = useState('')
   const [selectedHint, setSelectedHint] = useState(0)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Typing indicator state
+  const selected = useChat((s) => s.selected)
+  const setTyping = useChat((s) => s.setTyping)
+  const lastTypingSentRef = useRef<number>(0)
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Reply state
+  const replyingTo = useChat((s) => s.replyingTo)
+  const setReplyTarget = useChat((s) => s.setReplyTarget)
+  const sendReply = useChat((s) => s.sendReply)
+  const messages = useChat((s) => s.messages)
+
+  // Look up the message being replied to for the chip preview
+  const replyMsg = replyingTo && selected
+    ? (messages[selected] ?? []).find((m) => m.msgid === replyingTo) ?? null
+    : null
+
+  // Clean up timers on unmount
+  useEffect(() => {
+    return () => {
+      if (idleTimerRef.current != null) clearTimeout(idleTimerRef.current)
+    }
+  }, [])
+
+  function dispatchTypingDone() {
+    if (selected) setTyping(selected, 'done')
+    lastTypingSentRef.current = 0
+  }
+
+  function handleTypingActive() {
+    if (!selected) return
+    const now = Date.now()
+    if (now - lastTypingSentRef.current >= THROTTLE_MS) {
+      setTyping(selected, 'active')
+      lastTypingSentRef.current = now
+    }
+    // Reset the idle timer
+    if (idleTimerRef.current != null) clearTimeout(idleTimerRef.current)
+    idleTimerRef.current = setTimeout(dispatchTypingDone, IDLE_MS)
+  }
 
   const showHints = value.startsWith('/')
   const hintFilter = value.toLowerCase()
@@ -40,9 +88,20 @@ export function Composer({ onSend, placeholder = 'Message · / for commands' }: 
       e.preventDefault()
       const trimmed = value.trim()
       if (!trimmed) return
-      onSend(trimmed)
+      if (replyingTo) {
+        sendReply(trimmed, replyingTo)
+        setReplyTarget(null)
+      } else {
+        onSend(trimmed)
+      }
       setValue('')
       setSelectedHint(0)
+      // Clear idle timer and send done immediately on send
+      if (idleTimerRef.current != null) {
+        clearTimeout(idleTimerRef.current)
+        idleTimerRef.current = null
+      }
+      dispatchTypingDone()
     }
     if (e.key === 'ArrowUp' && showHints && matchedCommands.length > 0) {
       e.preventDefault()
@@ -71,6 +130,31 @@ export function Composer({ onSend, placeholder = 'Message · / for commands' }: 
 
   return (
     <div className="composer">
+      {replyingTo && (
+        <div className="reply-chip" aria-label="Replying to message">
+          <span className="reply-chip-label">
+            ↩ Replying to{' '}
+            {replyMsg ? (
+              <>
+                <strong>{replyMsg.sender}</strong>
+                {': '}
+                {truncate(replyMsg.body, REPLY_SNIPPET_MAX)}
+              </>
+            ) : (
+              <em>(message)</em>
+            )}
+          </span>
+          <button
+            type="button"
+            className="reply-chip-cancel"
+            aria-label="Cancel reply"
+            onClick={() => setReplyTarget(null)}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {showHints && matchedCommands.length > 0 && (
         <div className="autocomplete" role="listbox" aria-label="Slash commands">
           <div className="ac-h">
@@ -106,6 +190,7 @@ export function Composer({ onSend, placeholder = 'Message · / for commands' }: 
           onChange={(e) => {
             setValue(e.target.value)
             setSelectedHint(0)
+            if (e.target.value.trim()) handleTypingActive()
           }}
           onKeyDown={handleKeyDown}
           style={{

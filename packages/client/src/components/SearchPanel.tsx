@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useChat, targetKey } from '../store/chat-store.js'
 import type { StoredMsg } from '@bool/shared'
 import { IrcBody } from './IrcBody.js'
+import { useFocusRestore } from './Dialog.js'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -109,6 +110,9 @@ function Hit({ msg, networkName, onSelect }: HitProps) {
 // ---------------------------------------------------------------------------
 
 export function SearchPanel({ open, onClose }: SearchPanelProps) {
+  // Restore focus to the previously focused element when the panel closes
+  useFocusRestore(open)
+
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 

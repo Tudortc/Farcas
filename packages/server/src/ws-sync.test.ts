@@ -17,7 +17,7 @@ beforeAll(async () => {
     ee.user = { nick: 'bool' }
     ee.network = { name: 'N', cap: { enabled: [], isEnabled: () => false } }
     ee.connect = vi.fn(() => ee.emit('registered', { nick: 'bool' }))
-    ee.say = vi.fn(); ee.join = vi.fn(); ee.part = vi.fn(); ee.quit = vi.fn(); ee.changeNick = vi.fn(); ee.raw = vi.fn(); ee.removeAllListeners = vi.fn()
+    ee.say = vi.fn(); ee.tagmsg = vi.fn(); ee.join = vi.fn(); ee.part = vi.fn(); ee.quit = vi.fn(); ee.changeNick = vi.fn(); ee.raw = vi.fn(); ee.removeAllListeners = vi.fn()
     lastClient = ee
     return ee
   }

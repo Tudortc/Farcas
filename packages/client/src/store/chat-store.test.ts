@@ -82,4 +82,125 @@ describe('chat store', () => {
     expect(msgs[0]!.ts).toBe(1)
     expect(msgs[499]!.ts).toBe(500)
   })
+
+  // --- typing:update ---
+  it('typing:update active adds the nick under the target key', () => {
+    const { sock, emitServer, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    const key = targetKey(1, '#chat')
+    emitServer({ type: 'typing:update', networkId: 1, target: '#chat', nick: 'alice', state: 'active' })
+    const typing = useChat.getState().typing
+    expect(typing[key]).toBeDefined()
+    expect(typeof typing[key]!['alice']).toBe('number')
+  })
+
+  it('typing:update done removes the nick from the target key', () => {
+    const { sock, emitServer, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    const key = targetKey(1, '#chat')
+    emitServer({ type: 'typing:update', networkId: 1, target: '#chat', nick: 'alice', state: 'active' })
+    emitServer({ type: 'typing:update', networkId: 1, target: '#chat', nick: 'alice', state: 'done' })
+    const typing = useChat.getState().typing
+    expect(typing[key]?.['alice']).toBeUndefined()
+  })
+
+  // --- react:update ---
+  it('react:update add then remove leaves the emoji bucket removed', () => {
+    const { sock, emitServer, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    emitServer({ type: 'react:update', networkId: 1, target: '#chat', msgid: 'm42', emoji: '👍', nick: 'bob', action: 'add' })
+    expect(useChat.getState().reactions['m42']?.['👍']).toEqual(['bob'])
+    emitServer({ type: 'react:update', networkId: 1, target: '#chat', msgid: 'm42', emoji: '👍', nick: 'bob', action: 'remove' })
+    expect(useChat.getState().reactions['m42']?.['👍']).toBeUndefined()
+  })
+
+  it('react:update add deduplicates nicks', () => {
+    const { sock, emitServer, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    emitServer({ type: 'react:update', networkId: 1, target: '#chat', msgid: 'm10', emoji: '❤️', nick: 'alice', action: 'add' })
+    emitServer({ type: 'react:update', networkId: 1, target: '#chat', msgid: 'm10', emoji: '❤️', nick: 'alice', action: 'add' })
+    expect(useChat.getState().reactions['m10']?.['❤️']).toEqual(['alice'])
+  })
+
+  // --- react() action ---
+  it('react(msgid, emoji, true) sends react:add with the correct networkId/target', () => {
+    const { sock, emitServer, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    // Seed a message so the store knows its target
+    emitServer({ type: 'chat:msg', networkId: 2, target: '#dev', from: 'alice', kind: 'privmsg', text: 'hey', self: false, time: 1, msgid: 'msg-abc' })
+    useChat.getState().react('msg-abc', '👍', true)
+    expect(sock.send).toHaveBeenCalledWith(
+      JSON.stringify({ type: 'react:add', networkId: 2, target: '#dev', msgid: 'msg-abc', emoji: '👍' })
+    )
+  })
+
+  it('react(msgid, emoji, false) sends react:remove', () => {
+    const { sock, emitServer, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    emitServer({ type: 'chat:msg', networkId: 2, target: '#dev', from: 'alice', kind: 'privmsg', text: 'hey', self: false, time: 1, msgid: 'msg-xyz' })
+    useChat.getState().react('msg-xyz', '👍', false)
+    expect(sock.send).toHaveBeenCalledWith(
+      JSON.stringify({ type: 'react:remove', networkId: 2, target: '#dev', msgid: 'msg-xyz', emoji: '👍' })
+    )
+  })
+
+  // --- sendReply() action ---
+  it('sendReply sends chat:send with replyTo', () => {
+    const { sock, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    useChat.getState().select(targetKey(3, '#general'))
+    useChat.getState().sendReply('hi there', 'm1')
+    expect(sock.send).toHaveBeenCalledWith(
+      JSON.stringify({ type: 'chat:send', networkId: 3, target: '#general', text: 'hi there', replyTo: 'm1' })
+    )
+  })
+
+  // --- setTyping() action ---
+  it('setTyping sends typing:set to the server', () => {
+    const { sock, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    useChat.getState().setTyping(targetKey(1, '#chat'), 'active')
+    expect(sock.send).toHaveBeenCalledWith(
+      JSON.stringify({ type: 'typing:set', networkId: 1, target: '#chat', state: 'active' })
+    )
+  })
+
+  // --- setReplyTarget() UI action ---
+  it('setReplyTarget(msgid) sets replyingTo in state', () => {
+    const { sock, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    useChat.getState().setReplyTarget('m1')
+    expect(useChat.getState().replyingTo).toBe('m1')
+  })
+
+  it('setReplyTarget(null) clears replyingTo in state', () => {
+    const { sock, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    useChat.getState().setReplyTarget('m1')
+    useChat.getState().setReplyTarget(null)
+    expect(useChat.getState().replyingTo).toBeNull()
+  })
+
+  it('sendReply sends chat:send with replyTo and setReplyTarget(null) clears it', () => {
+    const { sock, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    useChat.getState().select(targetKey(3, '#general'))
+    useChat.getState().setReplyTarget('m1')
+    expect(useChat.getState().replyingTo).toBe('m1')
+    useChat.getState().sendReply('hi', 'm1')
+    expect(sock.send).toHaveBeenCalledWith(
+      JSON.stringify({ type: 'chat:send', networkId: 3, target: '#general', text: 'hi', replyTo: 'm1' })
+    )
+  })
 })
