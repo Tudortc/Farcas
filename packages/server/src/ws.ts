@@ -1,16 +1,23 @@
 import type { FastifyInstance } from 'fastify'
-import type { RawData } from 'ws'
 import { parseClientMessage, PROTOCOL_VERSION, type ServerMessage } from '@bool/shared'
+import { getSessionFromHeaders } from './auth-routes.js'
 
 export function serverTimeNow(): number {
   return Date.now()
 }
 
 export function registerWebSocket(app: FastifyInstance): void {
-  app.get('/ws', { websocket: true }, (socket) => {
+  app.get('/ws', { websocket: true }, async (socket, request) => {
     const send = (msg: ServerMessage) => socket.send(JSON.stringify(msg))
 
-    socket.on('message', (raw: RawData) => {
+    const session = await getSessionFromHeaders(request.headers)
+    if (!session) {
+      send({ type: 'error', message: 'unauthorized' })
+      socket.close()
+      return
+    }
+
+    socket.on('message', (raw: Buffer | ArrayBuffer | Buffer[]) => {
       const text = Buffer.isBuffer(raw)
         ? raw.toString()
         : Array.isArray(raw)
