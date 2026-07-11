@@ -20,7 +20,7 @@ export function buildApp(): FastifyInstance {
 
   app.get('/health', async () => ({ status: 'ok' }))
 
-  if (existsSync(clientDist)) {
+  if (existsSync(join(clientDist, 'index.html'))) {
     app.register(fstatic, { root: clientDist })
     app.register(async (instance) => {
       registerStatic(instance, clientDist)

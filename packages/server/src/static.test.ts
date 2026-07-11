@@ -35,4 +35,10 @@ describe('static serving', () => {
     expect(res.statusCode).toBe(200)
     expect(res.body).toContain('bool')
   })
+
+  it('returns 404 JSON for non-GET requests on unknown routes', async () => {
+    const res = await app.inject({ method: 'POST', url: '/whatever' })
+    expect(res.statusCode).toBe(404)
+    expect(res.json()).toEqual({ error: 'not found' })
+  })
 })

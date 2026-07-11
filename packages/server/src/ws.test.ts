@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import WebSocket from 'ws'
 import { buildApp } from './app.js'
 import type { FastifyInstance } from 'fastify'
+import { PROTOCOL_VERSION } from '@bool/shared'
 
 let app: FastifyInstance
 let url: string
@@ -36,7 +37,7 @@ describe('websocket /ws', () => {
       clientVersion: 1,
     })
     expect(reply.type).toBe('welcome')
-    expect(reply.protocolVersion).toBe(1)
+    expect(reply.protocolVersion).toBe(PROTOCOL_VERSION)
   })
 
   it('replies pong echoing t', async () => {
