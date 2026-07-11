@@ -29,6 +29,9 @@ importers:
       '@bool/shared':
         specifier: workspace:*
         version: link:../shared
+      better-auth:
+        specifier: ^1.6.0
+        version: 1.6.23(@prisma/client@5.22.0)(better-sqlite3@12.11.1)(drizzle-orm@0.41.0(@prisma/client@5.22.0)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.11.1)(kysely@0.29.3)(pg@8.22.0))(pg@8.22.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(vitest@3.2.7(@types/node@20.19.43)(jiti@2.7.0)(jsdom@25.0.1)(tsx@4.23.0))
       react:
         specifier: ^19.0.0
         version: 19.2.7

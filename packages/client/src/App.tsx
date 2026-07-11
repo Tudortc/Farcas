@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { createWsClient } from './ws-client.js'
+import { AuthGate } from './AuthGate.js'
+import { authClient, useSession } from './auth-client.js'
 
-export function App() {
+function ConnectedApp() {
+  const { data: session } = useSession()
   const [connected, setConnected] = useState(false)
 
   useEffect(() => {
@@ -14,5 +17,21 @@ export function App() {
     return () => client.close()
   }, [])
 
-  return <main>{connected ? 'Connected' : 'Connecting…'}</main>
+  return (
+    <main>
+      <header>
+        <span>{session?.user.username}</span>
+        <button onClick={() => authClient.signOut()}>Sign out</button>
+      </header>
+      <p>{connected ? 'Connected' : 'Connecting…'}</p>
+    </main>
+  )
+}
+
+export function App() {
+  return (
+    <AuthGate>
+      <ConnectedApp />
+    </AuthGate>
+  )
 }
