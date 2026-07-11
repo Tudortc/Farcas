@@ -1,12 +1,12 @@
-# Beacon — Modern Self-Hosted Web IRC Client — Design
+# bool — Modern Self-Hosted Web IRC Client — Design
 
 **Status:** Approved design, pre-implementation
 **Date:** 2026-07-11
-**Working name:** Beacon (changeable)
+**Name:** bool
 
 ## 1. Vision & Positioning
 
-Beacon is a modern, beautiful, fast web IRC client with an always-on server
+bool is a modern, beautiful, fast web IRC client with an always-on server
 component that a community admin self-hosts for their whole community. It
 delivers the IRCCloud experience — always online, full history everywhere,
 working mobile push, rich media — but **open-source, self-hostable, and
@@ -16,7 +16,7 @@ IRCv3-native**.
 self-hosted IRC space converges on one unmet need — an "open-source IRCCloud."
 The Lounge (the market leader, MIT) cannot do iOS push and has no history
 search; soju/gamja are powerful but spartan and expert-only; IRCCloud nails UX
-but is closed, paid, and "spies on chats into Splunk." Beacon takes The Lounge's
+but is closed, paid, and "spies on chats into Splunk." bool takes The Lounge's
 audience and beats it on the exact points people complain about.
 
 **Positioning that defuses the "that's not IRC" reaction:** every rich feature
@@ -24,7 +24,7 @@ is *progressive enhancement*. Old-school clients still see clean, standard IRC
 text. Nobody is forced into modern affordances.
 
 ### Target user
-Self-hosted **community** operators: an admin runs one Beacon instance for many
+Self-hosted **community** operators: an admin runs one bool instance for many
 members. Each member has their own account, their own IRC network connections,
 and their own isolated history (the soju model, with top-tier UX).
 
@@ -175,7 +175,7 @@ The #1 unmet market need. iOS supports Web Push **only on 16.4+ and only for an
 installed ("Add to Home Screen") PWA** — hence the client is a PWA from the
 ground up, not optionally.
 
-Flow: user installs Beacon to home screen → grants permission → client registers
+Flow: user installs bool to home screen → grants permission → client registers
 a VAPID `push_subscription` with the server → server pushes on mention/DM when no
 device is active. This is exactly what The Lounge cannot do, and the top reason
 people pay for IRCCloud. Electron desktop uses native notifications separately.
@@ -229,7 +229,31 @@ TDD where it fits.
   (mIRC codes, media, reactions), and Playwright e2e on critical flows: login →
   connect → join → send → search.
 
-## 11. Key Risks
+## 11. Security
+
+The instance is internet-facing and multi-user, so security is a first-class
+concern, not an afterthought.
+
+- **Passwords:** hashed with **argon2id** (never plaintext/fast hashes).
+- **Login hardening:** rate limiting + exponential backoff on failed logins;
+  optional lockout; generic error messages (no user-enumeration).
+- **Sessions:** `httpOnly` + `Secure` + `SameSite` cookies (or short-lived
+  tokens with rotation); server-side session revocation; per-device sessions.
+- **Secrets at rest:** IRC/SASL/network passwords and push keys stored
+  **encrypted at rest** (key from env/keyfile, not in the DB in plaintext).
+- **Transport:** TLS everywhere; enforce HTTPS; secure WebSocket (`wss://`).
+  Ship guidance for a reverse proxy (Caddy/nginx) with automatic certs.
+- **Web hardening:** strict CSP, CSRF protection on state-changing REST calls,
+  security headers (HSTS, X-Content-Type-Options, etc.).
+- **Per-user isolation:** every query and every WS event is scoped to the
+  authenticated `user_id`; no cross-user data leakage. Admin actions gated by role.
+- **Upload safety:** validate MIME/size, strip EXIF, isolate served media,
+  never execute uploads; server-side link-preview fetch avoids leaking client IPs
+  and guards against SSRF (block internal address ranges).
+- **First-run:** no default credentials; admin account created on first launch;
+  optional invite-only registration.
+
+## 12. Key Risks
 
 - Draft IRCv3 specs (react/reply/redaction/multiline) may change → isolate behind
   our own abstraction; expect churn.
