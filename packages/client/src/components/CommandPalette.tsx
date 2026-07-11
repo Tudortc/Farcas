@@ -81,7 +81,9 @@ export function usePaletteShortcut(): [boolean, () => void] {
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      // Cmd/Ctrl-K toggles the palette; Cmd/Ctrl-P also opens it (and
+      // suppresses the browser's print dialog, which would otherwise hijack it).
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'p')) {
         e.preventDefault()
         setOpen((v) => !v)
       }

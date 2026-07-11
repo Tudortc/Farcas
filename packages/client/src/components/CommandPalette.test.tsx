@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, renderHook, act } from '@testing-library/react'
 import { useChat, targetKey } from '../store/chat-store.js'
 import { useAppearance } from '../theme.js'
-import { CommandPalette } from './CommandPalette.js'
+import { CommandPalette, usePaletteShortcut } from './CommandPalette.js'
 
 // Seed store helper
 function seedStore() {
@@ -145,5 +145,40 @@ describe('CommandPalette', () => {
     fireEvent.click(searchItem)
     expect(handler).toHaveBeenCalled()
     document.removeEventListener('bool:open-search', handler)
+  })
+})
+
+describe('usePaletteShortcut', () => {
+  function pressWithMeta(key: string) {
+    const event = new KeyboardEvent('keydown', { key, metaKey: true, cancelable: true })
+    const prevented = vi.spyOn(event, 'preventDefault')
+    act(() => {
+      window.dispatchEvent(event)
+    })
+    return prevented
+  }
+
+  it('opens on Cmd+K and prevents default', () => {
+    const { result } = renderHook(() => usePaletteShortcut())
+    expect(result.current[0]).toBe(false)
+    const prevented = pressWithMeta('k')
+    expect(result.current[0]).toBe(true)
+    expect(prevented).toHaveBeenCalled()
+  })
+
+  it('opens on Cmd+P and prevents the browser print dialog', () => {
+    const { result } = renderHook(() => usePaletteShortcut())
+    expect(result.current[0]).toBe(false)
+    const prevented = pressWithMeta('p')
+    expect(result.current[0]).toBe(true)
+    expect(prevented).toHaveBeenCalled()
+  })
+
+  it('ignores plain keypresses without a modifier', () => {
+    const { result } = renderHook(() => usePaletteShortcut())
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'p' }))
+    })
+    expect(result.current[0]).toBe(false)
   })
 })
