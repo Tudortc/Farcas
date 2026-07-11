@@ -98,10 +98,13 @@ export function registerWebSocket(app: FastifyInstance): void {
         case 'history:request':
           send({ type: 'history:batch', networkId: msg.networkId, target: msg.target, messages: getHistory(userId, msg.networkId, msg.target, msg.limit, msg.before) })
           break
-        case 'read:set':
-          setReadMarker(userId, msg.networkId, msg.target, msg.ts)
-          hub.publish(userId, { type: 'read:update', networkId: msg.networkId, target: msg.target, ts: msg.ts })
+        case 'read:set': {
+          const { ts, changed } = setReadMarker(userId, msg.networkId, msg.target, msg.ts)
+          if (changed) {
+            hub.publish(userId, { type: 'read:update', networkId: msg.networkId, target: msg.target, ts })
+          }
           break
+        }
         case 'read:list':
           send({ type: 'read:list', markers: listReadMarkers(userId) })
           break

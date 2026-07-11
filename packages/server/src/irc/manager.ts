@@ -42,8 +42,8 @@ export class IrcManager {
             ts: msg.time ?? Date.now(),
             ...(msg.msgid ? { msgid: msg.msgid } : {}),
           })
-        } catch {
-          // persistence failure must not block fan-out
+        } catch (err) {
+          console.error('[IrcManager] persistingSink: storeMessage failed', err)
         }
       }
       this.hub.publish(userId, msg)

@@ -43,7 +43,15 @@ function openSocket(cookie: string): { ws: WebSocket; msgs: any[]; ready: Promis
   ws.on('message', (d) => msgs.push(JSON.parse(d.toString())))
   return { ws, msgs, ready }
 }
-const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+async function until(msgs: any[], pred: (m: any) => boolean, timeoutMs = 3000): Promise<void> {
+  const t0 = Date.now()
+  while (Date.now() - t0 < timeoutMs) {
+    if (msgs.some(pred)) return
+    await new Promise((r) => setTimeout(r, 20))
+  }
+  throw new Error('timeout waiting for message')
+}
 
 describe('ws multi-device sync', () => {
   it('fans a relayed message to both of a user\'s sockets and syncs read markers', async () => {
@@ -55,22 +63,31 @@ describe('ws multi-device sync', () => {
     // The server sends an initial net:list on connect (may be empty), so find
     // the one that arrives after net:add (networks.length >= 1).
     s1.ws.send(JSON.stringify({ type: 'net:add', name: 'N', host: 'h', port: 6697, tls: true, nick: 'bool' }))
-    await wait(200)
+    await until(s1.msgs, (m) => m.type === 'net:list' && m.networks.length >= 1)
     const list = s1.msgs.filter((m) => m.type === 'net:list').find((m) => m.networks.length >= 1)
     const netId = list!.networks[0].id
     s1.ws.send(JSON.stringify({ type: 'net:connect', networkId: netId }))
-    await wait(100)
+    await until(s1.msgs, (m) => m.type === 'net:state' && m.state === 'registered')
 
     // an inbound IRC message must reach BOTH sockets via the hub
     lastClient.emit('message', { type: 'privmsg', nick: 'zoe', target: '#x', message: 'hi all', tags: {}, time: 7 })
-    await wait(100)
+    await until(s1.msgs, (m) => m.type === 'chat:msg' && m.text === 'hi all')
+    await until(s2.msgs, (m) => m.type === 'chat:msg' && m.text === 'hi all')
     expect(s1.msgs.some((m) => m.type === 'chat:msg' && m.text === 'hi all')).toBe(true)
     expect(s2.msgs.some((m) => m.type === 'chat:msg' && m.text === 'hi all')).toBe(true)
 
     // read:set on socket 1 fans read:update to socket 2
     s1.ws.send(JSON.stringify({ type: 'read:set', networkId: netId, target: '#x', ts: 7 }))
-    await wait(100)
+    await until(s2.msgs, (m) => m.type === 'read:update' && m.target === '#x' && m.ts === 7)
     expect(s2.msgs.some((m) => m.type === 'read:update' && m.target === '#x' && m.ts === 7)).toBe(true)
+
+    // stale read:set (ts=3 < ts=7) must NOT fan a read:update with ts<7 (no regression)
+    const s2MsgsBefore = s2.msgs.length
+    s1.ws.send(JSON.stringify({ type: 'read:set', networkId: netId, target: '#x', ts: 3 }))
+    // give it a moment to potentially (incorrectly) arrive
+    await new Promise((r) => setTimeout(r, 100))
+    const newMsgs = s2.msgs.slice(s2MsgsBefore)
+    expect(newMsgs.some((m) => m.type === 'read:update' && m.ts < 7)).toBe(false)
 
     s1.ws.close(); s2.ws.close()
   })
@@ -81,7 +98,8 @@ describe('ws multi-device sync', () => {
     const a = openSocket(cookieA); await a.ready
     const b = openSocket(cookieB); await b.ready
     a.ws.send(JSON.stringify({ type: 'read:set', networkId: 1, target: '#p', ts: 5 }))
-    await wait(100)
+    // give it a moment then assert no leak
+    await new Promise((r) => setTimeout(r, 100))
     expect(b.msgs.some((m) => m.type === 'read:update')).toBe(false)
     a.ws.close(); b.ws.close()
   })

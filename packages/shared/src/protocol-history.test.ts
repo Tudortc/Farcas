@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { parseClientMessage, parseServerMessage, PROTOCOL_VERSION } from './index.js'
 
 describe('history/search protocol', () => {
-  it('bumped PROTOCOL_VERSION to 3', () => {
+  it('bumped PROTOCOL_VERSION to 4', () => {
     expect(PROTOCOL_VERSION).toBe(4)
   })
   it('parses chat:search and history:request', () => {
