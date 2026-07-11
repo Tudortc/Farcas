@@ -4,6 +4,7 @@ import { useChat } from '../store/chat-store.js'
 import { MessageList } from './MessageList.js'
 import { Composer } from './Composer.js'
 import { AppearanceMenu } from './AppearanceMenu.js'
+import { TypingLine } from './TypingLine.js'
 
 export function MainPane() {
   const selected = useChat((s) => s.selected)
@@ -98,6 +99,7 @@ export function MainPane() {
           id="message-pane"
         >
           <MessageList />
+          <TypingLine />
           <Composer onSend={send} placeholder={`Message ${name} · / for commands`} />
         </div>
       ) : (

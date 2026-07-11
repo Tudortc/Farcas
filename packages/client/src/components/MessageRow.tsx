@@ -1,5 +1,6 @@
 import type { StoredMsg } from '@bool/shared'
 import { IrcBody } from './IrcBody.js'
+import { Reactions } from './Reactions.js'
 
 // ---- Nick color hashing ----
 // Deterministically map a nick to one of the --m-* palette variables.
@@ -51,6 +52,7 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
               * <span style={{ color: nickColor }}>{msg.sender}</span>{' '}
               <IrcBody text={msg.body} />
             </div>
+            {msg.msgid && <Reactions msgid={msg.msgid} />}
           </div>
         </div>
       )
@@ -63,6 +65,7 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
             * <span style={{ color: nickColor }}>{msg.sender}</span>{' '}
             <IrcBody text={msg.body} />
           </div>
+          {msg.msgid && <Reactions msgid={msg.msgid} />}
         </div>
       </div>
     )
@@ -85,6 +88,7 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
             >
               <IrcBody text={msg.body} />
             </div>
+            {msg.msgid && <Reactions msgid={msg.msgid} />}
           </div>
         </div>
       )
@@ -109,6 +113,7 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
           >
             <IrcBody text={msg.body} />
           </div>
+          {msg.msgid && <Reactions msgid={msg.msgid} />}
         </div>
       </div>
     )
@@ -123,6 +128,7 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
           <div className="text">
             <IrcBody text={msg.body} />
           </div>
+          {msg.msgid && <Reactions msgid={msg.msgid} />}
         </div>
       </div>
     )
@@ -140,6 +146,7 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
         <div className="text">
           <IrcBody text={msg.body} />
         </div>
+        {msg.msgid && <Reactions msgid={msg.msgid} />}
       </div>
     </div>
   )
