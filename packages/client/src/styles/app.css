@@ -1,0 +1,444 @@
+/* ============================================================
+   bool — App Shell styles
+   Direction A "Terminal-Modern" layout.
+   Ported from design/direction-a/index.html.
+   Uses CSS variables from tokens.css — no hardcoded colors.
+   ============================================================ */
+
+/* ---- Network rail ---- */
+.rail {
+  background: var(--bg-1);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.rail-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 16px;
+  color: #04150c;
+  background: linear-gradient(160deg, var(--green), #22b06c);
+  box-shadow: 0 0 0 1px rgba(57, 224, 139, .4), 0 6px 18px -6px rgba(57, 224, 139, .5);
+  margin-bottom: 6px;
+  letter-spacing: -1px;
+  user-select: none;
+}
+
+.rail-sep {
+  width: 22px;
+  height: 1px;
+  background: var(--line);
+  margin: 2px 0;
+}
+
+.net-btn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--ink-1);
+  transition: .16s cubic-bezier(.4, .9, .3, 1.2);
+}
+.net-btn:hover {
+  color: var(--ink-0);
+  border-color: var(--line-2);
+  transform: translateY(-1px);
+}
+.net-btn.active {
+  color: var(--green);
+  border-color: var(--green-dim);
+  background: linear-gradient(180deg, rgba(57, 224, 139, .12), rgba(57, 224, 139, .03));
+  box-shadow: 0 0 0 1px rgba(57, 224, 139, .25);
+}
+.net-btn.active::before {
+  content: "";
+  position: absolute;
+  left: -11px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  border-radius: 2px;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+}
+.net-btn .badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--amber);
+  color: #1a1200;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--bg-1);
+}
+
+.rail-foot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ---- Channel Sidebar ---- */
+.side {
+  background: var(--bg-1);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.side-head {
+  padding: 12px 12px 10px;
+  border-bottom: 1px solid var(--line);
+  flex: none;
+}
+
+.net-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink-0);
+}
+
+.net-title .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  flex: none;
+}
+
+.net-title .dot.off {
+  background: var(--ink-3);
+  box-shadow: none;
+}
+
+.net-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-2);
+  margin-top: 3px;
+  letter-spacing: .2px;
+}
+
+.side-scroll {
+  overflow-y: auto;
+  padding: 8px 6px;
+  flex: 1;
+}
+
+.grp {
+  margin-bottom: 6px;
+}
+
+.grp-h {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 8px 4px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+}
+
+.grp-h .count {
+  margin-left: auto;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
+/* Channel row */
+.chan {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--side-row-h);
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--ink-1);
+  position: relative;
+  font-size: 13px;
+  transition: background .12s, color .12s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: var(--sans);
+}
+.chan:hover {
+  background: var(--bg-3);
+  color: var(--ink-0);
+}
+.chan .hash {
+  font-family: var(--mono);
+  color: var(--ink-3);
+  font-weight: 500;
+  flex: none;
+}
+.chan.active {
+  background: var(--bg-4);
+  color: var(--ink-0);
+}
+.chan.active::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+}
+.chan.active .hash {
+  color: var(--green);
+}
+.chan .name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+.chan.unread {
+  color: var(--ink-0);
+  font-weight: 500;
+}
+.chan.unread .hash {
+  color: var(--ink-1);
+}
+.chan .b {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--bg-4);
+  color: var(--ink-1);
+  border: 1px solid var(--line);
+  flex: none;
+}
+.chan .b.mention {
+  background: var(--amber);
+  color: #1a1200;
+  border-color: transparent;
+  box-shadow: 0 0 10px -2px var(--amber);
+}
+
+/* DM avatar */
+.chan .dm-av {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  color: #0a0c0d;
+  flex: none;
+}
+
+/* Presence dot */
+.pres {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+  margin-left: auto;
+}
+.pres.on { background: var(--green); }
+.pres.idle { background: var(--amber); }
+.pres.off { background: var(--ink-3); }
+
+/* ---- Main pane ---- */
+.main {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-2);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.topbar {
+  height: 46px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-2);
+}
+
+.topbar .ch {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.topbar .ch h1 {
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.topbar .ch h1 .hash {
+  font-family: var(--mono);
+  color: var(--green);
+}
+
+.topbar .topic {
+  font-size: 12px;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-left: 1px solid var(--line);
+  padding-left: 12px;
+  min-width: 0;
+}
+
+.topbar .spacer {
+  flex: 1;
+}
+
+.tb-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  color: var(--ink-2);
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: none;
+}
+.tb-btn:hover {
+  color: var(--ink-0);
+  background: var(--bg-3);
+  border-color: var(--line);
+}
+.tb-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ---- App frame top bar ---- */
+.app-topbar {
+  display: none; /* top bar is in the rail/sidebar per Direction A */
+}
+
+/* ---- Main pane empty state ---- */
+.msgs-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--ink-3);
+  font-family: var(--mono);
+  font-size: 13px;
+  user-select: none;
+}
+
+.msgs-empty .symbol {
+  font-size: 28px;
+  color: var(--green-dim);
+  opacity: .5;
+}
+
+/* ---- Members pane ---- */
+.members {
+  background: var(--bg-1);
+  border-left: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media (max-width: 1180px) {
+  .members { display: none; }
+}
+
+/* ---- Connection status dot in topbar ---- */
+.conn-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--ink-3);
+  box-shadow: none;
+  transition: background .3s, box-shadow .3s;
+}
+.conn-dot.open {
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+}
+.conn-dot.connecting {
+  background: var(--amber);
+  animation: pulse-conn 1.2s infinite;
+}
+@keyframes pulse-conn {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+
+/* ---- Wordmark in rail ---- */
+.wordmark {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -1px;
+  color: var(--green);
+  padding: 4px 0 8px;
+  line-height: 1;
+  user-select: none;
+}
