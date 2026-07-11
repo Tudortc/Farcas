@@ -1,0 +1,216 @@
+/* ============================================================
+   bool — Design Tokens
+   Direction A "Terminal-Modern" is :root (default, no data-theme).
+   Other themes use [data-theme="b|c|shimmer"].
+   Compact density is default; comfortable via [data-density="comfortable"].
+   ============================================================ */
+
+:root {
+  /* ---- Direction A: Terminal-Modern — near-black, cold graphite, phosphor green + amber ---- */
+  --bg-0: #0a0c0d;       /* app frame */
+  --bg-1: #0e1113;       /* sidebar */
+  --bg-2: #101416;       /* message pane */
+  --bg-3: #151a1d;       /* raised (composer, hover) */
+  --bg-4: #1b2226;       /* active row */
+  --line: #20282c;       /* hairlines */
+  --line-2: #2a343a;
+
+  --ink-0: #e6efe9;      /* primary text */
+  --ink-1: #9fb1ab;      /* secondary */
+  --ink-2: #63756f;      /* muted / timestamps */
+  --ink-3: #455049;      /* faint */
+
+  --green: #39e08b;      /* phosphor accent */
+  --green-dim: #1f7a4c;
+  --amber: #ffb454;      /* highlight / mention */
+  --amber-dim: #7a5320;
+  --cyan: #4fd6e0;
+  --red: #ff6b6b;
+  --violet: #b48ead;
+  --blue: #7aa2f7;
+
+  /* mIRC-ish palette for colored text */
+  --m-red: #f7768e;
+  --m-green: #9ece6a;
+  --m-yellow: #e0af68;
+  --m-blue: #7aa2f7;
+  --m-magenta: #bb9af7;
+  --m-cyan: #7dcfff;
+  --m-orange: #ff9e64;
+
+  /* typography */
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --sans: 'IBM Plex Sans', system-ui, sans-serif;
+
+  --radius: 6px;
+  --radius-sm: 4px;
+
+  /* ---- Semantic tokens — reskin targets ---- */
+  --on-accent: #0a0c0d;  /* readable ink on accent/amber surfaces (Direction A darkest bg) */
+  --glow: color-mix(in srgb, var(--green) 12%, transparent);
+  --glow-strong: color-mix(in srgb, var(--green) 40%, transparent);
+
+  /* DENSITY TOKENS — compact (default) */
+  --row-py: 2px;
+  --row-gap: 1px;
+  --msg-fs: 13px;
+  --msg-lh: 1.45;
+  --meta-fs: 11px;
+  --side-row-h: 24px;
+  --avatar: 0px;     /* terminal mode: no avatars by default */
+  --group-gap: 10px;
+}
+
+/* ---- Comfortable density ---- */
+[data-density="comfortable"] {
+  --row-py: 5px;
+  --row-gap: 3px;
+  --msg-fs: 14px;
+  --msg-lh: 1.6;
+  --meta-fs: 12px;
+  --side-row-h: 30px;
+  --group-gap: 18px;
+}
+
+/* TODO(m6): light mode — needs a full token set (mIRC palette, --on-accent, --glow, etc.) + wiring into ThemeId/menus before enabling */
+
+/* ---- Direction B: Soft-Editorial — warm espresso dark ---- */
+/* Ported from design/direction-b/index.html :root block.    */
+/* Variable names mapped to Direction A's naming convention.  */
+[data-theme="b"] {
+  --bg-0: #17130f;       /* frame — deep espresso */
+  --bg-1: #1e1a15;       /* sidebar */
+  --bg-2: #201b16;       /* message pane */
+  --bg-3: #231d17;       /* raised surfaces (paper) */
+  --bg-4: #2a231b;       /* hover / active */
+  --line: #332a20;
+  --line-2: #42352a;
+
+  --ink-0: #f3ece1;      /* primary — warm parchment */
+  --ink-1: #c3b5a3;      /* secondary */
+  --ink-2: #8f8172;      /* muted */
+  --ink-3: #635849;      /* faint */
+
+  --green: #a3c48f;      /* sage — closest to phosphor accent in B palette */
+  --green-dim: #3a2c1d;  /* accent-soft */
+  --amber: #e8a76b;      /* brand warm amber */
+  --amber-dim: #c9793a;  /* accent-deep */
+  --cyan: #8fb6d6;       /* sky */
+  --red: #e58a8a;        /* rose */
+  --violet: #c79bd4;     /* plum */
+  --blue: #8fb6d6;       /* sky (reused) */
+
+  /* mIRC-ish — warm toned to match editorial palette */
+  --m-red: #e58a8a;
+  --m-green: #a3c48f;
+  --m-yellow: #e8a76b;
+  --m-blue: #8fb6d6;
+  --m-magenta: #c79bd4;
+  --m-cyan: #8fb6d6;
+  --m-orange: #e8a76b;
+
+  /* typography — Direction B uses different fonts but we keep A's vars */
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --sans: 'IBM Plex Sans', system-ui, sans-serif;
+
+  --radius: 12px;
+  --radius-sm: 9px;
+
+  /* Semantic tokens */
+  --on-accent: #17130f;  /* darkest bg — ink on accent surfaces in B */
+  --glow: color-mix(in srgb, var(--green) 12%, transparent);
+  --glow-strong: color-mix(in srgb, var(--green) 40%, transparent);
+}
+
+/* ---- Direction C: Neo-Aurora — midnight indigo with aurora accents ---- */
+/* Ported from design/direction-c/index.html :root block.                  */
+[data-theme="c"] {
+  --bg-0: #0b0b16;       /* deepest midnight */
+  --bg-1: #111024;       /* rail/sidebar */
+  --bg-2: #0e0e1e;       /* message pane */
+  --bg-3: #181733;       /* raised (surface) */
+  --bg-4: #252248;       /* active */
+  --line: #242243;
+  --line-2: #322f5c;
+
+  --ink-0: #f0eefe;
+  --ink-1: #b7b3dc;
+  --ink-2: #7b78a6;
+  --ink-3: #524f7a;
+
+  --green: #a6f065;      /* lime */
+  --green-dim: #6a5af0;  /* violet-deep */
+  --amber: #ffc857;      /* aurora amber */
+  --amber-dim: #ff7a70;  /* coral */
+  --cyan: #4fe0d8;
+  --red: #ff7a70;        /* coral */
+  --violet: #8b7dff;
+  --blue: #5cc7ff;       /* sky */
+
+  /* mIRC-ish — aurora palette */
+  --m-red: #ff7a70;
+  --m-green: #a6f065;
+  --m-yellow: #ffc857;
+  --m-blue: #5cc7ff;
+  --m-magenta: #8b7dff;
+  --m-cyan: #4fe0d8;
+  --m-orange: #ff6ec7;
+
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --sans: 'IBM Plex Sans', system-ui, sans-serif;
+
+  --radius: 14px;
+  --radius-sm: 10px;
+
+  /* Semantic tokens */
+  --on-accent: #0b0b16;  /* darkest bg — ink on accent surfaces in C */
+  --glow: color-mix(in srgb, var(--green) 12%, transparent);
+  --glow-strong: color-mix(in srgb, var(--green) 40%, transparent);
+}
+
+/* ---- Shimmer: warm-dark editorial — roasted espresso ---- */
+/* Ported from design/direction-shimmer/index.html :root.     */
+/* The shimmer mockup uses different var names; mapped here.  */
+[data-theme="shimmer"] {
+  --bg-0: #141109;       /* color-bg-sunken — behind panes */
+  --bg-1: #1a1611;       /* color-bg — app ground */
+  --bg-2: #221d16;       /* color-surface */
+  --bg-3: #2b251c;       /* color-surface-2 — composer, cards */
+  --bg-4: #2b251c;       /* reuse surface-2 for active row */
+  --line: #2c261c;       /* color-line-soft */
+  --line-2: #37301f;     /* color-line */
+
+  --ink-0: #f3ead9;      /* color-ink — warm parchment */
+  --ink-1: #a2937b;      /* color-ink-muted */
+  --ink-2: #a2937b;      /* reuse muted for secondary */
+  --ink-3: #6f6450;      /* color-ink-faint */
+
+  --green: #9db665;      /* color-accent — olive */
+  --green-dim: #6f8544;  /* color-accent-dim */
+  --amber: #e08159;      /* color-danger — mentions */
+  --amber-dim: #d1552f;  /* color-danger-strong */
+  --cyan: #6fb3a8;       /* c-4 teal */
+  --red: #d98c6a;        /* c-1 clay */
+  --violet: #c58bc0;     /* c-6 orchid */
+  --blue: #7fa6d4;       /* c-5 dusty blue */
+
+  /* mIRC-ish — warm shimmer chat palette */
+  --m-red: #d98c6a;
+  --m-green: #9db665;
+  --m-yellow: #c9a24a;
+  --m-blue: #7fa6d4;
+  --m-magenta: #c58bc0;
+  --m-cyan: #6fb3a8;
+  --m-orange: #d98c6a;
+
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --sans: 'IBM Plex Sans', system-ui, sans-serif;
+
+  --radius: 8px;
+  --radius-sm: 8px;
+
+  /* Semantic tokens */
+  --on-accent: #141109;  /* darkest bg — ink on accent surfaces in shimmer */
+  --glow: color-mix(in srgb, var(--green) 12%, transparent);
+  --glow-strong: color-mix(in srgb, var(--green) 40%, transparent);
+}

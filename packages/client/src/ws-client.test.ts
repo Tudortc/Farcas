@@ -57,4 +57,24 @@ describe('ws-client', () => {
     expect(() => emit('message', { data: 'not-json' })).not.toThrow()
     expect(handler).not.toHaveBeenCalled()
   })
+
+  it('calls onOpen callbacks when the socket opens', () => {
+    const { sock, emit } = fakeSocket()
+    const client = createWsClient({ url: 'ws://x/ws', socketFactory: () => sock })
+    const openCb = vi.fn()
+    client.onOpen(openCb)
+    expect(openCb).not.toHaveBeenCalled()
+    emit('open', {})
+    expect(openCb).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls onClose callbacks when the socket closes', () => {
+    const { sock, emit } = fakeSocket()
+    const client = createWsClient({ url: 'ws://x/ws', socketFactory: () => sock })
+    const closeCb = vi.fn()
+    client.onClose(closeCb)
+    expect(closeCb).not.toHaveBeenCalled()
+    emit('close', {})
+    expect(closeCb).toHaveBeenCalledTimes(1)
+  })
 })

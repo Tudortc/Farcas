@@ -9,6 +9,8 @@ export interface WebSocketLike {
 export interface WsClient {
   send(msg: ClientMessage): void
   onMessage(cb: (msg: ServerMessage) => void): void
+  onOpen(cb: () => void): void
+  onClose(cb: () => void): void
   close(): void
 }
 
@@ -19,6 +21,8 @@ export function createWsClient(opts: {
   const factory = opts.socketFactory ?? ((u: string) => new WebSocket(u) as unknown as WebSocketLike)
   const sock = factory(opts.url)
   const handlers: ((msg: ServerMessage) => void)[] = []
+  const openHandlers: (() => void)[] = []
+  const closeHandlers: (() => void)[] = []
   let isOpen = false
   const queue: string[] = []
 
@@ -28,6 +32,12 @@ export function createWsClient(opts: {
       sock.send(json)
     }
     queue.length = 0
+    openHandlers.forEach((h) => h())
+  })
+
+  sock.addEventListener('close', () => {
+    isOpen = false
+    closeHandlers.forEach((h) => h())
   })
 
   sock.addEventListener('message', (ev) => {
@@ -51,6 +61,8 @@ export function createWsClient(opts: {
       }
     },
     onMessage: (cb) => handlers.push(cb),
+    onOpen: (cb) => openHandlers.push(cb),
+    onClose: (cb) => closeHandlers.push(cb),
     close: () => sock.close(),
   }
 }
