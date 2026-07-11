@@ -6,6 +6,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { registerWebSocket } from './ws.js'
 import { registerStatic } from './static.js'
+import { registerAuth } from './auth-routes.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const clientDist = join(here, '../../client/dist')
@@ -19,6 +20,10 @@ export function buildApp(): FastifyInstance {
   })
 
   app.get('/health', async () => ({ status: 'ok' }))
+
+  app.register(async (instance) => {
+    await registerAuth(instance)
+  })
 
   if (existsSync(join(clientDist, 'index.html'))) {
     app.register(fstatic, { root: clientDist })
