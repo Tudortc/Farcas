@@ -15,6 +15,7 @@ export default defineConfig({
     globalSetup: ['./test/global-setup.ts'],
     setupFiles: ['./test/setup.ts'],
     testTimeout: 15000,
+    fileParallelism: false,
     env: {
       BETTER_AUTH_SECRET: 'test-secret-0123456789abcdef0123456789abcdef',
       BETTER_AUTH_URL: 'http://localhost:3030',

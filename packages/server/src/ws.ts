@@ -3,6 +3,7 @@ import { parseClientMessage, PROTOCOL_VERSION, type ServerMessage } from '@bool/
 import { getSessionFromHeaders } from './auth-routes.js'
 import { ircManager } from './irc/singleton.js'
 import { createNetwork, removeNetwork, listNetworks } from './networks.js'
+import { searchMessages, getHistory } from './messages.js'
 
 export function serverTimeNow(): number {
   return Date.now()
@@ -85,6 +86,12 @@ export function registerWebSocket(app: FastifyInstance): void {
           if (!ircManager.say(userId, msg.networkId, msg.target, msg.text)) {
             send({ type: 'net:error', networkId: msg.networkId, message: 'not connected' })
           }
+          break
+        case 'chat:search':
+          send({ type: 'search:results', query: msg.query, results: searchMessages(userId, msg.query, msg.limit) })
+          break
+        case 'history:request':
+          send({ type: 'history:batch', networkId: msg.networkId, target: msg.target, messages: getHistory(userId, msg.networkId, msg.target, msg.limit, msg.before) })
           break
       }
     }

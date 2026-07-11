@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const PROTOCOL_VERSION = 2
+export const PROTOCOL_VERSION = 3
 
 // --- Client -> Server ---
 export const helloSchema = z.object({ type: z.literal('hello'), clientVersion: z.number().int() })
@@ -26,11 +26,19 @@ export const netListReqSchema = z.object({ type: z.literal('net:list') })
 export const chanJoinSchema = z.object({ type: z.literal('chan:join'), networkId: z.number().int(), channel: z.string() })
 export const chanPartSchema = z.object({ type: z.literal('chan:part'), networkId: z.number().int(), channel: z.string() })
 export const chatSendSchema = z.object({ type: z.literal('chat:send'), networkId: z.number().int(), target: z.string(), text: z.string() })
+export const chatSearchSchema = z.object({ type: z.literal('chat:search'), query: z.string(), limit: z.number().int().optional() })
+export const historyRequestSchema = z.object({
+  type: z.literal('history:request'),
+  networkId: z.number().int(),
+  target: z.string(),
+  limit: z.number().int().optional(),
+  before: z.number().optional(),
+})
 
 export const clientMessageSchema = z.discriminatedUnion('type', [
   helloSchema, pingSchema,
   netAddSchema, netRemoveSchema, netConnectSchema, netDisconnectSchema, netListReqSchema,
-  chanJoinSchema, chanPartSchema, chatSendSchema,
+  chanJoinSchema, chanPartSchema, chatSendSchema, chatSearchSchema, historyRequestSchema,
 ])
 export type ClientMessage = z.infer<typeof clientMessageSchema>
 
@@ -90,11 +98,27 @@ export const chanTopicSchema = z.object({ type: z.literal('chan:topic'), network
 export const presenceQuitSchema = z.object({ type: z.literal('presence:quit'), networkId: z.number().int(), nick: z.string(), reason: z.string().optional() })
 export const presenceNickSchema = z.object({ type: z.literal('presence:nick'), networkId: z.number().int(), oldNick: z.string(), newNick: z.string() })
 
+export const storedMsgSchema = z.object({
+  id: z.number().int(),
+  networkId: z.number().int(),
+  target: z.string(),
+  sender: z.string(),
+  kind: z.enum(['privmsg', 'notice', 'action']),
+  body: z.string(),
+  ts: z.number(),
+  msgid: z.string().optional(),
+})
+export type StoredMsg = z.infer<typeof storedMsgSchema>
+
+export const searchResultsSchema = z.object({ type: z.literal('search:results'), query: z.string(), results: z.array(storedMsgSchema) })
+export const historyBatchSchema = z.object({ type: z.literal('history:batch'), networkId: z.number().int(), target: z.string(), messages: z.array(storedMsgSchema) })
+
 export const serverMessageSchema = z.discriminatedUnion('type', [
   welcomeSchema, pongSchema, errorSchema,
   netStateSchema, netListSchema, netErrorSchema,
   chatMsgSchema, chanNamesSchema, chanJoinEvtSchema, chanPartEvtSchema, chanTopicSchema,
   presenceQuitSchema, presenceNickSchema,
+  searchResultsSchema, historyBatchSchema,
 ])
 export type ServerMessage = z.infer<typeof serverMessageSchema>
 

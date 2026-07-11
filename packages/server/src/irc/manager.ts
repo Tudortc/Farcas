@@ -1,6 +1,7 @@
 import type { ServerMessage } from '@bool/shared'
 import { IrcConnection, type IrcClientFactory } from './connection.js'
 import { getNetwork } from '../networks.js'
+import { storeMessage } from '../messages.js'
 
 const keyOf = (userId: string, networkId: number) => `${userId}:${networkId}`
 
@@ -21,10 +22,28 @@ export class IrcManager {
       sink({ type: 'net:error', networkId, message: 'network not found' })
       return
     }
+    const persistingSink = (msg: ServerMessage) => {
+      if (msg.type === 'chat:msg') {
+        try {
+          storeMessage(userId, {
+            networkId: msg.networkId,
+            target: msg.target,
+            sender: msg.from,
+            kind: msg.kind,
+            body: msg.text,
+            ts: msg.time ?? Date.now(),
+            ...(msg.msgid ? { msgid: msg.msgid } : {}),
+          })
+        } catch (err) {
+          console.error('[IrcManager] persistingSink: storeMessage failed (message still relayed):', err)
+        }
+      }
+      sink(msg)
+    }
     const conn = new IrcConnection(
       networkId,
       { name: cfg.name, host: cfg.host, port: cfg.port, tls: cfg.tls, nick: cfg.nick, username: cfg.username, realname: cfg.realname, saslAccount: cfg.saslAccount, saslPassword: cfg.saslPassword },
-      sink,
+      persistingSink,
       this.factory,
     )
     this.conns.set(k, conn)

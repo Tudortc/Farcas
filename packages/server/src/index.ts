@@ -2,6 +2,22 @@ import { buildApp } from './app.js'
 import { firstAdminHint } from './bootstrap-admin.js'
 import { getDb } from './db.js'
 import { ensureAppSchema } from './schema.js'
+import { runRetention } from './retention.js'
+
+export function startRetention(intervalMs = 6 * 60 * 60 * 1000): NodeJS.Timeout {
+  const tick = () => {
+    try {
+      const n = runRetention(Date.now())
+      if (n > 0) console.log(`retention: pruned ${n} messages`)
+    } catch (err) {
+      console.error('retention error', err)
+    }
+  }
+  tick()
+  const timer = setInterval(tick, intervalMs)
+  timer.unref()
+  return timer
+}
 
 const port = Number(process.env.PORT ?? 3030)
 const host = process.env.HOST ?? '0.0.0.0'
@@ -22,6 +38,7 @@ app
         // eslint-disable-next-line no-console
         console.log(firstAdminHint())
       }
+      startRetention()
     } catch {
       // eslint-disable-next-line no-console
       console.log(
