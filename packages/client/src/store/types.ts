@@ -40,6 +40,10 @@ export interface ChatState {
   selected: string | null
   searchResults: SearchResults | null
   lastError: { networkId: number; message: string } | null
+  /** targetKey → nick → last-active timestamp (Date.now()) */
+  typing: Record<string, Record<string, number>>
+  /** msgid → emoji → nicks[] */
+  reactions: Record<string, Record<string, string[]>>
 }
 
 export interface ChatActions {
@@ -63,6 +67,12 @@ export interface ChatActions {
   search(query: string): void
   loadHistory(targetKey: string): void
   markRead(targetKey: string, ts: number): void
+  /** Send typing:set for a target (parsed from targetKey). Does not display own typing locally. */
+  setTyping(targetKey: string, state: 'active' | 'done'): void
+  /** Find the message by msgid and send react:add or react:remove. */
+  react(msgid: string, emoji: string, add: boolean): void
+  /** Send chat:send with replyTo set to replyToMsgid, using the currently selected target. */
+  sendReply(text: string, replyToMsgid: string): void
 }
 
 export type ChatStore = ChatState & ChatActions

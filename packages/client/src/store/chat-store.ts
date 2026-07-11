@@ -16,6 +16,8 @@ const emptyState: ChatState = {
   selected: null,
   searchResults: null,
   lastError: null,
+  typing: {},
+  reactions: {},
 }
 
 let _msgIdCounter = 0
@@ -97,6 +99,7 @@ function reduceServerMessage(state: ChatState, msg: ServerMessage): Partial<Chat
         body: msg.text,
         ts: msg.time ?? Date.now(),
         msgid: msg.msgid,
+        replyTo: msg.replyTo,
       }
 
       const existingMessages = state.messages[key] ?? []
@@ -259,6 +262,43 @@ function reduceServerMessage(state: ChatState, msg: ServerMessage): Partial<Chat
       }
     }
 
+    case 'typing:update': {
+      const key = targetKey(msg.networkId, msg.target)
+      const targetTyping = { ...(state.typing[key] ?? {}) }
+      if (msg.state === 'active') {
+        targetTyping[msg.nick] = Date.now()
+      } else {
+        delete targetTyping[msg.nick]
+      }
+      return {
+        typing: { ...state.typing, [key]: targetTyping },
+      }
+    }
+
+    case 'react:update': {
+      const msgReactions = { ...(state.reactions[msg.msgid] ?? {}) }
+      if (msg.action === 'add') {
+        const nicks = msgReactions[msg.emoji] ?? []
+        if (!nicks.includes(msg.nick)) {
+          msgReactions[msg.emoji] = [...nicks, msg.nick]
+        }
+      } else {
+        const nicks = (msgReactions[msg.emoji] ?? []).filter((n) => n !== msg.nick)
+        if (nicks.length > 0) {
+          msgReactions[msg.emoji] = nicks
+        } else {
+          delete msgReactions[msg.emoji]
+        }
+      }
+      const reactions = { ...state.reactions }
+      if (Object.keys(msgReactions).length > 0) {
+        reactions[msg.msgid] = msgReactions
+      } else {
+        delete reactions[msg.msgid]
+      }
+      return { reactions }
+    }
+
     default:
       return {}
   }
@@ -357,6 +397,44 @@ function createActions(
             : state.targets,
         }
       })
+    },
+
+    setTyping(key: string, state: 'active' | 'done') {
+      const colonIdx = key.indexOf(':')
+      if (colonIdx === -1) return
+      const networkId = Number(key.slice(0, colonIdx))
+      const target = key.slice(colonIdx + 1)
+      _send?.({ type: 'typing:set', networkId, target, state })
+    },
+
+    react(msgid: string, emoji: string, add: boolean) {
+      // Search messages to find which network/target this message belongs to
+      const messages = get().messages
+      for (const [key, msgs] of Object.entries(messages)) {
+        const found = msgs.find((m) => m.msgid === msgid)
+        if (found) {
+          const colonIdx = key.indexOf(':')
+          if (colonIdx === -1) return
+          const networkId = Number(key.slice(0, colonIdx))
+          const target = key.slice(colonIdx + 1)
+          if (add) {
+            _send?.({ type: 'react:add', networkId, target, msgid, emoji })
+          } else {
+            _send?.({ type: 'react:remove', networkId, target, msgid, emoji })
+          }
+          return
+        }
+      }
+    },
+
+    sendReply(text: string, replyToMsgid: string) {
+      const { selected } = get()
+      if (!selected) return
+      const colonIdx = selected.indexOf(':')
+      if (colonIdx === -1) return
+      const networkId = Number(selected.slice(0, colonIdx))
+      const target = selected.slice(colonIdx + 1)
+      _send?.({ type: 'chat:send', networkId, target, text, replyTo: replyToMsgid })
     },
   }
 }
