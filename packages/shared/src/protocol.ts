@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const PROTOCOL_VERSION = 4
+export const PROTOCOL_VERSION = 5
 
 // --- Client -> Server ---
 export const helloSchema = z.object({ type: z.literal('hello'), clientVersion: z.number().int() })
@@ -25,7 +25,11 @@ export const netDisconnectSchema = z.object({ type: z.literal('net:disconnect'),
 export const netListReqSchema = z.object({ type: z.literal('net:list') })
 export const chanJoinSchema = z.object({ type: z.literal('chan:join'), networkId: z.number().int(), channel: z.string() })
 export const chanPartSchema = z.object({ type: z.literal('chan:part'), networkId: z.number().int(), channel: z.string() })
-export const chatSendSchema = z.object({ type: z.literal('chat:send'), networkId: z.number().int(), target: z.string(), text: z.string() })
+export const chatSendSchema = z.object({ type: z.literal('chat:send'), networkId: z.number().int(), target: z.string(), text: z.string(), replyTo: z.string().optional() })
+
+export const typingSetSchema = z.object({ type: z.literal('typing:set'), networkId: z.number().int(), target: z.string(), state: z.enum(['active', 'done']) })
+export const reactAddSchema = z.object({ type: z.literal('react:add'), networkId: z.number().int(), target: z.string(), msgid: z.string(), emoji: z.string() })
+export const reactRemoveSchema = z.object({ type: z.literal('react:remove'), networkId: z.number().int(), target: z.string(), msgid: z.string(), emoji: z.string() })
 export const chatSearchSchema = z.object({ type: z.literal('chat:search'), query: z.string(), limit: z.number().int().optional() })
 export const historyRequestSchema = z.object({
   type: z.literal('history:request'),
@@ -43,6 +47,7 @@ export const clientMessageSchema = z.discriminatedUnion('type', [
   netAddSchema, netRemoveSchema, netConnectSchema, netDisconnectSchema, netListReqSchema,
   chanJoinSchema, chanPartSchema, chatSendSchema, chatSearchSchema, historyRequestSchema,
   readSetSchema, readListReqSchema,
+  typingSetSchema, reactAddSchema, reactRemoveSchema,
 ])
 export type ClientMessage = z.infer<typeof clientMessageSchema>
 
@@ -89,6 +94,7 @@ export const chatMsgSchema = z.object({
   msgid: z.string().optional(),
   time: z.number().optional(),
   account: z.string().optional(),
+  replyTo: z.string().optional(),
 })
 export const chanNamesSchema = z.object({
   type: z.literal('chan:names'),
@@ -111,6 +117,7 @@ export const storedMsgSchema = z.object({
   body: z.string(),
   ts: z.number(),
   msgid: z.string().optional(),
+  replyTo: z.string().optional(),
 })
 export type StoredMsg = z.infer<typeof storedMsgSchema>
 
@@ -123,6 +130,9 @@ export const readListSchema = z.object({
   markers: z.array(z.object({ networkId: z.number().int(), target: z.string(), ts: z.number() })),
 })
 
+export const typingUpdateSchema = z.object({ type: z.literal('typing:update'), networkId: z.number().int(), target: z.string(), nick: z.string(), state: z.enum(['active', 'done']) })
+export const reactUpdateSchema = z.object({ type: z.literal('react:update'), networkId: z.number().int(), target: z.string(), msgid: z.string(), emoji: z.string(), nick: z.string(), action: z.enum(['add', 'remove']) })
+
 export const serverMessageSchema = z.discriminatedUnion('type', [
   welcomeSchema, pongSchema, errorSchema,
   netStateSchema, netListSchema, netErrorSchema,
@@ -130,6 +140,7 @@ export const serverMessageSchema = z.discriminatedUnion('type', [
   presenceQuitSchema, presenceNickSchema,
   searchResultsSchema, historyBatchSchema,
   readUpdateSchema, readListSchema,
+  typingUpdateSchema, reactUpdateSchema,
 ])
 export type ServerMessage = z.infer<typeof serverMessageSchema>
 

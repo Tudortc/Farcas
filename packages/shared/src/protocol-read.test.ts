@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { parseClientMessage, parseServerMessage, PROTOCOL_VERSION } from './index.js'
 
 describe('read-state protocol', () => {
-  it('bumped PROTOCOL_VERSION to 4', () => {
-    expect(PROTOCOL_VERSION).toBe(4)
+  it('bumped PROTOCOL_VERSION to 5', () => {
+    expect(PROTOCOL_VERSION).toBe(5)
   })
   it('parses read:set and read:list (client)', () => {
     expect(parseClientMessage(JSON.stringify({ type: 'read:set', networkId: 1, target: '#x', ts: 10 })).type).toBe('read:set')
