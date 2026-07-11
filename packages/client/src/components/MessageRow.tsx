@@ -30,10 +30,10 @@ function formatTime(ts: number): string {
 }
 
 // ---- Body rendering ----
-// Renders IRC-formatted text + linkifies URLs.
-// Uses parseIrcText (which escapes HTML) then dangerously... nope:
-// We set innerHTML only via properly escaped segments from parseIrcText,
-// but React elements are safer. We render segments as React spans.
+// Renders IRC-formatted text + linkifies URLs as React elements.
+// linkify() splits into [text | url] runs (raw text, no HTML escaping).
+// parseIrcText() splits text runs into styled sub-segments (raw text).
+// React escapes all text content automatically — no dangerouslySetInnerHTML.
 
 interface BodyProps {
   text: string
@@ -59,24 +59,8 @@ function IrcBody({ text }: BodyProps) {
             </a>
           )
         }
-        // Parse IRC formatting — note: ls.text is already HTML-escaped
-        // but parseIrcText escapes its own input, so we pass the raw un-escaped text.
-        // We need original text for color parsing. Use index into original text.
-        // Actually linkify() receives the raw original text and returns url or escaped text.
-        // For non-url segments, ls.text is escapeHtml(rawSlice).
-        // We can't re-parse an already-escaped string safely. Instead, parseIrcText
-        // receives raw text; we call it on the rawSlice embedded in ls.
-        // However linkify() does NOT give us the raw slice back for non-url segments.
-        // Solution: store raw slices separately. Let's re-export from irc-format.
-        // For now, since parseIrcText already escapes its input, we pass ls.text
-        // as-is and treat it as escaped plain text to avoid double-escaping.
-        // Segments that came from escapeHtml() won't contain control codes anyway.
-        // Simply render the already-escaped HTML via dangerouslySetInnerHTML for
-        // non-link non-IRC text is NOT used here. We render via a span with a
-        // dangerouslySetInnerHTML only for the escaped text (safe: no <, >, &, etc.
-        // without escaping). Actually we need a better approach.
-
-        // Render as a sequence of styled spans from parseIrcText:
+        // ls.text is raw (unescaped); parseIrcText returns raw segments too.
+        // React escapes seg.text when rendered as a child — no double-escaping.
         const ircSegs = parseIrcText(ls.text)
         return ircSegs.map((seg, si) => {
           const style: React.CSSProperties = {}
@@ -85,16 +69,13 @@ function IrcBody({ text }: BodyProps) {
           if (seg.bold) style.fontWeight = 700
           if (seg.italic) style.fontStyle = 'italic'
           if (seg.underline) style.textDecoration = 'underline'
-          // seg.text is already HTML-escaped; render using dangerouslySetInnerHTML
-          // is safe here because it only contains &amp; &lt; &gt; &quot; &#39; sequences.
-          // But the problem: React will double-escape if we set it as text content.
-          // We need dangerouslySetInnerHTML to render the pre-escaped entities.
           return (
             <span
               key={`${li}-${si}`}
               style={Object.keys(style).length > 0 ? style : undefined}
-              dangerouslySetInnerHTML={{ __html: seg.text }}
-            />
+            >
+              {seg.text}
+            </span>
           )
         })
       })}

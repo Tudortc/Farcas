@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
+import { render } from '@testing-library/react'
+import React from 'react'
 import { parseIrcText, linkify } from './irc-format.js'
+import { MessageRow } from './MessageRow.js'
+import type { StoredMsg } from '@bool/shared'
 
 describe('parseIrcText', () => {
   it('returns plain text segment for plain string', () => {
@@ -52,20 +56,20 @@ describe('parseIrcText', () => {
     expect(seg?.color).toBe('var(--m-red)')
   })
 
-  it('ESCAPES HTML angle brackets — no raw HTML in text output', () => {
-    const result = parseIrcText('<script>alert(1)</script>')
+  it('returns RAW text — angle brackets are NOT HTML-escaped', () => {
+    const result = parseIrcText('<world>')
     const allText = result.map((s) => s.text).join('')
-    expect(allText).not.toContain('<script>')
-    expect(allText).not.toContain('</script>')
-    // Should contain escaped form
-    expect(allText).toContain('&lt;script&gt;')
+    // Raw text passes through; React will escape when rendering
+    expect(allText).toBe('<world>')
+    expect(allText).not.toContain('&lt;')
+    expect(allText).not.toContain('&gt;')
   })
 
-  it('escapes & in body', () => {
+  it('returns RAW text — ampersand is NOT HTML-escaped', () => {
     const result = parseIrcText('a & b')
     const allText = result.map((s) => s.text).join('')
-    expect(allText).toContain('&amp;')
-    expect(allText).not.toContain(' & ')
+    expect(allText).toBe('a & b')
+    expect(allText).not.toContain('&amp;')
   })
 
   it('handles empty string', () => {
@@ -95,9 +99,49 @@ describe('linkify', () => {
     expect(result).toEqual([{ text: 'no links here' }])
   })
 
-  it('does NOT produce raw HTML in text segments', () => {
-    const result = linkify('<b>https://x.com</b>')
+  it('returns RAW text in text segments — no HTML escaping', () => {
+    const result = linkify('<b>hello</b>')
     const allText = result.map((s) => s.text).join('')
-    expect(allText).not.toContain('<b>')
+    expect(allText).toBe('<b>hello</b>')
+    expect(allText).not.toContain('&lt;')
+  })
+
+  it('does NOT linkify javascript: URLs — rendered as plain text', () => {
+    const result = linkify('javascript:alert(1)')
+    // Should have no url property (treated as plain text)
+    const link = result.find((s) => s.url)
+    expect(link).toBeUndefined()
+  })
+})
+
+// ---- XSS safety — render-layer tests ----
+
+function makeMsg(body: string): StoredMsg {
+  return { id: 1, networkId: 1, target: '#test', sender: 'nick', body, ts: Date.now(), kind: 'privmsg' }
+}
+
+describe('IrcBody XSS safety (render layer)', () => {
+  it('renders <img src=x onerror=...> as text, not an img element', () => {
+    const xss = '<img src=x onerror="alert(1)">'
+    const { container } = render(React.createElement(MessageRow, { msg: makeMsg(xss) }))
+    // React must NOT create an img element from the body text
+    expect(container.querySelector('img')).toBeNull()
+    // The literal text should appear as text content (possibly partial)
+    expect(container.textContent).toContain('<img')
+  })
+
+  it('renders <script>alert(1)</script> as text, not a script element', () => {
+    const xss = '<script>alert(1)</script>'
+    const { container } = render(React.createElement(MessageRow, { msg: makeMsg(xss) }))
+    expect(container.querySelector('script')).toBeNull()
+    expect(container.textContent).toContain('<script>')
+  })
+
+  it('does not linkify javascript: scheme — no href with javascript:', () => {
+    const xss = 'javascript:alert(1)'
+    const { container } = render(React.createElement(MessageRow, { msg: makeMsg(xss) }))
+    const anchors = Array.from(container.querySelectorAll('a'))
+    const hasJsHref = anchors.some((a) => a.href.startsWith('javascript:'))
+    expect(hasJsHref).toBe(false)
   })
 })

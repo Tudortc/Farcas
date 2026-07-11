@@ -1,22 +1,11 @@
 /**
  * irc-format.ts — mIRC formatting parser + URL linkifier.
  *
- * All output is HTML-escaped text; never use dangerouslySetInnerHTML.
- * Render segments with React elements based on the metadata.
+ * Returns raw text segments (no HTML escaping); render as React elements.
+ * React escapes text content automatically — never use dangerouslySetInnerHTML.
  */
 
 import LinkifyIt from 'linkify-it'
-
-// ---- HTML escape ----
-
-export function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
 
 // ---- mIRC color map ----
 // Maps mIRC color numbers (0–15) to CSS variables from tokens.css.
@@ -60,8 +49,9 @@ export interface LinkSegment {
 
 /**
  * Parse a raw IRC message body containing mIRC control codes.
- * Returns an array of segments; text is HTML-escaped.
- * Control codes stripped from the text content.
+ * Returns an array of segments with RAW (unescaped) text.
+ * Control codes are stripped from the text content.
+ * Render each segment as a React element — React escapes the text.
  */
 export function parseIrcText(body: string): IrcTextSegment[] {
   const segments: IrcTextSegment[] = []
@@ -143,7 +133,7 @@ export function parseIrcText(body: string): IrcTextSegment[] {
       underline = false
       i++
     } else {
-      buf += escapeHtml(ch)
+      buf += ch
       i++
     }
   }
@@ -156,15 +146,19 @@ export function parseIrcText(body: string): IrcTextSegment[] {
 
 const linkifier = new LinkifyIt()
 
+// Safe URL schemes — only these are linkified; javascript: and others are rendered as text
+const SAFE_SCHEMES = /^(https?|ftp|mailto):/i
+
 /**
  * Split a plain text string into text + URL segments.
- * The input text should be plain (not HTML-escaped) for URL matching;
- * text segments are HTML-escaped in the output.
+ * Returns RAW (unescaped) text; render as React elements so React handles escaping.
+ * Only http/https/ftp/mailto URLs are linkified; javascript: and other schemes are
+ * left as plain text.
  */
 export function linkify(text: string): LinkSegment[] {
   const matches = linkifier.match(text)
   if (!matches || matches.length === 0) {
-    return [{ text: escapeHtml(text) }]
+    return [{ text }]
   }
 
   const result: LinkSegment[] = []
@@ -172,14 +166,19 @@ export function linkify(text: string): LinkSegment[] {
 
   for (const match of matches) {
     if (match.index > last) {
-      result.push({ text: escapeHtml(text.slice(last, match.index)) })
+      result.push({ text: text.slice(last, match.index) })
     }
-    result.push({ text: match.text, url: match.url })
+    // Only emit a url for safe schemes; otherwise treat as plain text
+    if (SAFE_SCHEMES.test(match.url)) {
+      result.push({ text: match.text, url: match.url })
+    } else {
+      result.push({ text: match.text })
+    }
     last = match.lastIndex
   }
 
   if (last < text.length) {
-    result.push({ text: escapeHtml(text.slice(last)) })
+    result.push({ text: text.slice(last) })
   }
 
   return result
