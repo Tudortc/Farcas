@@ -30,39 +30,48 @@ afterAll(async () => {
   await app.close()
 })
 
-function once<T>(ws: WebSocket, send: object): Promise<T> {
+/** Waits for a message matching `pred` after sending `send`. */
+function waitFor<T>(ws: WebSocket, send: object, pred: (msg: any) => boolean): Promise<T> {
   return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => { ws.close(); reject(new Error('ws waitFor timeout')) }, 5000)
     ws.on('open', () => ws.send(JSON.stringify(send)))
     ws.on('message', (data) => {
-      resolve(JSON.parse(data.toString()) as T)
-      ws.close()
+      const msg = JSON.parse(data.toString())
+      if (pred(msg)) {
+        clearTimeout(timer)
+        resolve(msg as T)
+        ws.close()
+      }
     })
-    ws.on('error', reject)
+    ws.on('error', (err) => { clearTimeout(timer); reject(err) })
   })
 }
 
 describe('websocket /ws', () => {
   it('replies welcome to hello', async () => {
-    const reply = await once<{ type: string; protocolVersion: number }>(
+    const reply = await waitFor<{ type: string; protocolVersion: number }>(
       new WebSocket(url, { headers: { cookie: sessionCookie } }),
       { type: 'hello', clientVersion: 1 },
+      (m) => m.type === 'welcome',
     )
     expect(reply.type).toBe('welcome')
     expect(reply.protocolVersion).toBe(PROTOCOL_VERSION)
   })
 
   it('replies pong echoing t', async () => {
-    const reply = await once<{ type: string; t: number }>(
+    const reply = await waitFor<{ type: string; t: number }>(
       new WebSocket(url, { headers: { cookie: sessionCookie } }),
       { type: 'ping', t: 42 },
+      (m) => m.type === 'pong',
     )
     expect(reply).toMatchObject({ type: 'pong', t: 42 })
   })
 
   it('replies error on garbage', async () => {
-    const reply = await once<{ type: string }>(
+    const reply = await waitFor<{ type: string }>(
       new WebSocket(url, { headers: { cookie: sessionCookie } }),
       { type: 'garbage' },
+      (m) => m.type === 'error',
     )
     expect(reply.type).toBe('error')
   })

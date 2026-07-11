@@ -4,6 +4,7 @@ import { getSessionFromHeaders } from './auth-routes.js'
 import { hub, ircManager } from './irc/singleton.js'
 import { createNetwork, removeNetwork, listNetworks } from './networks.js'
 import { searchMessages, getHistory } from './messages.js'
+import { setReadMarker, listReadMarkers } from './read-markers.js'
 
 export function serverTimeNow(): number {
   return Date.now()
@@ -20,11 +21,8 @@ export function registerWebSocket(app: FastifyInstance): void {
       return
     }
     const userId = session.user.id
-    // Subscribe this socket to the hub so IRC messages reach it.
-    // Full per-network subscribe/unsubscribe wiring is Task 4; this minimal subscribe
-    // keeps the existing integration test green while hub fan-out is established.
-    const sink = (msg: ServerMessage) => send(msg)
-    const unsubFromHub = hub.subscribe(userId, sink)
+    // Subscribe this socket to the hub so all IRC + fan-out messages reach it.
+    const unsubFromHub = hub.subscribe(userId, (msg: ServerMessage) => send(msg))
     socket.on('close', () => unsubFromHub())
 
     const sendNetList = () => {
@@ -41,6 +39,10 @@ export function registerWebSocket(app: FastifyInstance): void {
         })),
       })
     }
+
+    // Send current state to the freshly-subscribed socket.
+    sendNetList()
+    send({ type: 'read:list', markers: listReadMarkers(userId) })
 
     const handleMessage = (msg: ReturnType<typeof parseClientMessage>) => {
       switch (msg.type) {
@@ -95,6 +97,13 @@ export function registerWebSocket(app: FastifyInstance): void {
           break
         case 'history:request':
           send({ type: 'history:batch', networkId: msg.networkId, target: msg.target, messages: getHistory(userId, msg.networkId, msg.target, msg.limit, msg.before) })
+          break
+        case 'read:set':
+          setReadMarker(userId, msg.networkId, msg.target, msg.ts)
+          hub.publish(userId, { type: 'read:update', networkId: msg.networkId, target: msg.target, ts: msg.ts })
+          break
+        case 'read:list':
+          send({ type: 'read:list', markers: listReadMarkers(userId) })
           break
       }
     }
