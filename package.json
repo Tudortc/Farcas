@@ -1,0 +1,21 @@
+{
+  "name": "bool",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "vitest run",
+    "test:all": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "dev": "pnpm -r --parallel dev"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0",
+    "prettier": "^3.3.0",
+    "tsx": "^4.19.0",
+    "@types/node": "^20.14.0"
+  }
+}

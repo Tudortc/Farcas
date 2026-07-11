@@ -2,4 +2,6 @@ node_modules/
 dist/
 *.log
 beacon.db*
+bool.db*
 .DS_Store
+coverage/
