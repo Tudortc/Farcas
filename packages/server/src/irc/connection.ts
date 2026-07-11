@@ -6,6 +6,7 @@ export interface IrcClientLike {
   emit(event: string, arg?: any): boolean
   connect(options: any): void
   say(target: string, message: string, tags?: Record<string, string>): void
+  tagmsg(target: string, tags: Record<string, string>): void
   join(channel: string, key?: string): void
   part(channel: string, message?: string): void
   quit(message?: string): void
@@ -107,7 +108,26 @@ export class IrcConnection {
         ...(e.tags?.msgid ? { msgid: e.tags.msgid } : {}),
         ...(typeof e.time === 'number' ? { time: e.time } : {}),
         ...(e.account ? { account: e.account } : {}),
+        ...(e.tags?.['+draft/reply'] ? { replyTo: e.tags['+draft/reply'] } : {}),
       })
+    })
+
+    client.on('tagmsg', (e: any) => {
+      const tags: Record<string, string> = e.tags ?? {}
+      if (tags['+typing'] !== undefined) {
+        const state = tags['+typing'] === 'done' ? 'done' : 'active'
+        this.sink({ type: 'typing:update', networkId: nid, target: e.target, nick: e.nick ?? '', state })
+      } else if (tags['+draft/react'] !== undefined) {
+        this.sink({
+          type: 'react:update',
+          networkId: nid,
+          target: e.target,
+          msgid: tags['+draft/reply'] ?? '',
+          emoji: tags['+draft/react'],
+          nick: e.nick ?? '',
+          action: 'add',
+        })
+      }
     })
 
     client.on('join', (e: any) => {
@@ -141,8 +161,32 @@ export class IrcConnection {
   part(channel: string): void {
     this.client?.part(channel)
   }
-  say(target: string, text: string): void {
-    this.client?.say(target, text)
+  say(target: string, text: string, replyTo?: string): void {
+    if (!this.client) return
+    const capEnabled = this.client.network.cap.isEnabled('message-tags')
+    if (replyTo) {
+      if (capEnabled) {
+        this.client.say(target, text, { '+draft/reply': replyTo })
+      } else {
+        this.client.say(target, '> ' + text)
+      }
+    } else {
+      this.client.say(target, text)
+    }
+  }
+  sendTyping(target: string, state: 'active' | 'done'): void {
+    if (!this.client) return
+    if (!this.client.network.cap.isEnabled('message-tags')) return
+    this.client.tagmsg(target, { '+typing': state })
+  }
+  sendReaction(target: string, msgid: string, emoji: string, add: boolean): void {
+    if (!this.client) return
+    if (!this.client.network.cap.isEnabled('message-tags')) return
+    if (add) {
+      this.client.tagmsg(target, { '+draft/react': emoji, '+draft/reply': msgid })
+    } else {
+      this.client.tagmsg(target, { '+draft/react': emoji, '+draft/reply': msgid })
+    }
   }
   disconnect(): void {
     this.teardown()

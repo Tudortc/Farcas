@@ -13,6 +13,7 @@ function fakeClient(): IrcClientLike {
   ee.network = { name: 'TestNet', cap: { enabled: [], isEnabled: () => false } }
   ee.connect = vi.fn(() => ee.emit('registered', { nick: 'bool' }))
   ee.say = vi.fn()
+  ee.tagmsg = vi.fn()
   ee.join = vi.fn()
   ee.part = vi.fn()
   ee.quit = vi.fn()

@@ -9,6 +9,7 @@ export interface MessageInput {
   body: string
   ts: number
   msgid?: string
+  replyTo?: string
 }
 
 interface DbRow {

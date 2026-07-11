@@ -88,9 +88,20 @@ export function registerWebSocket(app: FastifyInstance): void {
           ircManager.part(userId, msg.networkId, msg.channel)
           break
         case 'chat:send':
-          if (!ircManager.say(userId, msg.networkId, msg.target, msg.text)) {
+          if (!ircManager.say(userId, msg.networkId, msg.target, msg.text, msg.replyTo)) {
             send({ type: 'net:error', networkId: msg.networkId, message: 'not connected' })
           }
+          break
+        case 'typing:set':
+          ircManager.setTyping(userId, msg.networkId, msg.target, msg.state)
+          break
+        case 'react:add':
+          ircManager.react(userId, msg.networkId, msg.target, msg.msgid, msg.emoji, true)
+          hub.publish(userId, { type: 'react:update', networkId: msg.networkId, target: msg.target, msgid: msg.msgid, emoji: msg.emoji, nick: userId, action: 'add' })
+          break
+        case 'react:remove':
+          ircManager.react(userId, msg.networkId, msg.target, msg.msgid, msg.emoji, false)
+          hub.publish(userId, { type: 'react:update', networkId: msg.networkId, target: msg.target, msgid: msg.msgid, emoji: msg.emoji, nick: userId, action: 'remove' })
           break
         case 'chat:search':
           send({ type: 'search:results', query: msg.query, results: searchMessages(userId, msg.query, msg.limit) })

@@ -41,6 +41,7 @@ export class IrcManager {
             body: msg.text,
             ts: msg.time ?? Date.now(),
             ...(msg.msgid ? { msgid: msg.msgid } : {}),
+            ...(msg.replyTo ? { replyTo: msg.replyTo } : {}),
           })
         } catch (err) {
           console.error('[IrcManager] persistingSink: storeMessage failed', err)
@@ -79,11 +80,19 @@ export class IrcManager {
     c.part(channel)
     return true
   }
-  say(userId: string, networkId: number, target: string, text: string): boolean {
+  say(userId: string, networkId: number, target: string, text: string, replyTo?: string): boolean {
     const c = this.conns.get(keyOf(userId, networkId))
     if (!c || !c.isConnected()) return false
-    c.say(target, text)
+    c.say(target, text, replyTo)
     return true
+  }
+  setTyping(userId: string, networkId: number, target: string, state: 'active' | 'done'): void {
+    const c = this.conns.get(keyOf(userId, networkId))
+    c?.sendTyping(target, state)
+  }
+  react(userId: string, networkId: number, target: string, msgid: string, emoji: string, add: boolean): void {
+    const c = this.conns.get(keyOf(userId, networkId))
+    c?.sendReaction(target, msgid, emoji, add)
   }
 
   getConnection(userId: string, networkId: number): IrcConnection | undefined {
