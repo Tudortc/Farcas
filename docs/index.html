@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bool — the open-source IRCCloud</title>
+<meta name="description" content="bool is a modern, self-hosted web IRC client — the open-source IRCCloud. Working iOS push, Slack-grade full-text search, and impeccable dense design.">
+<meta property="og:title" content="bool — the open-source IRCCloud">
+<meta property="og:description" content="A modern, self-hosted web IRC client. Working iOS push, full-text search, impeccable dense design.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://dmfarcas.github.io/bool/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-0:#0a0c0d;--bg-1:#0e1113;--bg-2:#14181b;--bg-3:#1b2226;
+  --line:#20282c;--line-2:#2a343a;
+  --ink-0:#e6efe9;--ink-1:#9fb1ab;--ink-2:#63756f;
+  --green:#39e08b;--amber:#ffb454;--cyan:#4fd6e0;--blue:#7aa2f7;--red:#ff6b6b;--violet:#b48ead;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;
+  --radius:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);background:var(--bg-0);color:var(--ink-0);
+  -webkit-font-smoothing:antialiased;line-height:1.55;overflow-x:hidden;
+  background-image:radial-gradient(90% 55% at 50% -8%,rgba(57,224,139,.09),transparent 62%);
+}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+::selection{background:rgba(57,224,139,.28);color:#fff}
+
+/* nav */
+nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(12px);
+  background:rgba(10,12,13,.72);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+.logo{font-family:var(--mono);font-weight:600;font-size:18px;letter-spacing:-.5px;display:flex;align-items:center;gap:9px}
+.logo .dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 12px 1px rgba(57,224,139,.7)}
+.logo .cursor{color:var(--green)}
+.nav-links{display:flex;align-items:center;gap:26px;font-size:14px;color:var(--ink-1)}
+.nav-links a:hover{color:var(--ink-0)}
+.nav-links .gh{font-family:var(--mono);font-size:13px;border:1px solid var(--line-2);border-radius:20px;padding:6px 14px;color:var(--ink-0);transition:.2s}
+.nav-links .gh:hover{border-color:var(--green);color:var(--green)}
+@media(max-width:680px){.nav-links a:not(.gh){display:none}}
+
+/* hero */
+.hero{padding:92px 0 70px;text-align:center}
+.badge-status{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;
+  color:var(--amber);background:rgba(255,180,84,.08);border:1px solid rgba(255,180,84,.28);
+  border-radius:20px;padding:6px 14px;margin-bottom:26px}
+.badge-status .pulse{width:7px;height:7px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,180,84,.5)}50%{opacity:.6;box-shadow:0 0 0 6px rgba(255,180,84,0)}}
+h1{font-size:clamp(46px,8vw,86px);font-weight:700;letter-spacing:-3px;line-height:.98;margin-bottom:22px}
+h1 .brand{font-family:var(--mono);color:var(--green)}
+.lede{font-size:clamp(17px,2.4vw,21px);color:var(--ink-1);max-width:640px;margin:0 auto 14px;line-height:1.5}
+.lede b{color:var(--ink-0);font-weight:600}
+.sub{font-size:15px;color:var(--ink-2);font-family:var(--mono);margin-bottom:34px}
+.cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn{font-family:var(--mono);font-size:14px;font-weight:500;padding:12px 22px;border-radius:var(--radius);
+  display:inline-flex;align-items:center;gap:9px;transition:.2s;border:1px solid transparent;cursor:pointer}
+.btn-primary{background:var(--green);color:#052012;box-shadow:0 8px 30px -10px rgba(57,224,139,.6)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 40px -12px rgba(57,224,139,.7)}
+.btn-ghost{border-color:var(--line-2);color:var(--ink-0)}
+.btn-ghost:hover{border-color:var(--ink-1);background:var(--bg-2)}
+.hero-tags{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+.hero-tags span{font-family:var(--mono);font-size:11px;color:var(--ink-1);background:var(--bg-2);
+  border:1px solid var(--line);border-radius:20px;padding:5px 12px}
+
+/* window mock */
+.window{max-width:960px;margin:64px auto 0;border:1px solid var(--line-2);border-radius:12px;overflow:hidden;
+  background:var(--bg-1);box-shadow:0 40px 100px -40px rgba(0,0,0,.9);position:relative}
+.window::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(70% 60% at 82% 0%,rgba(57,224,139,.12),transparent 55%)}
+.titlebar{height:38px;display:flex;align-items:center;gap:8px;padding:0 15px;border-bottom:1px solid var(--line);background:var(--bg-0)}
+.titlebar .tl{width:11px;height:11px;border-radius:50%}
+.tl.r{background:#ff5f57}.tl.y{background:#febc2e}.tl.g{background:#28c840}
+.titlebar .addr{font-family:var(--mono);font-size:12px;color:var(--ink-2);margin-left:12px}
+.window img{width:100%;display:block}
+
+/* sections */
+section{padding:76px 0}
+.sec-label{font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--green);
+  display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.sec-label::before{content:"";width:26px;height:1px;background:var(--green)}
+h2{font-size:clamp(30px,4.4vw,42px);font-weight:700;letter-spacing:-1.4px;margin-bottom:16px;max-width:720px}
+.sec-intro{color:var(--ink-1);font-size:17px;max-width:640px;margin-bottom:44px}
+
+/* why / feature grid */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.feat{background:var(--bg-1);border:1px solid var(--line);border-radius:14px;padding:26px 24px;transition:.24s}
+.feat:hover{border-color:var(--line-2);transform:translateY(-3px);background:var(--bg-2)}
+.feat .ic{font-size:24px;margin-bottom:16px;display:block}
+.feat h3{font-size:18px;font-weight:600;margin-bottom:8px;letter-spacing:-.3px}
+.feat p{color:var(--ink-1);font-size:14.5px;line-height:1.55}
+.feat .old{font-family:var(--mono);font-size:11px;color:var(--ink-2);margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+
+/* directions */
+.dgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+@media(max-width:760px){.dgrid{grid-template-columns:1fr}}
+.dcard{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--bg-1);
+  display:flex;flex-direction:column;transition:.24s}
+.dcard:hover{border-color:var(--green);transform:translateY(-4px);box-shadow:0 30px 70px -35px rgba(0,0,0,.9)}
+.dcard .shot{position:relative;overflow:hidden;border-bottom:1px solid var(--line);aspect-ratio:16/10;background:var(--bg-0)}
+.dcard .shot img{width:100%;height:100%;object-fit:cover;object-position:top;transition:.4s}
+.dcard:hover .shot img{transform:scale(1.03)}
+.dcard .body{padding:18px 20px 20px}
+.dcard .k{font-family:var(--mono);font-size:11px;color:var(--green);letter-spacing:1px}
+.dcard h3{font-size:20px;font-weight:600;margin:6px 0 6px;letter-spacing:-.4px}
+.dcard p{color:var(--ink-1);font-size:14px;line-height:1.5}
+.dcard .go{font-family:var(--mono);font-size:12.5px;color:var(--ink-0);margin-top:14px;display:inline-flex;gap:8px;align-items:center}
+.dcard:hover .go .arr{transform:translateX(4px);color:var(--green)}
+.dcard .go .arr{transition:.2s}
+.badge-default{font-family:var(--mono);font-size:10px;color:#052012;background:var(--green);border-radius:5px;padding:2px 7px;margin-left:8px;vertical-align:middle}
+.overlays{display:flex;gap:14px;margin-top:22px;flex-wrap:wrap}
+.overlays a{font-family:var(--mono);font-size:13px;color:var(--ink-1);border:1px solid var(--line-2);border-radius:8px;padding:9px 15px;transition:.2s}
+.overlays a:hover{border-color:var(--green);color:var(--green)}
+
+/* roadmap */
+.road{border-left:2px solid var(--line);margin-left:8px;padding-left:0}
+.mile{position:relative;padding:0 0 26px 30px}
+.mile::before{content:"";position:absolute;left:-9px;top:3px;width:16px;height:16px;border-radius:50%;
+  background:var(--bg-0);border:2px solid var(--line-2)}
+.mile.done::before{background:var(--green);border-color:var(--green);box-shadow:0 0 12px rgba(57,224,139,.5)}
+.mile.next::before{border-color:var(--amber);box-shadow:0 0 0 4px rgba(255,180,84,.15)}
+.mile .mk{font-family:var(--mono);font-size:12px;color:var(--ink-2)}
+.mile.done .mk{color:var(--green)}.mile.next .mk{color:var(--amber)}
+.mile h4{font-size:16px;font-weight:600;margin:2px 0 3px}
+.mile p{color:var(--ink-1);font-size:14px}
+.mile .tag{font-family:var(--mono);font-size:10px;border-radius:5px;padding:2px 8px;margin-left:8px;vertical-align:middle}
+.tag.d{background:rgba(57,224,139,.12);color:var(--green)}
+.tag.n{background:rgba(255,180,84,.12);color:var(--amber)}
+
+/* stack strip */
+.stack{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.stack span{font-family:var(--mono);font-size:12.5px;color:var(--ink-1);background:var(--bg-1);border:1px solid var(--line);border-radius:8px;padding:8px 13px}
+.stack span b{color:var(--green);font-weight:500}
+
+/* final cta */
+.final{text-align:center;background:var(--bg-1);border:1px solid var(--line);border-radius:20px;
+  padding:64px 28px;position:relative;overflow:hidden}
+.final::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 90% at 50% 0%,rgba(57,224,139,.12),transparent 60%);pointer-events:none}
+.final h2{margin:0 auto 14px}
+.final p{color:var(--ink-1);max-width:520px;margin:0 auto 30px;font-size:16px}
+
+footer{border-top:1px solid var(--line);padding:40px 0;color:var(--ink-2);font-size:13.5px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+footer a{color:var(--ink-1)}footer a:hover{color:var(--green)}
+footer .mono{font-family:var(--mono);font-size:12px}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="logo" href="#top"><span class="dot"></span>bool<span class="cursor">_</span></a>
+  <div class="nav-links">
+    <a href="#why">Why</a>
+    <a href="#design">Design</a>
+    <a href="#roadmap">Roadmap</a>
+    <a class="gh" href="https://github.com/dmfarcas/bool">GitHub ↗</a>
+  </div>
+</div></nav>
+
+<header class="hero" id="top"><div class="wrap">
+  <div class="badge-status"><span class="pulse"></span>PRE-ALPHA · BUILDING IN PUBLIC</div>
+  <h1>IRC that feels<br>like <span class="brand">2026</span>.</h1>
+  <p class="lede"><b>bool</b> is a modern, self-hosted web IRC client — the open-source <b>IRCCloud</b>.</p>
+  <p class="sub">working iOS push · full-text search · impeccable dense design</p>
+  <div class="cta">
+    <a class="btn btn-primary" href="#design">✦ Explore the design</a>
+    <a class="btn btn-ghost" href="https://github.com/dmfarcas/bool">★ Star on GitHub</a>
+  </div>
+  <div class="hero-tags">
+    <span>self-hosted</span><span>IRCv3 bouncer</span><span>multi-user</span>
+    <span>PWA</span><span>TypeScript</span><span>MIT</span>
+  </div>
+
+  <div class="window">
+    <div class="titlebar">
+      <span class="tl r"></span><span class="tl y"></span><span class="tl g"></span>
+      <span class="addr">bool://libera · #bool</span>
+    </div>
+    <a href="mockups/direction-a/index.html"><img src="shots/direction-a.png" alt="bool — Terminal-Modern interface mockup"></a>
+  </div>
+</div></header>
+
+<section id="why"><div class="wrap">
+  <div class="sec-label">The wedge</div>
+  <h2>Everything great about a bouncer. None of the pain.</h2>
+  <p class="sec-intro">Self-hosting IRC today means The Lounge — a great project that loses people on three specific things. bool is aimed squarely at those.</p>
+  <div class="grid">
+    <div class="feat">
+      <span class="ic">📱</span>
+      <h3>Working iOS push</h3>
+      <p>An always-on bouncer plus an installable PWA built for notifications that actually arrive on your phone — not just your desktop.</p>
+      <div class="old">// the #1 reason people leave The Lounge</div>
+    </div>
+    <div class="feat">
+      <span class="ic">🔍</span>
+      <h3>Slack-grade search</h3>
+      <p>Full-text search over your entire history with <code>in:</code> / <code>from:</code> / <code>has:</code> filters and surrounding context. Powered by SQLite FTS5.</p>
+      <div class="old">// find that link from three weeks ago</div>
+    </div>
+    <div class="feat">
+      <span class="ic">⚡</span>
+      <h3>Density, done right</h3>
+      <p>Compact by default with a real one-click density toggle. Density is a first-class feature driven by CSS variables — never a hidden CSS hack.</p>
+      <div class="old">// no more editing stylesheets to fit more rows</div>
+    </div>
+  </div>
+</div></section>
+
+<section id="design" style="padding-top:20px"><div class="wrap">
+  <div class="sec-label">Design first</div>
+  <h2>Four first-party skins. One component system.</h2>
+  <p class="sec-intro">Design quality is the #1 priority of this project — so it came first. These are live, interactive mockups (dark + light, with a working density toggle). Click any to open it.</p>
+  <div class="dgrid">
+    <a class="dcard" href="mockups/direction-a/index.html">
+      <div class="shot"><img src="shots/direction-a.png" alt="Terminal-Modern"></div>
+      <div class="body"><span class="k">DIRECTION A</span>
+        <h3>Terminal-Modern<span class="badge-default">DEFAULT</span></h3>
+        <p>Dense, monospace-accented, hacker-native with phosphor-green accents. Made by IRC people, for IRC people.</p>
+        <span class="go">Open mockup <span class="arr">→</span></span>
+      </div>
+    </a>
+    <a class="dcard" href="mockups/direction-b/index.html">
+      <div class="shot"><img src="shots/direction-b.png" alt="Soft-Editorial"></div>
+      <div class="body"><span class="k">DIRECTION B</span>
+        <h3>Soft-Editorial</h3>
+        <p>Warm espresso-and-parchment with a Fraunces serif. The "open-source IRCCloud" as a premium consumer product.</p>
+        <span class="go">Open mockup <span class="arr">→</span></span>
+      </div>
+    </a>
+    <a class="dcard" href="mockups/direction-c/index.html">
+      <div class="shot"><img src="shots/direction-c.png" alt="Neo-Aurora"></div>
+      <div class="body"><span class="k">DIRECTION C</span>
+        <h3>Neo-Aurora</h3>
+        <p>Midnight-indigo lit by aurora gradients. The easiest sell to communities migrating from Discord or Slack.</p>
+        <span class="go">Open mockup <span class="arr">→</span></span>
+      </div>
+    </a>
+    <a class="dcard" href="mockups/direction-shimmer/index.html">
+      <div class="shot"><img src="shots/direction-shimmer.png" alt="Shimmer"></div>
+      <div class="body"><span class="k">DIRECTION S</span>
+        <h3>Shimmer</h3>
+        <p>A warm-dark continuation of a sibling design system — same-studio consistency, editorial calm.</p>
+        <span class="go">Open mockup <span class="arr">→</span></span>
+      </div>
+    </a>
+  </div>
+  <div class="overlays">
+    <a href="mockups/overlay-command-palette.html">⌘K Command palette →</a>
+    <a href="mockups/overlay-search.html">🔍 Global search →</a>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sec-label">Under the hood</div>
+  <h2>A real engine, already running.</h2>
+  <p class="sec-intro">bool is a stateful, always-on, private real-time app — deliberately not Next.js. The server-side bouncer works today: multi-user auth and a full IRCv3 engine with encrypted credentials and 59 passing tests.</p>
+  <div class="stack">
+    <span><b>TypeScript</b> monorepo</span>
+    <span><b>React 19</b> + Vite PWA</span>
+    <span><b>Fastify</b> server</span>
+    <span><b>irc-framework</b> · IRCv3 + SASL</span>
+    <span><b>better-sqlite3</b> + FTS5</span>
+    <span><b>Better Auth</b> · multi-user</span>
+    <span><b>Zustand</b> · react-virtuoso</span>
+    <span><b>AES-256-GCM</b> secrets at rest</span>
+  </div>
+</div></section>
+
+<section id="roadmap"><div class="wrap">
+  <div class="sec-label">Roadmap</div>
+  <h2>Built in the open, milestone by milestone.</h2>
+  <p class="sec-intro">Each milestone ships with its own design spec and plan. Three of eight are done — the chat UI you see above is next up.</p>
+  <div class="road">
+    <div class="mile done"><div class="mk">M0 · DONE</div><h4>Foundation<span class="tag d">shipped</span></h4><p>pnpm monorepo, shared typed WebSocket protocol, server + client skeleton.</p></div>
+    <div class="mile done"><div class="mk">M1 · DONE</div><h4>Auth &amp; admin<span class="tag d">shipped</span></h4><p>Better Auth (username + password, sessions), admin panel, session-gated WebSocket.</p></div>
+    <div class="mile done"><div class="mk">M2 · DONE</div><h4>IRC engine<span class="tag d">shipped</span></h4><p>Server-side bouncer — IRCv3 caps, SASL, echo-message, reconnect, encrypted secrets.</p></div>
+    <div class="mile next"><div class="mk">M3 · NEXT</div><h4>History &amp; full-text search<span class="tag n">in progress</span></h4><p>Persistent messages, retention, and Slack-grade FTS5 search.</p></div>
+    <div class="mile"><div class="mk">M4</div><h4>Sync gateway &amp; read-state</h4><p>Multi-device fan-out and synchronized unread state.</p></div>
+    <div class="mile"><div class="mk">M5</div><h4>Client UI core</h4><p>The interface above — the four themes, Cmd-K palette, slash commands.</p></div>
+    <div class="mile"><div class="mk">M6</div><h4>Rich features</h4><p>Media, reactions, replies, typing indicators — with graceful IRC degradation.</p></div>
+    <div class="mile"><div class="mk">M7</div><h4>Push / PWA</h4><p>Working iOS push notifications via the installable PWA.</p></div>
+    <div class="mile"><div class="mk">M8</div><h4>Electron desktop</h4><p>Optional native desktop wrapper.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="final">
+    <div class="sec-label" style="justify-content:center">Get involved</div>
+    <h2>Follow bool as it gets built.</h2>
+    <p>bool is free and MIT-licensed. Star it to follow along, dig into the code, or help it happen with a sponsorship. Every bit counts.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/dmfarcas/bool">★ Star on GitHub</a>
+      <a class="btn btn-ghost" href="https://github.com/sponsors/dmfarcas">☕ Sponsor</a>
+    </div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <span class="mono">bool_ · the open-source IRCCloud</span>
+  <span>
+    <a href="https://github.com/dmfarcas/bool">GitHub</a> ·
+    <a href="https://github.com/sponsors/dmfarcas">Sponsor</a> ·
+    <a href="https://github.com/dmfarcas/bool/blob/main/LICENSE">MIT License</a> · © 2026 Dan Farcaș
+  </span>
+</div></footer>
+
+</body>
+</html>

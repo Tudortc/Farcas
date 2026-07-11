@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-density="compact">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bool — Direction C · Neo-Aurora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   bool — Direction C: "Neo-Aurora"
+   Community-first · colorful · glossy · vibrant depth
+   Sora display · Outfit UI · aurora gradients on midnight indigo
+   ============================================================ */
+:root{
+  /* midnight indigo base with aurora accents */
+  --bg-0:#0b0b16;      /* deepest */
+  --bg-1:#111024;      /* rail/sidebar */
+  --bg-2:#0e0e1e;      /* message pane */
+  --surface:#181733;   /* raised */
+  --surface-2:#1f1d40;
+  --hover:#1b1a38;
+  --active:#252248;
+  --line:#242243;
+  --line-2:#322f5c;
+  --ink-0:#f0eefe;
+  --ink-1:#b7b3dc;
+  --ink-2:#7b78a6;
+  --ink-3:#524f7a;
+
+  /* aurora accent set */
+  --violet:#8b7dff;
+  --violet-deep:#6a5af0;
+  --pink:#ff6ec7;
+  --cyan:#4fe0d8;
+  --lime:#a6f065;
+  --amber:#ffc857;
+  --coral:#ff7a70;
+  --sky:#5cc7ff;
+
+  --grad: linear-gradient(135deg,#8b7dff 0%,#ff6ec7 100%);
+  --grad-cool: linear-gradient(135deg,#5cc7ff 0%,#8b7dff 100%);
+
+  --disp:'Sora',system-ui,sans-serif;
+  --sans:'Outfit',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+
+  --radius:14px;
+  --radius-sm:10px;
+  --radius-lg:20px;
+
+  /* DENSITY — compact default */
+  --msg-py:3px;
+  --grp-gap:12px;
+  --msg-fs:14px;
+  --msg-lh:1.48;
+  --side-h:34px;
+  --avatar:32px;
+}
+[data-density="comfortable"]{
+  --msg-py:8px;
+  --grp-gap:24px;
+  --msg-fs:15px;
+  --msg-lh:1.68;
+  --side-h:44px;
+  --avatar:40px;
+}
+[data-theme="light"]{
+  --bg-0:#eef0fb; --bg-1:#f4f5fd; --bg-2:#ffffff; --surface:#f2f2fc; --surface-2:#eaeafa; --hover:#f0f0fb; --active:#e6e5fa;
+  --line:#e3e3f4; --line-2:#d2d1ee;
+  --ink-0:#16142e; --ink-1:#464266; --ink-2:#75729a; --ink-3:#a5a2c4;
+  --violet:#6a5af0; --violet-deep:#5343d8;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--bg-0);color:var(--ink-0);font-size:14px;-webkit-font-smoothing:antialiased;overflow:hidden}
+::selection{background:rgba(139,125,255,.35)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:8px;border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--violet-deep)}
+::-webkit-scrollbar-track{background:transparent}
+
+.app{
+  display:grid;grid-template-columns:76px 250px 1fr 232px;height:100vh;
+  background:
+    radial-gradient(90% 60% at 15% -5%, rgba(139,125,255,.14), transparent 60%),
+    radial-gradient(70% 50% at 100% 100%, rgba(255,110,199,.09), transparent 60%),
+    var(--bg-0);
+}
+
+/* ---- RAIL ---- */
+.rail{background:var(--bg-1);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:8px}
+.logo{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-family:var(--disp);font-weight:800;font-size:20px;color:#fff;background:var(--grad);box-shadow:0 8px 24px -6px rgba(139,125,255,.6);margin-bottom:6px}
+.net{position:relative;width:46px;height:46px;border-radius:16px;cursor:pointer;display:grid;place-items:center;background:var(--surface);font-family:var(--disp);font-weight:700;font-size:15px;color:var(--ink-1);transition:.24s cubic-bezier(.34,1.4,.4,1)}
+.net:hover{color:var(--ink-0);border-radius:14px;transform:translateY(-2px)}
+.net.active{color:#fff;background:var(--grad);border-radius:15px;box-shadow:0 8px 22px -6px rgba(139,125,255,.55)}
+.net.active::before{content:"";position:absolute;left:-14px;top:50%;transform:translateY(-50%);width:5px;height:26px;border-radius:4px;background:#fff}
+.net .badge{position:absolute;top:-3px;right:-3px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--pink);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;border:3px solid var(--bg-1);box-shadow:0 0 12px -2px var(--pink)}
+.rail-sp{width:28px;height:2px;border-radius:2px;background:var(--line);margin:4px 0}
+.rail-foot{margin-top:auto;display:flex;flex-direction:column;gap:10px;align-items:center}
+.rail-ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;color:var(--ink-2);cursor:pointer;transition:.18s}
+.rail-ic:hover{color:var(--ink-0);background:var(--surface)}
+.rail-ic svg{width:20px;height:20px}
+.me{width:38px;height:38px;border-radius:13px;background:var(--grad-cool);display:grid;place-items:center;font-family:var(--disp);font-weight:700;color:#fff;position:relative}
+.me::after{content:"";position:absolute;right:-2px;bottom:-2px;width:12px;height:12px;border-radius:50%;background:var(--lime);border:3px solid var(--bg-1)}
+
+/* ---- SIDEBAR ---- */
+.side{background:var(--bg-1);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+.side-head{padding:18px 16px 14px;position:relative}
+.side-head::after{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(139,125,255,.08),transparent 70%);pointer-events:none}
+.net-name{font-family:var(--disp);font-size:19px;font-weight:700;display:flex;align-items:center;gap:9px;letter-spacing:-.3px}
+.net-name .live{width:9px;height:9px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 3px rgba(166,240,101,.2),0 0 10px var(--lime)}
+.net-meta{font-family:var(--mono);font-size:11px;color:var(--ink-2);margin-top:5px}
+.side-search{margin-top:14px;display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:9px 12px;color:var(--ink-2);cursor:text;transition:.18s}
+.side-search:hover{border-color:var(--line-2);background:var(--surface-2)}
+.side-search svg{width:15px;height:15px;flex:none}
+.side-search input{background:none;border:none;outline:none;color:var(--ink-0);font-family:var(--sans);font-size:13px;width:100%}
+.side-search kbd{font-family:var(--mono);font-size:10px;color:var(--ink-1);background:var(--bg-1);border:1px solid var(--line-2);border-radius:6px;padding:2px 6px}
+.side-scroll{overflow-y:auto;padding:8px 10px 16px;flex:1}
+.grp{margin-top:12px}
+.grp-h{display:flex;align-items:center;gap:6px;padding:4px 8px;font-family:var(--disp);font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--ink-2);text-transform:uppercase;cursor:pointer}
+.grp-h .count{margin-left:auto;font-family:var(--mono);font-weight:500;color:var(--ink-3);letter-spacing:0}
+.grp-h svg{width:11px;height:11px}
+
+.chan{display:flex;align-items:center;gap:10px;height:var(--side-h);padding:0 12px;border-radius:var(--radius-sm);cursor:pointer;color:var(--ink-1);position:relative;font-size:14px;font-weight:500;transition:.16s}
+.chan:hover{background:var(--hover);color:var(--ink-0)}
+.chan.active{background:var(--active);color:#fff}
+.chan.active::after{content:"";position:absolute;inset:0;border-radius:var(--radius-sm);padding:1px;background:var(--grad);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.7}
+.chan .hash{font-family:var(--disp);color:var(--ink-3);font-weight:700}
+.chan.active .hash{color:var(--violet)}
+.chan .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chan.unread{color:#fff;font-weight:600}
+.chan.unread::before{content:"";position:absolute;left:3px;top:50%;transform:translateY(-50%);width:4px;height:4px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.chan .b{margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:600;min-width:20px;height:19px;padding:0 6px;border-radius:10px;display:grid;place-items:center;background:var(--surface-2);color:var(--ink-1)}
+.chan .b.mention{background:var(--grad);color:#fff;box-shadow:0 0 14px -2px var(--violet)}
+.chan .dm-av{width:24px;height:24px;border-radius:8px;font-family:var(--disp);font-weight:700;font-size:11px;display:grid;place-items:center;color:#fff;position:relative}
+.chan .dm-av .p{position:absolute;right:-2px;bottom:-2px;width:9px;height:9px;border-radius:50%;border:2px solid var(--bg-1)}
+
+/* ---- MAIN ---- */
+.main{display:flex;flex-direction:column;background:var(--bg-2);overflow:hidden;min-width:0}
+.topbar{flex:none;height:60px;padding:0 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;background:linear-gradient(180deg,rgba(139,125,255,.05),transparent)}
+.tb-title{display:flex;align-items:center;gap:10px;min-width:0}
+.tb-icon{width:36px;height:36px;border-radius:11px;background:var(--grad);display:grid;place-items:center;color:#fff;font-family:var(--disp);font-weight:800;font-size:16px;flex:none}
+.tb-title h1{font-family:var(--disp);font-size:17px;font-weight:700;letter-spacing:-.3px}
+.tb-title .topic{font-size:13px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:420px;border-left:1px solid var(--line);padding-left:14px;margin-left:2px}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.online-pill{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--ink-1);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:6px 13px}
+.online-pill .live{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 8px var(--lime)}
+.density{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:3px}
+.density button{font-family:var(--sans);font-size:11px;font-weight:600;color:var(--ink-2);background:none;border:none;padding:5px 13px;border-radius:16px;cursor:pointer;transition:.18s}
+.density button.on{background:var(--grad);color:#fff}
+.tb-btn{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:var(--ink-2);cursor:pointer;transition:.16s}
+.tb-btn:hover{color:var(--ink-0);background:var(--surface)}
+.tb-btn svg{width:19px;height:19px}
+
+.msgs{flex:1;overflow-y:auto;padding:12px 0 6px}
+.daybar{display:flex;align-items:center;justify-content:center;padding:14px 22px 10px}
+.daybar span{font-size:11px;font-weight:600;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:4px 14px}
+
+.grp-msgs{margin-top:var(--grp-gap);padding:0 22px}
+.msg{display:grid;grid-template-columns:var(--avatar) 1fr;gap:12px;padding:var(--msg-py) 0}
+.avatar{width:var(--avatar);height:var(--avatar);border-radius:11px;display:grid;place-items:center;font-family:var(--disp);font-weight:700;font-size:14px;color:#fff;flex:none}
+.msg .body{min-width:0}
+.msg-head{display:flex;align-items:baseline;gap:9px;margin-bottom:2px}
+.nick{font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:-.2px;cursor:pointer}
+.nick:hover{text-decoration:underline}
+.ts{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+.role{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.3px;color:#fff}
+.role.op{background:linear-gradient(135deg,var(--amber),var(--coral))}
+.role.voice{background:linear-gradient(135deg,var(--cyan),var(--sky))}
+.text{font-size:var(--msg-fs);line-height:var(--msg-lh);color:var(--ink-0);word-wrap:break-word}
+.text code{font-family:var(--mono);font-size:.85em;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--cyan)}
+.cont{display:grid;grid-template-columns:var(--avatar) 1fr;gap:12px;padding:1px 22px;position:relative}
+.cont .g{font-family:var(--mono);font-size:10px;color:transparent;text-align:right;padding-top:3px}
+.cont:hover .g{color:var(--ink-3)}
+
+a.link{color:var(--sky);text-decoration:none;font-weight:500}
+a.link:hover{text-decoration:underline}
+.mention-inline{color:var(--violet);background:rgba(139,125,255,.16);border-radius:6px;padding:1px 6px;font-weight:600}
+.self-mention{background:rgba(139,125,255,.1);box-shadow:inset 3px 0 0 var(--violet);border-radius:0 10px 10px 0;padding:3px 10px;margin-left:-10px;display:inline-block}
+
+.mc-red{color:var(--coral)} .mc-green{color:var(--lime)} .mc-yellow{color:var(--amber)}
+.mc-blue{color:var(--sky)} .mc-magenta{color:var(--pink)} .mc-cyan{color:var(--cyan)} .mc-orange{color:#ff9e64}
+.mc-b{font-weight:700} .mc-i{font-style:italic} .mc-u{text-decoration:underline}
+
+.code{margin:8px 0;border:1px solid var(--line-2);border-radius:var(--radius);background:var(--bg-0);overflow:hidden;max-width:600px;box-shadow:0 8px 30px -14px rgba(0,0,0,.6)}
+.code-h{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--surface)}
+.code-h .lang{font-family:var(--mono);font-size:10px;color:var(--violet);text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+.code-h .dots{display:flex;gap:5px}.code-h .dots i{width:9px;height:9px;border-radius:50%}
+.code-h .dots i:nth-child(1){background:var(--coral)}.code-h .dots i:nth-child(2){background:var(--amber)}.code-h .dots i:nth-child(3){background:var(--lime)}
+.code-h .cp{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink-2);cursor:pointer}
+.code-h .cp:hover{color:var(--ink-0)}
+.code pre{padding:13px 16px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.6;color:var(--ink-1)}
+.tk-key{color:var(--pink)} .tk-fn{color:var(--sky)} .tk-str{color:var(--lime)} .tk-num{color:var(--amber)} .tk-com{color:var(--ink-3);font-style:italic}
+
+.preview{margin:9px 0;max-width:450px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--surface);display:flex;transition:.18s}
+.preview:hover{border-color:var(--line-2);transform:translateY(-1px);box-shadow:0 10px 30px -16px rgba(139,125,255,.5)}
+.preview .thumb{width:112px;flex:none;background:var(--grad);position:relative;overflow:hidden}
+.preview .thumb::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.35),transparent 55%),radial-gradient(circle at 75% 75%,rgba(79,224,216,.5),transparent 55%)}
+.preview .pv{padding:11px 15px;min-width:0}
+.preview .pv .site{font-family:var(--mono);font-size:10px;color:var(--violet);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.preview .pv .ttl{font-family:var(--disp);font-size:14px;font-weight:700;margin:4px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preview .pv .desc{font-size:12.5px;color:var(--ink-1);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+.img-att{margin:9px 0;width:250px;height:148px;border-radius:var(--radius);overflow:hidden;position:relative;cursor:zoom-in;background:var(--grad-cool)}
+.img-att::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(255,110,199,.5),transparent 55%),radial-gradient(circle at 78% 72%,rgba(166,240,101,.4),transparent 55%)}
+.img-att .meta{position:absolute;left:0;right:0;bottom:0;padding:8px 12px;font-family:var(--mono);font-size:11px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.55));z-index:1;display:flex;justify-content:space-between}
+
+.reply-to{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:12.5px;color:var(--ink-2);cursor:pointer}
+.reply-to .bar{width:3px;height:16px;border-radius:3px;background:var(--grad)}
+.reply-to .rn{color:var(--violet);font-weight:600}
+.reply-to .qt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:320px}
+.reply-to:hover .qt{color:var(--ink-1)}
+
+.reacts{display:flex;gap:7px;margin-top:8px;flex-wrap:wrap}
+.react{display:inline-flex;align-items:center;gap:6px;padding:3px 11px 3px 9px;border-radius:20px;background:var(--surface);border:1px solid var(--line);font-size:13px;cursor:pointer;transition:.15s}
+.react:hover{border-color:var(--line-2);transform:translateY(-1px)}
+.react.mine{background:rgba(139,125,255,.14);border-color:var(--violet-deep)}
+.react .n{font-family:var(--mono);font-size:11px;color:var(--ink-1);font-weight:600}
+.react.mine .n{color:var(--violet)}
+.react-add{display:grid;place-items:center;width:28px;height:26px;border-radius:20px;border:1px dashed var(--line-2);color:var(--ink-3);cursor:pointer}
+.react-add:hover{color:var(--ink-0);border-color:var(--violet)}
+.react-add svg{width:13px;height:13px}
+
+.sys{display:flex;align-items:center;gap:10px;padding:2px 22px;font-size:12.5px;color:var(--ink-2)}
+.sys .ico{width:var(--avatar);display:grid;place-items:center;color:var(--ink-3)}
+.sys.join .ico{color:var(--lime)}.sys.part .ico{color:var(--ink-3)}
+.sys .ico svg{width:14px;height:14px}
+.sys b{color:var(--ink-1);font-weight:600}
+.sys .st{font-family:var(--mono);font-size:10px;color:var(--ink-3);margin-left:auto}
+
+.typing{display:flex;align-items:center;gap:10px;padding:5px 22px 8px;font-size:12.5px;color:var(--ink-2)}
+.typing .dots{display:inline-flex;gap:4px;margin-left:calc(var(--avatar)/2 - 6px)}
+.typing .dots i{width:5px;height:5px;border-radius:50%;background:var(--violet);animation:bl 1.3s infinite}
+.typing .dots i:nth-child(2){animation-delay:.2s}.typing .dots i:nth-child(3){animation-delay:.4s}
+@keyframes bl{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+
+.composer{flex:none;padding:12px 22px 18px;position:relative}
+.autocomplete{position:absolute;left:22px;right:22px;bottom:calc(100% - 6px);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--radius-lg);box-shadow:0 -20px 50px -18px rgba(0,0,0,.7);overflow:hidden}
+.ac-h{padding:10px 18px;font-family:var(--disp);font-size:11px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--line)}
+.ac-item{display:flex;align-items:center;gap:14px;padding:9px 18px;cursor:pointer}
+.ac-item.sel{background:var(--active)}
+.ac-item .cmd{font-family:var(--mono);color:var(--cyan);font-weight:600;min-width:100px;font-size:13px}
+.ac-item.sel .cmd{color:var(--violet)}
+.ac-item .desc{color:var(--ink-1);font-size:13px}
+.ac-item .args{font-family:var(--mono);color:var(--ink-3);font-size:11px;margin-left:auto}
+
+.input-wrap{display:flex;align-items:flex-end;gap:10px;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--radius-lg);padding:11px 12px 11px 16px;transition:.2s}
+.input-wrap:focus-within{border-color:var(--violet-deep);box-shadow:0 0 0 4px rgba(139,125,255,.12)}
+.input-wrap .field{flex:1;color:var(--ink-0);font-size:var(--msg-fs);line-height:1.5;min-height:22px;outline:none}
+.input-wrap .field:empty::before{content:"Message #python…";color:var(--ink-2)}
+.comp-tools{display:flex;gap:2px;align-items:center}
+.ct{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:var(--ink-2);cursor:pointer;transition:.15s}
+.ct:hover{color:var(--ink-0);background:var(--hover)}
+.ct.send{background:var(--grad);color:#fff;box-shadow:0 4px 14px -4px rgba(139,125,255,.6)}
+.ct svg{width:18px;height:18px}
+.comp-foot{display:flex;align-items:center;gap:16px;margin-top:8px;padding:0 4px;font-family:var(--mono);font-size:10.5px;color:var(--ink-3)}
+.comp-foot .k{border:1px solid var(--line-2);border-radius:6px;padding:1px 6px;color:var(--ink-2)}
+.comp-foot .r{margin-left:auto}
+
+.members{background:var(--bg-1);border-left:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+.mem-head{padding:16px 16px 12px;border-bottom:1px solid var(--line)}
+.mem-head h3{font-family:var(--disp);font-size:15px;font-weight:700}
+.mem-head .sub{font-family:var(--mono);font-size:11px;color:var(--ink-2);margin-top:2px}
+.mem-scroll{overflow-y:auto;padding:8px 10px 16px;flex:1}
+.mem-grp{font-family:var(--disp);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-2);padding:12px 8px 5px;display:flex;justify-content:space-between}
+.mem-grp .c{font-family:var(--mono);color:var(--ink-3);font-weight:400}
+.mem{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:11px;cursor:pointer;font-size:13.5px;color:var(--ink-1);font-weight:500;transition:.14s}
+.mem:hover{background:var(--hover);color:#fff}
+.mem .av{width:28px;height:28px;border-radius:9px;font-family:var(--disp);font-weight:700;font-size:12px;display:grid;place-items:center;color:#fff;flex:none;position:relative}
+.mem .av .p{position:absolute;right:-2px;bottom:-2px;width:9px;height:9px;border-radius:50%;border:2px solid var(--bg-1)}
+.mem .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mem .badge{margin-left:auto;font-size:11px}
+.mem.away{opacity:.45}
+.op-mark{color:var(--amber)}.voice-mark{color:var(--cyan)}
+
+@media (max-width:1200px){.members{display:none}.app{grid-template-columns:76px 250px 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <nav class="rail">
+    <div class="logo">b</div>
+    <div class="net active" title="Libera.Chat">L</div>
+    <div class="net" title="OFTC">O<span class="badge">3</span></div>
+    <div class="net" title="EFNet">E</div>
+    <div class="net" title="Rizon">R</div>
+    <div class="rail-sp"></div>
+    <div class="net" style="color:var(--ink-3);font-weight:400">+</div>
+    <div class="rail-foot">
+      <div class="rail-ic" title="Command palette"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 9h8M8 13h5"/></svg></div>
+      <div class="rail-ic" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.24.58.78.99 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+      <div class="me" title="you">D</div>
+    </div>
+  </nav>
+
+  <aside class="side">
+    <div class="side-head">
+      <div class="net-name"><span class="live"></span>Libera.Chat</div>
+      <div class="net-meta">irc.libera.chat · SASL · dmf</div>
+      <div class="side-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input placeholder="Search or jump to…"><kbd>⌘K</kbd>
+      </div>
+    </div>
+    <div class="side-scroll">
+      <div class="grp">
+        <div class="grp-h"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>Channels<span class="count">6</span></div>
+        <div class="chan unread"><span class="hash">#</span><span class="name">archlinux</span><span class="b">12</span></div>
+        <div class="chan active"><span class="hash">#</span><span class="name">python</span></div>
+        <div class="chan unread"><span class="hash">#</span><span class="name">linux</span><span class="b mention">4</span></div>
+        <div class="chan"><span class="hash">#</span><span class="name">rust</span></div>
+        <div class="chan unread"><span class="hash">#</span><span class="name">neovim</span><span class="b">3</span></div>
+        <div class="chan"><span class="hash">#</span><span class="name">selfhosted</span></div>
+      </div>
+      <div class="grp">
+        <div class="grp-h"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>Direct Messages<span class="count">3</span></div>
+        <div class="chan"><span class="dm-av" style="background:var(--grad-cool)">P<span class="p" style="background:var(--lime)"></span></span><span class="name">phillmac</span></div>
+        <div class="chan unread"><span class="dm-av" style="background:linear-gradient(135deg,#ff6ec7,#8b7dff)">n<span class="p" style="background:var(--lime)"></span></span><span class="name">nirik</span><span class="b mention">1</span></div>
+        <div class="chan"><span class="dm-av" style="background:linear-gradient(135deg,#ffc857,#ff7a70)">s<span class="p" style="background:var(--amber)"></span></span><span class="name">solskogen</span></div>
+      </div>
+      <div class="grp">
+        <div class="grp-h"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>Muted<span class="count">2</span></div>
+        <div class="chan" style="opacity:.45"><span class="hash">#</span><span class="name">offtopic</span></div>
+        <div class="chan" style="opacity:.45"><span class="hash">#</span><span class="name">bots</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="tb-title">
+        <div class="tb-icon">#</div>
+        <h1>python</h1>
+        <div class="topic">Python 3.13 is out · No homework help · use pastebin</div>
+      </div>
+      <div class="tb-right">
+        <div class="online-pill"><span class="live"></span>1,204</div>
+        <div class="density" aria-label="Density">
+          <button class="on" onclick="setDensity('compact',this)">Compact</button>
+          <button onclick="setDensity('comfortable',this)">Comfortable</button>
+        </div>
+        <div class="tb-btn" title="Theme" onclick="toggleTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></div>
+        <div class="tb-btn" title="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
+      </div>
+    </header>
+
+    <div class="msgs">
+      <div class="daybar"><span>Today · July 11</span></div>
+
+      <div class="sys join"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg></span><span><b>vasquez</b> joined the channel</span><span class="st">09:41</span></div>
+
+      <div class="grp-msgs">
+        <div class="msg">
+          <div class="avatar" style="background:var(--grad-cool)">P</div>
+          <div class="body">
+            <div class="msg-head"><span class="nick" style="color:var(--sky)">phillmac</span><span class="ts">09:42</span></div>
+            <div class="text">morning all — anyone here running <code>asyncio.TaskGroup</code> in prod yet? curious about cancellation semantics vs plain <code>gather()</code></div>
+          </div>
+        </div>
+        <div class="cont"><div class="g">09:42</div><div class="body"><div class="text">docs feel a bit thin on the structured-concurrency edge cases</div></div></div>
+      </div>
+
+      <div class="grp-msgs">
+        <div class="msg">
+          <div class="avatar" style="background:linear-gradient(135deg,#a6f065,#4fe0d8)">n</div>
+          <div class="body">
+            <div class="msg-head"><span class="nick" style="color:var(--lime)">nirik</span><span class="role op">OP</span><span class="ts">09:43</span></div>
+            <div class="text">yeah, we switched last quarter. big win: a failing child cancels its siblings automatically. here's the pattern we settled on 👇</div>
+            <div class="code">
+              <div class="code-h"><span class="dots"><i></i><i></i><i></i></span><span class="lang">python</span><span class="cp">⧉ copy</span></div>
+<pre><span class="tk-key">async def</span> <span class="tk-fn">fetch_all</span>(urls):
+    <span class="tk-key">async with</span> asyncio.<span class="tk-fn">TaskGroup</span>() <span class="tk-key">as</span> tg:
+        tasks = [tg.<span class="tk-fn">create_task</span>(<span class="tk-fn">fetch</span>(u)) <span class="tk-key">for</span> u <span class="tk-key">in</span> urls]
+    <span class="tk-com"># every task awaited; the first error cancels the rest</span>
+    <span class="tk-key">return</span> [t.<span class="tk-fn">result</span>() <span class="tk-key">for</span> t <span class="tk-key">in</span> tasks]</pre>
+            </div>
+            <div class="reacts">
+              <div class="react mine">👍 <span class="n">4</span></div>
+              <div class="react">🔥 <span class="n">2</span></div>
+              <div class="react">🧠 <span class="n">1</span></div>
+              <div class="react-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grp-msgs">
+        <div class="msg">
+          <div class="avatar" style="background:linear-gradient(135deg,#ffc857,#ff7a70)">s</div>
+          <div class="body">
+            <div class="msg-head"><span class="nick" style="color:var(--amber)">solskogen</span><span class="ts">09:45</span></div>
+            <div class="reply-to"><span class="bar"></span>Replying to <span class="rn">nirik</span> <span class="qt">…a failing child cancels its siblings automatically</span></div>
+            <div class="text">exactly this. one gotcha: if you need <span class="mc-yellow">partial results on failure</span>, TaskGroup isn't it — it re-raises as an <code>ExceptionGroup</code>. plain <code>gather(..., return_exceptions=True)</code> is still the move.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grp-msgs">
+        <div class="msg">
+          <div class="avatar" style="background:linear-gradient(135deg,#4fe0d8,#5cc7ff)">v</div>
+          <div class="body">
+            <div class="msg-head"><span class="nick" style="color:var(--cyan)">vasquez</span><span class="role voice">VOICE</span><span class="ts">09:47</span></div>
+            <div class="text">found a great writeup earlier — <a class="link" href="#">superfastpython.com/asyncio-taskgroup</a></div>
+            <div class="preview">
+              <div class="thumb"></div>
+              <div class="pv">
+                <div class="site">superfastpython.com</div>
+                <div class="ttl">Asyncio TaskGroup in Python</div>
+                <div class="desc">Structured concurrency with TaskGroup — a modern replacement for gather() that manages task lifetimes and propagates errors as groups.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="typing"><span class="dots"><i></i><i></i><i></i></span> nirik is typing…</div>
+
+      <div class="grp-msgs">
+        <div class="msg">
+          <div class="avatar" style="background:linear-gradient(135deg,#ff6ec7,#ff7a70)">t</div>
+          <div class="body">
+            <div class="msg-head"><span class="nick" style="color:var(--pink)">tabby_</span><span class="role voice">VOICE</span><span class="ts">09:48</span></div>
+            <div class="text"><span class="self-mention">threw together a quick benchmark under load — <span class="mention-inline">@dmf</span> you asked about this yesterday 📊</span></div>
+            <div class="img-att"><div class="meta"><span>taskgroup-bench.png</span><span>221 KB</span></div></div>
+            <div class="reacts">
+              <div class="react">📊 <span class="n">3</span></div>
+              <div class="react">❤️ <span class="n">1</span></div>
+              <div class="react-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sys part"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></span><span><b>guest0417</b> quit · Ping timeout (260s)</span><span class="st">09:49</span></div>
+    </div>
+
+    <div class="composer">
+      <div class="autocomplete">
+        <div class="ac-h">Commands · matching “/me”</div>
+        <div class="ac-item sel"><span class="cmd">/me</span><span class="desc">Send an action message to the channel</span><span class="args">&lt;action&gt;</span></div>
+        <div class="ac-item"><span class="cmd">/msg</span><span class="desc">Start a private conversation</span><span class="args">&lt;nick&gt; &lt;text&gt;</span></div>
+        <div class="ac-item"><span class="cmd">/gif</span><span class="desc">Search and send a GIF</span><span class="args">&lt;query&gt;</span></div>
+        <div class="ac-item"><span class="cmd">/mute</span><span class="desc">Silence notifications here</span><span class="args"></span></div>
+      </div>
+      <div class="input-wrap">
+        <div class="field" contenteditable="true">/me </div>
+        <div class="comp-tools">
+          <div class="ct" title="Attach"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></div>
+          <div class="ct" title="Emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg></div>
+          <div class="ct send" title="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></div>
+        </div>
+      </div>
+      <div class="comp-foot">
+        <span><span class="k">↵</span> send</span>
+        <span><span class="k">⇧ ↵</span> new line</span>
+        <span><span class="k">/</span> commands</span>
+        <span class="r">delivered instantly · synced to all devices</span>
+      </div>
+    </div>
+  </main>
+
+  <aside class="members">
+    <div class="mem-head"><h3>Members</h3><div class="sub">1,204 online · 40 away</div></div>
+    <div class="mem-scroll">
+      <div class="mem-grp">Operators<span class="c">3</span></div>
+      <div class="mem"><span class="av" style="background:linear-gradient(135deg,#a6f065,#4fe0d8)">n<span class="p" style="background:var(--lime)"></span></span><span class="nm"><span class="op-mark">@</span> nirik</span></div>
+      <div class="mem"><span class="av" style="background:linear-gradient(135deg,#ffc857,#ff7a70)">f<span class="p" style="background:var(--lime)"></span></span><span class="nm"><span class="op-mark">@</span> fpm</span></div>
+      <div class="mem away"><span class="av" style="background:var(--grad-cool)">c<span class="p" style="background:var(--amber)"></span></span><span class="nm"><span class="op-mark">@</span> codehelp</span></div>
+      <div class="mem-grp">Voiced<span class="c">2</span></div>
+      <div class="mem"><span class="av" style="background:linear-gradient(135deg,#ff6ec7,#ff7a70)">t<span class="p" style="background:var(--lime)"></span></span><span class="nm"><span class="voice-mark">+</span> tabby_</span></div>
+      <div class="mem"><span class="av" style="background:linear-gradient(135deg,#4fe0d8,#5cc7ff)">v<span class="p" style="background:var(--lime)"></span></span><span class="nm"><span class="voice-mark">+</span> vasquez</span></div>
+      <div class="mem-grp">Online<span class="c">1,199</span></div>
+      <div class="mem"><span class="av" style="background:var(--grad-cool)">P<span class="p" style="background:var(--lime)"></span></span><span class="nm">phillmac</span></div>
+      <div class="mem"><span class="av" style="background:linear-gradient(135deg,#8b7dff,#ff6ec7)">s<span class="p" style="background:var(--lime)"></span></span><span class="nm">solskogen</span></div>
+      <div class="mem"><span class="av" style="background:var(--grad)">D<span class="p" style="background:var(--lime)"></span></span><span class="nm">dmf</span><span class="badge" style="color:var(--ink-3)">you</span></div>
+      <div class="mem away"><span class="av" style="background:#3a3860">g<span class="p" style="background:var(--ink-3)"></span></span><span class="nm">gruntbuggly</span></div>
+      <div class="mem"><span class="av" style="background:linear-gradient(135deg,#a6f065,#4fe0d8)">k<span class="p" style="background:var(--lime)"></span></span><span class="nm">kilobyte</span></div>
+      <div class="mem away"><span class="av" style="background:linear-gradient(135deg,#ffc857,#ff7a70)">m<span class="p" style="background:var(--amber)"></span></span><span class="nm">morpheus</span></div>
+      <div class="mem"><span class="av" style="background:linear-gradient(135deg,#8b7dff,#5cc7ff)">z<span class="p" style="background:var(--lime)"></span></span><span class="nm">zealot</span></div>
+    </div>
+  </aside>
+
+</div>
+<script>
+function setDensity(mode, el){
+  document.documentElement.setAttribute('data-density', mode);
+  el.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+}
+function toggleTheme(){const r=document.documentElement;r.setAttribute('data-theme',r.getAttribute('data-theme')==='dark'?'light':'dark')}
+</script>
+</body>
+</html>

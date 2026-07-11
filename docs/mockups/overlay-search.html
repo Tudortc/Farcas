@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bool — Global Search</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Global "Slack-like" search — Direction A theme */
+:root{
+  --bg-0:#0a0c0d;--bg-1:#0e1113;--bg-2:#101416;--bg-3:#151a1d;--bg-4:#1b2226;
+  --line:#20282c;--line-2:#2a343a;--ink-0:#e6efe9;--ink-1:#9fb1ab;--ink-2:#63756f;--ink-3:#455049;
+  --green:#39e08b;--green-dim:#1f7a4c;--amber:#ffb454;--cyan:#4fd6e0;--blue:#7aa2f7;--violet:#b48ead;--rose:#f7768e;
+  --mono:'JetBrains Mono',ui-monospace,monospace;--sans:'IBM Plex Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg-0);color:var(--ink-0);height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+.scrim{position:fixed;inset:0;background:rgba(4,6,7,.55);backdrop-filter:blur(4px)}
+@keyframes drop{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}
+
+.panel{
+  position:fixed;left:50%;top:32px;transform:translateX(-50%);
+  width:min(880px,94vw);height:calc(100vh - 64px);
+  background:var(--bg-1);border:1px solid var(--line-2);border-radius:14px;
+  box-shadow:0 40px 120px -20px rgba(0,0,0,.8), 0 0 60px -30px rgba(57,224,139,.3);
+  display:flex;flex-direction:column;overflow:hidden;animation:drop .2s cubic-bezier(.3,1,.4,1);
+}
+.s-bar{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.s-bar svg{width:19px;height:19px;color:var(--green);flex:none}
+.s-input{flex:1;background:none;border:none;outline:none;color:var(--ink-0);font-family:var(--sans);font-size:16px}
+.token{font-family:var(--mono);font-size:12px;padding:3px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.token.in{background:rgba(57,224,139,.1);color:var(--green);border:1px solid var(--green-dim)}
+.token.from{background:rgba(122,162,247,.1);color:var(--blue);border:1px solid #2f4570}
+.token .x{cursor:pointer;opacity:.7}
+.s-bar .esc{font-family:var(--mono);font-size:10px;color:var(--ink-2);border:1px solid var(--line-2);border-radius:4px;padding:3px 6px}
+
+.s-filters{display:flex;align-items:center;gap:8px;padding:10px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.fbtn{font-family:var(--mono);font-size:11px;color:var(--ink-1);background:var(--bg-3);border:1px solid var(--line);border-radius:7px;padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.fbtn:hover{border-color:var(--line-2)}
+.fbtn svg{width:12px;height:12px;opacity:.7}
+.fbtn.on{color:var(--green);border-color:var(--green-dim);background:rgba(57,224,139,.06)}
+.fbtn .cnt{color:var(--ink-3)}
+.s-sort{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink-2);display:flex;align-items:center;gap:6px;cursor:pointer}
+
+.s-meta{padding:12px 18px 6px;font-family:var(--mono);font-size:11px;color:var(--ink-2);display:flex;justify-content:space-between}
+.s-meta b{color:var(--ink-0)}
+.s-results{flex:1;overflow-y:auto;padding:4px 12px 16px}
+
+.hit{padding:12px 14px;border-radius:10px;cursor:pointer;transition:background .12s}
+.hit:hover{background:var(--bg-3)}
+.hit + .hit{margin-top:2px}
+.hit-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-family:var(--mono);font-size:11px;color:var(--ink-2)}
+.hit-head .ch{color:var(--green)}
+.hit-head .net{color:var(--ink-3)}
+.hit-head .when{margin-left:auto}
+.hit-head .perma{color:var(--ink-3);cursor:pointer}
+.hit-head .perma:hover{color:var(--cyan)}
+
+.ctx{border-left:2px solid var(--line);padding-left:12px;display:flex;flex-direction:column;gap:5px}
+.cline{display:grid;grid-template-columns:56px 90px 1fr;gap:10px;font-size:13px;line-height:1.5;align-items:baseline}
+.cline .t{font-family:var(--mono);font-size:10px;color:var(--ink-3);text-align:right}
+.cline .n{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cline .m{color:var(--ink-1)}
+.cline.dim{opacity:.5}
+.cline.match{background:linear-gradient(90deg,rgba(57,224,139,.06),transparent);border-radius:6px;margin:0 -6px;padding:2px 6px}
+.cline.match .m{color:var(--ink-0)}
+mark{background:rgba(255,180,84,.22);color:var(--amber);border-radius:3px;padding:0 2px;font-weight:600}
+
+.s-empty-hint{padding:14px 18px;font-size:12px;color:var(--ink-2);border-top:1px solid var(--line);font-family:var(--mono);display:flex;gap:18px;flex-wrap:wrap;background:var(--bg-0)}
+.s-empty-hint .k{color:var(--green)}
+.title-hint{position:fixed;top:8px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:1px;z-index:5}
+</style>
+</head>
+<body>
+<div class="scrim"></div>
+<div class="title-hint">bool · Global Search — mockup, Direction A theme</div>
+
+<div class="panel">
+  <div class="s-bar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <span class="token in">in:#python <span class="x">×</span></span>
+    <span class="token from">from:nirik <span class="x">×</span></span>
+    <input class="s-input" value="taskgroup cancellation" autofocus>
+    <span class="esc">ESC</span>
+  </div>
+
+  <div class="s-filters">
+    <div class="fbtn on"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16M4 12h16M4 18h16"/></svg>All results <span class="cnt">· 47</span></div>
+    <div class="fbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H5.2L4 17.5z"/></svg>Messages</div>
+    <div class="fbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 16V4h16v16l-4-3H4z"/></svg>Files</div>
+    <div class="fbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/></svg>Links</div>
+    <div class="fbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Any time</div>
+    <div class="s-sort">Sort: <b style="color:var(--ink-1)">Most recent</b> <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></div>
+  </div>
+
+  <div class="s-meta"><span><b>47</b> messages in <b>4</b> channels · Libera.Chat, OFTC</span><span>0.02s</span></div>
+
+  <div class="s-results">
+
+    <div class="hit">
+      <div class="hit-head"><span class="ch">#python</span><span class="net">· Libera.Chat</span><span class="when">Today · 09:43</span><span class="perma">🔗 permalink</span></div>
+      <div class="ctx">
+        <div class="cline dim"><span class="t">09:42</span><span class="n" style="color:#7aa2f7">phillmac</span><span class="m">curious about cancellation semantics vs plain gather()</span></div>
+        <div class="cline match"><span class="t">09:43</span><span class="n" style="color:#9ece6a">nirik</span><span class="m">the real win: a failing child cancels its siblings automatically. that's the whole point of <mark>TaskGroup</mark> <mark>cancellation</mark> — structured, not ad-hoc</span></div>
+        <div class="cline dim"><span class="t">09:45</span><span class="n" style="color:#bb9af7">solskogen</span><span class="m">exactly this. one gotcha though…</span></div>
+      </div>
+    </div>
+
+    <div class="hit">
+      <div class="hit-head"><span class="ch">#python</span><span class="net">· Libera.Chat</span><span class="when">Yesterday · 22:10</span><span class="perma">🔗 permalink</span></div>
+      <div class="ctx">
+        <div class="cline dim"><span class="t">22:09</span><span class="n" style="color:#7dcfff">vasquez</span><span class="m">how does it handle a KeyboardInterrupt mid-flight?</span></div>
+        <div class="cline match"><span class="t">22:10</span><span class="n" style="color:#9ece6a">nirik</span><span class="m"><mark>cancellation</mark> propagates as a CancelledError into every child; the <mark>TaskGroup</mark> waits for them to unwind before re-raising. clean shutdown every time</span></div>
+      </div>
+    </div>
+
+    <div class="hit">
+      <div class="hit-head"><span class="ch">#python</span><span class="net">· Libera.Chat</span><span class="when">Jul 9 · 14:31</span><span class="perma">🔗 permalink</span></div>
+      <div class="ctx">
+        <div class="cline dim"><span class="t">14:30</span><span class="n" style="color:#e0af68">morpheus</span><span class="m">migrating a big gather() pipeline, any tips?</span></div>
+        <div class="cline match"><span class="t">14:31</span><span class="n" style="color:#9ece6a">nirik</span><span class="m">watch the <mark>cancellation</mark> edges — with <mark>TaskGroup</mark> a single failure tears down the whole group, so wrap anything you want to survive in its own shielded task</span></div>
+        <div class="cline dim"><span class="t">14:33</span><span class="n" style="color:#e0af68">morpheus</span><span class="m">ah that's the bit I was missing, thanks</span></div>
+      </div>
+    </div>
+
+    <div class="hit">
+      <div class="hit-head"><span class="ch">#python-dev</span><span class="net">· Libera.Chat</span><span class="when">Jul 7 · 11:02</span><span class="perma">🔗 permalink</span></div>
+      <div class="ctx">
+        <div class="cline match"><span class="t">11:02</span><span class="n" style="color:#9ece6a">nirik</span><span class="m">wrote up our <mark>TaskGroup</mark> <mark>cancellation</mark> notes in the wiki — covers ExceptionGroup handling and the shield pattern</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="s-empty-hint">
+    <span><span class="k">in:</span>#channel</span>
+    <span><span class="k">from:</span>user</span>
+    <span><span class="k">before:</span>2026-07-01</span>
+    <span><span class="k">after:</span>yesterday</span>
+    <span><span class="k">has:</span>link,image,code</span>
+    <span style="margin-left:auto;color:var(--ink-3)">↵ jump to message · ⌘↵ open in split</span>
+  </div>
+</div>
+</body>
+</html>

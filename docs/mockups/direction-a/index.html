@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-density="compact">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bool — Direction A · Terminal-Modern</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   bool — Direction A: "Terminal-Modern"
+   Dense · monospace-accented · hacker-native · phosphor accents
+   ============================================================ */
+:root {
+  /* palette — near-black, cold graphite, phosphor green + amber */
+  --bg-0:#0a0c0d;      /* app frame */
+  --bg-1:#0e1113;      /* sidebar */
+  --bg-2:#101416;      /* message pane */
+  --bg-3:#151a1d;      /* raised (composer, hover) */
+  --bg-4:#1b2226;      /* active row */
+  --line:#20282c;      /* hairlines */
+  --line-2:#2a343a;
+  --ink-0:#e6efe9;     /* primary text */
+  --ink-1:#9fb1ab;     /* secondary */
+  --ink-2:#63756f;     /* muted / timestamps */
+  --ink-3:#455049;     /* faint */
+  --green:#39e08b;     /* phosphor accent */
+  --green-dim:#1f7a4c;
+  --amber:#ffb454;     /* highlight / mention */
+  --amber-dim:#7a5320;
+  --cyan:#4fd6e0;
+  --red:#ff6b6b;
+  --violet:#b48ead;
+  --blue:#7aa2f7;
+
+  /* mIRC-ish palette for colored text */
+  --m-red:#f7768e; --m-green:#9ece6a; --m-yellow:#e0af68;
+  --m-blue:#7aa2f7; --m-magenta:#bb9af7; --m-cyan:#7dcfff; --m-orange:#ff9e64;
+
+  /* type */
+  --mono:'JetBrains Mono', ui-monospace, monospace;
+  --sans:'IBM Plex Sans', system-ui, sans-serif;
+
+  --radius:6px;
+  --radius-sm:4px;
+
+  /* DENSITY TOKENS — compact (default) */
+  --row-py:2px;
+  --row-gap:1px;
+  --msg-fs:13px;
+  --msg-lh:1.45;
+  --meta-fs:11px;
+  --side-row-h:24px;
+  --avatar:0px;        /* terminal mode has no avatars by default */
+  --group-gap:10px;
+}
+[data-density="comfortable"] {
+  --row-py:5px;
+  --row-gap:3px;
+  --msg-fs:14px;
+  --msg-lh:1.6;
+  --meta-fs:12px;
+  --side-row-h:30px;
+  --group-gap:18px;
+}
+[data-theme="light"] {
+  --bg-0:#f4f6f5; --bg-1:#eaeeec; --bg-2:#ffffff; --bg-3:#f2f5f4; --bg-4:#e6ece9;
+  --line:#dde4e1; --line-2:#cdd6d2;
+  --ink-0:#141a18; --ink-1:#41504a; --ink-2:#6d7d76; --ink-3:#a3b0aa;
+  --green:#0f9d58; --green-dim:#a7e0c2; --amber:#c47f00; --amber-dim:#f0dcb0;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--sans);
+  background:var(--bg-0);
+  color:var(--ink-0);
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+::selection{background:var(--green-dim);color:#fff}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:6px;border:2px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:#33403a}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ---- app shell ---- */
+.app{
+  display:grid;
+  grid-template-columns:56px 232px 1fr 200px;
+  height:100vh;
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(57,224,139,.04), transparent 60%),
+    var(--bg-0);
+}
+
+/* ---- rail: networks ---- */
+.rail{
+  background:var(--bg-1);
+  border-right:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;
+  padding:10px 0;gap:6px;
+}
+.logo{
+  width:34px;height:34px;border-radius:9px;
+  display:grid;place-items:center;
+  font-family:var(--mono);font-weight:700;font-size:16px;
+  color:#04150c;background:linear-gradient(160deg,var(--green),#22b06c);
+  box-shadow:0 0 0 1px rgba(57,224,139,.4), 0 6px 18px -6px rgba(57,224,139,.5);
+  margin-bottom:6px;letter-spacing:-1px;
+}
+.rail-sep{width:22px;height:1px;background:var(--line);margin:2px 0}
+.net{
+  position:relative;width:38px;height:38px;border-radius:11px;
+  display:grid;place-items:center;cursor:pointer;
+  background:var(--bg-3);border:1px solid var(--line);
+  font-family:var(--mono);font-weight:700;font-size:12px;color:var(--ink-1);
+  transition:.16s cubic-bezier(.4,.9,.3,1.2);
+}
+.net:hover{color:var(--ink-0);border-color:var(--line-2);transform:translateY(-1px)}
+.net.active{
+  color:var(--green);border-color:var(--green-dim);
+  background:linear-gradient(180deg,rgba(57,224,139,.12),rgba(57,224,139,.03));
+  box-shadow:0 0 0 1px rgba(57,224,139,.25);
+}
+.net.active::before{
+  content:"";position:absolute;left:-11px;top:50%;transform:translateY(-50%);
+  width:3px;height:20px;border-radius:2px;background:var(--green);
+  box-shadow:0 0 8px var(--green);
+}
+.net .badge{
+  position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 4px;
+  border-radius:8px;background:var(--amber);color:#1a1200;
+  font-family:var(--mono);font-size:10px;font-weight:700;
+  display:grid;place-items:center;border:2px solid var(--bg-1);
+}
+.rail-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;align-items:center}
+.rail-ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--ink-2);cursor:pointer}
+.rail-ic:hover{color:var(--ink-0);background:var(--bg-3)}
+.rail-ic svg{width:18px;height:18px}
+.me{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#7aa2f7,#b48ead);display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:12px;color:#0a0c0d;position:relative}
+.me::after{content:"";position:absolute;right:-2px;bottom:-2px;width:9px;height:9px;border-radius:50%;background:var(--green);border:2px solid var(--bg-1)}
+
+/* ---- sidebar: channels ---- */
+.side{
+  background:var(--bg-1);
+  border-right:1px solid var(--line);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.side-head{
+  padding:12px 12px 10px;border-bottom:1px solid var(--line);
+}
+.net-title{
+  display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;color:var(--ink-0);
+}
+.net-title .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
+.net-sub{font-family:var(--mono);font-size:11px;color:var(--ink-2);margin-top:3px;letter-spacing:.2px}
+.side-search{
+  margin-top:10px;display:flex;align-items:center;gap:7px;
+  background:var(--bg-3);border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:5px 8px;color:var(--ink-2);
+}
+.side-search svg{width:13px;height:13px;flex:none}
+.side-search input{
+  background:none;border:none;outline:none;color:var(--ink-0);font-family:var(--sans);
+  font-size:12px;width:100%;
+}
+.side-search kbd{
+  font-family:var(--mono);font-size:10px;color:var(--ink-2);
+  border:1px solid var(--line-2);border-radius:3px;padding:1px 4px;background:var(--bg-2);
+}
+.side-scroll{overflow-y:auto;padding:8px 6px;flex:1}
+.grp{margin-bottom:6px}
+.grp-h{
+  display:flex;align-items:center;gap:5px;padding:6px 8px 4px;
+  font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:1.2px;
+  color:var(--ink-3);text-transform:uppercase;cursor:pointer;user-select:none;
+}
+.grp-h svg{width:9px;height:9px;transition:.15s}
+.grp-h .count{margin-left:auto;color:var(--ink-3);font-weight:500}
+
+.chan{
+  display:flex;align-items:center;gap:8px;height:var(--side-row-h);
+  padding:0 8px;border-radius:var(--radius-sm);cursor:pointer;
+  color:var(--ink-1);position:relative;font-size:13px;
+  transition:background .12s, color .12s;
+}
+.chan:hover{background:var(--bg-3);color:var(--ink-0)}
+.chan .hash{font-family:var(--mono);color:var(--ink-3);font-weight:500}
+.chan.active{background:var(--bg-4);color:var(--ink-0)}
+.chan.active::before{
+  content:"";position:absolute;left:-6px;top:4px;bottom:4px;width:2px;border-radius:2px;
+  background:var(--green);box-shadow:0 0 8px var(--green);
+}
+.chan.active .hash{color:var(--green)}
+.chan .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chan.unread{color:var(--ink-0);font-weight:500}
+.chan.unread .hash{color:var(--ink-1)}
+.chan .b{
+  margin-left:auto;font-family:var(--mono);font-size:10px;font-weight:700;
+  min-width:18px;height:16px;padding:0 5px;border-radius:8px;display:grid;place-items:center;
+  background:var(--bg-4);color:var(--ink-1);border:1px solid var(--line);
+}
+.chan .b.mention{background:var(--amber);color:#1a1200;border-color:transparent;box-shadow:0 0 10px -2px var(--amber)}
+.chan .dm-av{width:16px;height:16px;border-radius:4px;font-family:var(--mono);font-size:9px;font-weight:700;display:grid;place-items:center;color:#0a0c0d}
+.pres{width:6px;height:6px;border-radius:50%;flex:none}
+.pres.on{background:var(--green)} .pres.idle{background:var(--amber)} .pres.off{background:var(--ink-3)}
+
+/* ---- center: messages ---- */
+.main{display:flex;flex-direction:column;background:var(--bg-2);overflow:hidden;min-width:0}
+.topbar{
+  height:46px;flex:none;display:flex;align-items:center;gap:12px;
+  padding:0 14px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,var(--bg-2),var(--bg-2));
+}
+.topbar .ch{display:flex;align-items:baseline;gap:8px;min-width:0}
+.topbar .ch h1{font-size:15px;font-weight:600;display:flex;align-items:center;gap:5px}
+.topbar .ch h1 .hash{font-family:var(--mono);color:var(--green)}
+.topbar .topic{font-size:12px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-left:1px solid var(--line);padding-left:12px}
+.topbar .spacer{flex:1}
+.topbar .stat{font-family:var(--mono);font-size:11px;color:var(--ink-2);display:flex;align-items:center;gap:5px}
+.topbar .stat b{color:var(--ink-0);font-weight:500}
+.tb-btn{width:30px;height:30px;border-radius:var(--radius-sm);display:grid;place-items:center;color:var(--ink-2);cursor:pointer;border:1px solid transparent}
+.tb-btn:hover{color:var(--ink-0);background:var(--bg-3);border-color:var(--line)}
+.tb-btn svg{width:16px;height:16px}
+.tb-btn.on{color:var(--green);border-color:var(--green-dim);background:rgba(57,224,139,.06)}
+
+/* density toggle in topbar */
+.density{
+  display:flex;background:var(--bg-3);border:1px solid var(--line);border-radius:var(--radius-sm);padding:2px;
+}
+.density button{
+  font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.5px;
+  color:var(--ink-2);background:none;border:none;padding:3px 8px;border-radius:3px;cursor:pointer;
+}
+.density button.on{background:var(--bg-0);color:var(--green);box-shadow:inset 0 0 0 1px var(--green-dim)}
+
+/* messages */
+.msgs{flex:1;overflow-y:auto;padding:10px 0 4px}
+.daybar{display:flex;align-items:center;gap:10px;padding:12px 16px 8px;color:var(--ink-3)}
+.daybar::before,.daybar::after{content:"";height:1px;background:var(--line);flex:1}
+.daybar span{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase}
+
+.grp-msgs{margin-top:var(--group-gap)}
+.msg{
+  display:grid;grid-template-columns:52px 1fr;gap:0 10px;
+  padding:var(--row-py) 16px var(--row-py) 8px;
+  position:relative;
+}
+.msg:hover{background:var(--bg-3)}
+.msg .gutter{
+  font-family:var(--mono);font-size:var(--meta-fs);color:var(--ink-3);
+  text-align:right;padding-top:2px;user-select:none;letter-spacing:-.3px;
+}
+.msg .body{min-width:0}
+.msg-head{display:flex;align-items:baseline;gap:8px;margin-bottom:1px}
+.nick{font-weight:600;font-size:var(--msg-fs);cursor:pointer}
+.nick:hover{text-decoration:underline}
+.nick.op::before{content:"@";color:var(--amber);font-family:var(--mono);font-weight:700}
+.nick.voice::before{content:"+";color:var(--cyan);font-family:var(--mono);font-weight:700}
+.role-tag{font-family:var(--mono);font-size:9px;padding:1px 4px;border-radius:3px;letter-spacing:.5px;background:var(--bg-4);color:var(--ink-2);border:1px solid var(--line)}
+.text{font-size:var(--msg-fs);line-height:var(--msg-lh);color:var(--ink-0);word-wrap:break-word}
+.cont{display:grid;grid-template-columns:52px 1fr;gap:0 10px;padding:var(--row-gap) 16px var(--row-gap) 8px}
+.cont:hover{background:var(--bg-3)}
+.cont .gutter{font-family:var(--mono);font-size:10px;color:transparent;text-align:right}
+.cont:hover .gutter{color:var(--ink-3)}
+
+a.link{color:var(--blue);text-decoration:none;border-bottom:1px solid transparent}
+a.link:hover{border-bottom-color:var(--blue)}
+.mention-inline{color:var(--amber);background:var(--amber-dim);border-radius:3px;padding:0 3px;font-weight:500}
+.self-mention{background:rgba(255,180,84,.14);box-shadow:inset 2px 0 0 var(--amber)}
+
+/* mIRC colored text */
+.mc-red{color:var(--m-red)} .mc-green{color:var(--m-green)} .mc-yellow{color:var(--m-yellow)}
+.mc-blue{color:var(--m-blue)} .mc-magenta{color:var(--m-magenta)} .mc-cyan{color:var(--m-cyan)} .mc-orange{color:var(--m-orange)}
+.mc-b{font-weight:700} .mc-i{font-style:italic} .mc-u{text-decoration:underline}
+.mc-bg{background:#2a1f00;padding:0 3px;border-radius:2px}
+
+/* code block */
+.code{
+  margin:5px 0;border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--bg-0);overflow:hidden;font-family:var(--mono);font-size:12px;
+}
+.code-h{display:flex;align-items:center;gap:8px;padding:5px 10px;border-bottom:1px solid var(--line);background:var(--bg-1)}
+.code-h .lang{font-size:10px;color:var(--green);letter-spacing:.5px;text-transform:uppercase}
+.code-h .cp{margin-left:auto;font-size:10px;color:var(--ink-2);cursor:pointer}
+.code-h .cp:hover{color:var(--ink-0)}
+.code pre{padding:9px 12px;overflow-x:auto;line-height:1.55;color:var(--ink-1)}
+.tk-key{color:var(--m-magenta)} .tk-fn{color:var(--m-blue)} .tk-str{color:var(--m-green)} .tk-num{color:var(--m-orange)} .tk-com{color:var(--ink-3);font-style:italic}
+
+/* link preview */
+.preview{
+  margin:6px 0;max-width:420px;border:1px solid var(--line);border-radius:var(--radius);
+  overflow:hidden;background:var(--bg-1);display:flex;
+}
+.preview .thumb{width:96px;flex:none;background:linear-gradient(135deg,#1c2b3a,#16202a);position:relative;overflow:hidden}
+.preview .thumb::after{content:"";position:absolute;inset:0;background:
+  radial-gradient(circle at 30% 30%, rgba(122,162,247,.5), transparent 60%),
+  radial-gradient(circle at 70% 70%, rgba(180,142,173,.4), transparent 55%)}
+.preview .pv{padding:9px 11px;min-width:0}
+.preview .pv .site{font-family:var(--mono);font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:.5px}
+.preview .pv .ttl{font-size:13px;font-weight:600;margin:3px 0;color:var(--ink-0);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preview .pv .desc{font-size:11px;color:var(--ink-2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* inline image */
+.img-att{margin:6px 0;width:220px;height:132px;border-radius:var(--radius);border:1px solid var(--line);overflow:hidden;position:relative;cursor:zoom-in;
+  background:linear-gradient(135deg,#132821,#0e1a16)}
+.img-att::after{content:"";position:absolute;inset:0;background:
+  radial-gradient(circle at 25% 30%, rgba(57,224,139,.35),transparent 55%),
+  radial-gradient(circle at 80% 75%, rgba(79,214,224,.3),transparent 55%),
+  repeating-linear-gradient(45deg, rgba(255,255,255,.02) 0 8px, transparent 8px 16px)}
+.img-att .meta{position:absolute;left:0;right:0;bottom:0;padding:6px 9px;font-family:var(--mono);font-size:10px;color:var(--ink-1);
+  background:linear-gradient(transparent,rgba(0,0,0,.6));z-index:1;display:flex;justify-content:space-between}
+
+/* reply quote */
+.reply-to{
+  display:flex;align-items:center;gap:6px;margin-bottom:3px;padding-left:2px;
+  font-size:11px;color:var(--ink-2);cursor:pointer;
+}
+.reply-to .bar{width:2px;height:14px;border-radius:2px;background:var(--line-2)}
+.reply-to .rn{color:var(--ink-1);font-weight:500}
+.reply-to:hover .qt{color:var(--ink-1)}
+.reply-to .qt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:280px}
+
+/* reactions */
+.reacts{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}
+.react{
+  display:inline-flex;align-items:center;gap:5px;padding:2px 8px 2px 6px;border-radius:11px;
+  background:var(--bg-3);border:1px solid var(--line);font-size:12px;cursor:pointer;
+  font-family:var(--mono);color:var(--ink-1);transition:.12s;
+}
+.react:hover{border-color:var(--line-2)}
+.react.mine{background:rgba(57,224,139,.1);border-color:var(--green-dim);color:var(--green)}
+.react .n{font-size:11px}
+.react-add{display:grid;place-items:center;width:24px;height:22px;border-radius:11px;border:1px dashed var(--line-2);color:var(--ink-3);cursor:pointer}
+.react-add:hover{color:var(--ink-0);border-color:var(--ink-2)}
+.react-add svg{width:12px;height:12px}
+
+/* system / join-part lines */
+.sys{
+  display:flex;align-items:center;gap:8px;padding:1px 16px 1px 8px;
+  font-size:12px;color:var(--ink-3);font-family:var(--mono);
+}
+.sys .g{width:52px;text-align:right;font-size:10px;color:var(--ink-3)}
+.sys .icn{color:var(--green-dim)}
+.sys.part .icn{color:var(--ink-3)}
+.sys b{color:var(--ink-1);font-weight:500}
+
+/* typing */
+.typing{display:flex;align-items:center;gap:8px;padding:3px 16px 6px 60px;font-size:11px;color:var(--ink-2);font-family:var(--mono)}
+.typing .dots{display:inline-flex;gap:3px}
+.typing .dots i{width:4px;height:4px;border-radius:50%;background:var(--green);animation:bl 1.2s infinite}
+.typing .dots i:nth-child(2){animation-delay:.2s}.typing .dots i:nth-child(3){animation-delay:.4s}
+@keyframes bl{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-2px)}}
+
+/* composer */
+.composer{flex:none;padding:8px 14px 12px;border-top:1px solid var(--line);position:relative}
+.autocomplete{
+  position:absolute;left:14px;right:14px;bottom:calc(100% - 6px);
+  background:var(--bg-1);border:1px solid var(--line-2);border-radius:var(--radius);
+  box-shadow:0 -12px 40px -12px rgba(0,0,0,.7);overflow:hidden;
+}
+.ac-h{padding:6px 12px;font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--line)}
+.ac-item{display:flex;align-items:center;gap:10px;padding:6px 12px;cursor:pointer;font-size:13px}
+.ac-item.sel{background:var(--bg-4)}
+.ac-item .cmd{font-family:var(--mono);color:var(--green);font-weight:600;min-width:96px}
+.ac-item .desc{color:var(--ink-2);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ac-item .args{font-family:var(--mono);color:var(--ink-3);font-size:11px;margin-left:auto}
+
+.input-wrap{
+  display:flex;align-items:flex-end;gap:10px;
+  background:var(--bg-3);border:1px solid var(--line-2);border-radius:var(--radius);
+  padding:8px 10px;transition:border-color .15s, box-shadow .15s;
+}
+.input-wrap:focus-within{border-color:var(--green-dim);box-shadow:0 0 0 3px rgba(57,224,139,.07)}
+.input-wrap .prompt{font-family:var(--mono);color:var(--green);font-weight:700;padding-bottom:1px;user-select:none}
+.input-wrap .field{flex:1;color:var(--ink-0);font-size:var(--msg-fs);line-height:1.4;min-height:20px;outline:none}
+.input-wrap .field:empty::before{content:"Message #python  ·  / for commands";color:var(--ink-3)}
+.comp-tools{display:flex;gap:2px}
+.comp-tools .ct{width:28px;height:28px;border-radius:var(--radius-sm);display:grid;place-items:center;color:var(--ink-2);cursor:pointer}
+.comp-tools .ct:hover{color:var(--ink-0);background:var(--bg-4)}
+.comp-tools .ct svg{width:16px;height:16px}
+.comp-foot{display:flex;align-items:center;gap:12px;margin-top:5px;padding:0 2px;font-family:var(--mono);font-size:10px;color:var(--ink-3)}
+.comp-foot .k{border:1px solid var(--line-2);border-radius:3px;padding:0 4px;color:var(--ink-2)}
+.comp-foot .send-hint{margin-left:auto}
+
+/* ---- right: members ---- */
+.members{background:var(--bg-1);border-left:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+.mem-head{padding:11px 12px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-2);display:flex;justify-content:space-between}
+.mem-head b{color:var(--green)}
+.mem-scroll{overflow-y:auto;padding:6px 6px 12px;flex:1}
+.mem-grp{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-3);padding:8px 8px 4px}
+.mem{display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--ink-1)}
+.mem:hover{background:var(--bg-3);color:var(--ink-0)}
+.mem .av{width:22px;height:22px;border-radius:6px;font-family:var(--mono);font-weight:700;font-size:10px;display:grid;place-items:center;color:#0a0c0d;flex:none;position:relative}
+.mem .av .p{position:absolute;right:-2px;bottom:-2px;width:8px;height:8px;border-radius:50%;border:2px solid var(--bg-1)}
+.mem .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mem .sig{margin-left:auto;font-family:var(--mono);font-size:10px}
+.mem.away{opacity:.5}
+.op-mark{color:var(--amber);font-family:var(--mono)} .voice-mark{color:var(--cyan);font-family:var(--mono)}
+
+@media (max-width:1180px){.members{display:none}.app{grid-template-columns:56px 232px 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- NETWORK RAIL -->
+  <nav class="rail">
+    <div class="logo">b</div>
+    <div class="net active" title="Libera.Chat">LC</div>
+    <div class="net" title="OFTC">OF<span class="badge">3</span></div>
+    <div class="net" title="EFNet">EF</div>
+    <div class="net" title="Rizon">RZ</div>
+    <div class="rail-sep"></div>
+    <div class="net" title="Add network" style="color:var(--ink-3);border-style:dashed">+</div>
+    <div class="rail-foot">
+      <div class="rail-ic" title="Command palette (⌘K)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 9h8M8 13h5"/></svg></div>
+      <div class="rail-ic" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.24.58.78.99 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+      <div class="me" title="you · dmf">D</div>
+    </div>
+  </nav>
+
+  <!-- CHANNEL SIDEBAR -->
+  <aside class="side">
+    <div class="side-head">
+      <div class="net-title"><span class="dot"></span>Libera.Chat</div>
+      <div class="net-sub">irc.libera.chat:6697 · SASL · as dmf</div>
+      <div class="side-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input placeholder="Jump to…">
+        <kbd>⌘K</kbd>
+      </div>
+    </div>
+    <div class="side-scroll">
+      <div class="grp">
+        <div class="grp-h"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>Channels<span class="count">6</span></div>
+        <div class="chan unread"><span class="hash">#</span><span class="name">archlinux</span><span class="b">12</span></div>
+        <div class="chan active"><span class="hash">#</span><span class="name">python</span></div>
+        <div class="chan unread"><span class="hash">#</span><span class="name">linux</span><span class="b mention">4</span></div>
+        <div class="chan"><span class="hash">#</span><span class="name">rust</span></div>
+        <div class="chan unread"><span class="hash">#</span><span class="name">neovim</span><span class="b">3</span></div>
+        <div class="chan"><span class="hash">#</span><span class="name">selfhosted</span></div>
+      </div>
+      <div class="grp">
+        <div class="grp-h"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>Direct Messages<span class="count">3</span></div>
+        <div class="chan"><span class="dm-av" style="background:#7aa2f7">P</span><span class="name">phillmac</span><span class="pres on" style="margin-left:auto"></span></div>
+        <div class="chan unread"><span class="dm-av" style="background:#bb9af7">n</span><span class="name">nirik</span><span class="b mention">1</span></div>
+        <div class="chan"><span class="dm-av" style="background:#e0af68">s</span><span class="name">solskogen</span><span class="pres idle" style="margin-left:auto"></span></div>
+      </div>
+      <div class="grp">
+        <div class="grp-h"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>Muted<span class="count">2</span></div>
+        <div class="chan" style="opacity:.5"><span class="hash">#</span><span class="name">offtopic</span></div>
+        <div class="chan" style="opacity:.5"><span class="hash">#</span><span class="name">bots</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MESSAGE PANE -->
+  <main class="main">
+    <header class="topbar">
+      <div class="ch">
+        <h1><span class="hash">#</span>python</h1>
+      </div>
+      <div class="topic">Python 3.13 is out · No homework help · pastebin don't paste · docs.python.org</div>
+      <div class="spacer"></div>
+      <div class="stat"><b>1,204</b> online</div>
+      <div class="density" role="tablist" aria-label="Density">
+        <button class="on" onclick="setDensity('compact',this)">COMPACT</button>
+        <button onclick="setDensity('comfortable',this)">COMFY</button>
+      </div>
+      <div class="tb-btn" title="Toggle theme" onclick="toggleTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></div>
+      <div class="tb-btn" title="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
+      <div class="tb-btn on" title="Members"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13A4 4 0 0 1 16 11"/></svg></div>
+    </header>
+
+    <div class="msgs" id="msgs">
+      <div class="daybar"><span>Today · July 11</span></div>
+
+      <div class="sys"><span class="g">09:41</span><span class="icn">→</span> <span><b>vasquez</b> joined #python</span></div>
+
+      <div class="grp-msgs">
+        <div class="msg">
+          <div class="gutter">09:42</div>
+          <div class="body">
+            <div class="msg-head"><span class="nick" style="color:#7aa2f7">phillmac</span><span class="role-tag">SUB</span></div>
+            <div class="text">morning all — anyone here run <span class="mc-cyan mc-b">asyncio.TaskGroup</span> in prod yet? curious about cancellation semantics vs plain <code style="font-family:var(--mono);font-size:12px;color:var(--m-orange)">gather()</code></div>
+          </div>
+        </div>
+        <div class="cont">
+          <div class="gutter">09:42</div>
+          <div class="body"><div class="text">the docs are a bit thin on structured concurrency edge cases</div></div>
+        </div>
+      </div>
+
+      <div class="grp-msgs">
+        <div class="msg">
+          <div class="gutter">09:43</div>
+          <div class="body">
+            <div class="msg-head"><span class="nick op" style="color:#9ece6a">nirik</span><span class="role-tag" style="color:var(--amber);border-color:var(--amber-dim)">OP</span></div>
+            <div class="text">yeah we switched last quarter. the big win: a failing child cancels siblings automatically. here's the pattern we settled on 👇</div>
+            <div class="code">
+              <div class="code-h"><span class="lang">python</span><span class="cp">⧉ copy</span></div>
+<pre><span class="tk-key">async def</span> <span class="tk-fn">fetch_all</span>(urls):
+    <span class="tk-key">async with</span> asyncio.<span class="tk-fn">TaskGroup</span>() <span class="tk-key">as</span> tg:
+        tasks = [tg.<span class="tk-fn">create_task</span>(<span class="tk-fn">fetch</span>(u)) <span class="tk-key">for</span> u <span class="tk-key">in</span> urls]
+    <span class="tk-com"># all tasks awaited; first error cancels the rest</span>
+    <span class="tk-key">return</span> [t.<span class="tk-fn">result</span>() <span class="tk-key">for</span> t <span class="tk-key">in</span> tasks]</pre>
+            </div>
+            <div class="reacts">
+              <div class="react mine">👍 <span class="n">4</span></div>
+              <div class="react">🔥 <span class="n">2</span></div>
+              <div class="react">🧠 <span class="n">1</span></div>
+              <div class="react-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grp-msgs">
+        <div class="msg">
+          <div class="gutter">09:45</div>
+          <div class="body">
+            <div class="msg-head"><span class="nick" style="color:#bb9af7">solskogen</span></div>
+            <div class="reply-to"><span class="bar"></span>Replying to <span class="rn">nirik</span> <span class="qt">…a failing child cancels siblings automatically</span></div>
+            <div class="text">exactly this. one gotcha: if you need <span class="mc-yellow">partial results on failure</span>, TaskGroup isn't what you want — it re-raises as an ExceptionGroup. plain gather with <span class="mc-orange mc-b">return_exceptions=True</span> is still the move there.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grp-msgs">
+        <div class="msg">
+          <div class="gutter">09:47</div>
+          <div class="body">
+            <div class="msg-head"><span class="nick" style="color:#7dcfff">vasquez</span></div>
+            <div class="text">found a great writeup on this earlier <a class="link" href="#">superfastpython.com/asyncio-taskgroup</a></div>
+            <div class="preview">
+              <div class="thumb"></div>
+              <div class="pv">
+                <div class="site">superfastpython.com</div>
+                <div class="ttl">Asyncio TaskGroup in Python</div>
+                <div class="desc">Structured concurrency with TaskGroup — a modern replacement for gather() that manages task lifetimes and propagates errors as groups.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="typing"><span class="dots"><i></i><i></i><i></i></span> nirik is typing…</div>
+
+      <div class="grp-msgs">
+        <div class="msg">
+          <div class="gutter">09:48</div>
+          <div class="body">
+            <div class="msg-head"><span class="nick" style="color:#f7768e">tabby_</span><span class="role-tag" style="color:var(--cyan);border-color:var(--line)">+VOICE</span></div>
+            <div class="text">threw together a quick benchmark chart comparing the two under load — <span class="self-mention"><span class="mention-inline">@dmf</span></span> you asked about this yesterday 📊</div>
+            <div class="img-att"><div class="meta"><span>taskgroup-bench.png</span><span>221 KB</span></div></div>
+            <div class="reacts">
+              <div class="react">📊 <span class="n">3</span></div>
+              <div class="react-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sys part"><span class="g">09:49</span><span class="icn">←</span> <span><b>guest0417</b> quit (Ping timeout: 260 seconds)</span></div>
+
+    </div>
+
+    <!-- COMPOSER with slash autocomplete -->
+    <div class="composer">
+      <div class="autocomplete">
+        <div class="ac-h">Slash commands — matching “/me”</div>
+        <div class="ac-item sel"><span class="cmd">/me</span><span class="desc">Send an action message to the channel</span><span class="args">&lt;action&gt;</span></div>
+        <div class="ac-item"><span class="cmd">/msg</span><span class="desc">Open a private message with a user</span><span class="args">&lt;nick&gt; &lt;text&gt;</span></div>
+        <div class="ac-item"><span class="cmd">/mode</span><span class="desc">Set channel or user modes</span><span class="args">&lt;target&gt; &lt;flags&gt;</span></div>
+        <div class="ac-item"><span class="cmd">/mute</span><span class="desc">Mute notifications for this channel</span><span class="args"></span></div>
+      </div>
+      <div class="input-wrap">
+        <span class="prompt">›</span>
+        <div class="field" contenteditable="true">/me </div>
+        <div class="comp-tools">
+          <div class="ct" title="Upload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></div>
+          <div class="ct" title="Emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg></div>
+        </div>
+      </div>
+      <div class="comp-foot">
+        <span><span class="k">↵</span> send</span>
+        <span><span class="k">⇧↵</span> newline</span>
+        <span><span class="k">/</span> commands</span>
+        <span class="send-hint">connected · echo-message · labeled-response</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- MEMBER LIST -->
+  <aside class="members">
+    <div class="mem-head"><span>Members</span><b>1,204</b></div>
+    <div class="mem-scroll">
+      <div class="mem-grp">— Operators · 3</div>
+      <div class="mem"><span class="av" style="background:#9ece6a">n<span class="p" style="background:var(--green)"></span></span><span class="nm"><span class="op-mark">@</span>nirik</span></div>
+      <div class="mem"><span class="av" style="background:#e0af68">f<span class="p" style="background:var(--green)"></span></span><span class="nm"><span class="op-mark">@</span>fpm</span></div>
+      <div class="mem away"><span class="av" style="background:#7aa2f7">c<span class="p" style="background:var(--amber)"></span></span><span class="nm"><span class="op-mark">@</span>codehelp</span></div>
+      <div class="mem-grp">— Voiced · 2</div>
+      <div class="mem"><span class="av" style="background:#f7768e">t<span class="p" style="background:var(--green)"></span></span><span class="nm"><span class="voice-mark">+</span>tabby_</span></div>
+      <div class="mem"><span class="av" style="background:#7dcfff">v<span class="p" style="background:var(--green)"></span></span><span class="nm"><span class="voice-mark">+</span>vasquez</span></div>
+      <div class="mem-grp">— Online · 1,199</div>
+      <div class="mem"><span class="av" style="background:#7aa2f7">P<span class="p" style="background:var(--green)"></span></span><span class="nm">phillmac</span></div>
+      <div class="mem"><span class="av" style="background:#bb9af7">s<span class="p" style="background:var(--green)"></span></span><span class="nm">solskogen</span></div>
+      <div class="mem"><span class="av" style="background:linear-gradient(135deg,#7aa2f7,#b48ead)">D<span class="p" style="background:var(--green)"></span></span><span class="nm">dmf</span><span class="sig" style="color:var(--ink-3)">you</span></div>
+      <div class="mem away"><span class="av" style="background:#565f89">g<span class="p" style="background:var(--ink-3)"></span></span><span class="nm">gruntbuggly</span></div>
+      <div class="mem"><span class="av" style="background:#9ece6a">k<span class="p" style="background:var(--green)"></span></span><span class="nm">kilobyte</span></div>
+      <div class="mem away"><span class="av" style="background:#e0af68">m<span class="p" style="background:var(--amber)"></span></span><span class="nm">morpheus</span></div>
+      <div class="mem"><span class="av" style="background:#bb9af7">z<span class="p" style="background:var(--green)"></span></span><span class="nm">zealot</span></div>
+      <div class="mem"><span class="av" style="background:#7dcfff">q<span class="p" style="background:var(--green)"></span></span><span class="nm">quux</span></div>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+function setDensity(mode, el){
+  document.documentElement.setAttribute('data-density', mode);
+  el.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+}
+function toggleTheme(){
+  const r=document.documentElement;
+  r.setAttribute('data-theme', r.getAttribute('data-theme')==='dark'?'light':'dark');
+}
+</script>
+</body>
+</html>

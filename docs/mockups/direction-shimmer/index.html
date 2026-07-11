@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en" data-density="compact">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>bool — Shimmer-family direction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Nunito+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================================
+   bool — "Shimmer-family" dark direction
+   A warm-dark adaptation of the shimmer "warm pantry editorial" system.
+   Token architecture, naming, radii, motion and font pairing carried over 1:1;
+   the palette is re-derived for a dark-first, dense developer chat client.
+   ========================================================================== */
+
+:root {
+  /* ---- Typography (shimmer pairing carried over) ---------------------- */
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-text: "Nunito Sans", "Segoe UI", "Helvetica Neue", sans-serif;
+  /* Mono is a bool addition — nicks/timestamps/code need a monospaced anchor
+     so alignment reads cleanly in a dense log. Warm-toned JetBrains Mono. */
+  --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+
+  /* ---- Color — WARM DARK ground (roasted espresso, NOT slate) --------- */
+  /* Ground family: derived by rotating shimmer's espresso ink #2a241c down
+     into near-black while keeping its warm hue (~30° hue, low-mid chroma). */
+  --color-bg:        #1a1611;   /* app ground — deep roasted coffee        */
+  --color-bg-sunken: #141109;   /* gutters / behind panes                  */
+  --color-surface:   #221d16;   /* raised panes, message hover             */
+  --color-surface-2: #2b251c;   /* composer, cards, popovers               */
+  --color-line:      #37301f;   /* warm hairline (espresso, not gray)      */
+  --color-line-soft: #2c261c;
+
+  /* Ink family: shimmer's cream #faf5ec becomes the ON-DARK ink.          */
+  --color-ink:       #f3ead9;   /* primary text — warm parchment           */
+  --color-ink-muted: #a2937b;   /* timestamps, meta — warm taupe           */
+  --color-ink-faint: #6f6450;   /* joins/parts, disabled                   */
+
+  /* Accent: shimmer olive #4e5f2e lifted + desaturated-brighter so it pops
+     against dark. Mid-tone leaf-olive with enough luminance for AA text.  */
+  --color-accent:      #9db665;  /* olive that glows on espresso           */
+  --color-accent-dim:  #6f8544;  /* borders, rings at rest                 */
+  --color-accent-ink:  #171307;  /* text ON the accent fill                */
+
+  /* Danger / mention: shimmer terracotta #a93b22 lifted for dark.         */
+  --color-danger:    #e08159;    /* mentions, danger text                  */
+  --color-danger-strong: #d1552f;
+
+  /* mIRC-ish saturated-but-warm chat palette (for colored nicks/text).    */
+  --c-1: #d98c6a;  /* clay      */
+  --c-2: #c9a24a;  /* amber     */
+  --c-3: #9db665;  /* olive     */
+  --c-4: #6fb3a8;  /* teal      */
+  --c-5: #7fa6d4;  /* dusty blue*/
+  --c-6: #c58bc0;  /* orchid    */
+
+  /* ---- Shape (shimmer radii carried over) ----------------------------- */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-full: 9999px;
+
+  /* ---- Elevation — warm-tinted, diffuse; blacker than light shimmer --- */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
+  --shadow-md: 0 1px 2px rgba(0,0,0,.3), 0 10px 28px -10px rgba(0,0,0,.55);
+  --shadow-lg: 0 2px 6px rgba(0,0,0,.35), 0 28px 56px -16px rgba(0,0,0,.7);
+  /* a whisper of warm light at the top edge of raised surfaces */
+  --edge-light: inset 0 1px 0 rgba(243,234,217,.04);
+
+  /* ---- Spacing (4px base — shimmer scale carried over) ---------------- */
+  --space-1: .25rem;
+  --space-2: .5rem;
+  --space-3: .75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* ---- Type scale (shimmer) ------------------------------------------ */
+  --text-xs: .75rem;
+  --text-sm: .8125rem;
+  --text-base: .9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.375rem;
+  --leading-tight: 1.15;
+  --leading-snug: 1.35;
+
+  /* ---- Focus (shimmer: 2px accent) ----------------------------------- */
+  --focus-ring: 2px solid var(--color-accent);
+  --focus-ring-offset: 2px;
+
+  /* ---- Motion (shimmer values carried over exactly) ------------------ */
+  --duration-fast: 160ms;
+  --duration-base: 300ms;
+  --duration-slow: 600ms;
+  --ease-standard: cubic-bezier(.22, 1, .36, 1);
+
+  --z-overlay: 1000;
+
+  /* ---- DENSITY tokens (bool's key adaptation) ------------------------ */
+  /* Two densities that re-map row rhythm & font size. Compact is DEFAULT
+     to answer The Lounge's "wasted space" complaint — compact, not cramped. */
+  --row-py:   var(--d-row-py);
+  --row-gap:  var(--d-row-gap);
+  --msg-size: var(--d-msg-size);
+  --msg-lh:   var(--d-msg-lh);
+  --nav-py:   var(--d-nav-py);
+}
+
+/* Compact (default): tight log, generous horizontal, ~1.42 line-height */
+html[data-density="compact"] {
+  --d-row-py: 2px;
+  --d-row-gap: 2px;
+  --d-msg-size: .875rem;
+  --d-msg-lh: 1.42;
+  --d-nav-py: 3px;
+}
+/* Comfortable: breathes for long-read / accessibility */
+html[data-density="comfortable"] {
+  --d-row-py: 7px;
+  --d-row-gap: 5px;
+  --d-msg-size: .9375rem;
+  --d-msg-lh: 1.6;
+  --d-nav-py: 6px;
+}
+
+/* ============================================================================ */
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-text);
+  background: var(--color-bg-sunken);
+  color: var(--color-ink);
+  font-size: var(--text-base);
+  -webkit-font-smoothing: antialiased;
+  /* subtle warm grain + vignette so the ground isn't a flat void */
+  background-image:
+    radial-gradient(120% 90% at 15% -10%, rgba(157,182,101,.05), transparent 60%),
+    radial-gradient(120% 90% at 100% 110%, rgba(224,129,89,.045), transparent 55%);
+  overflow: hidden;
+}
+::selection { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
+
+:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-ring-offset); }
+button { font-family: inherit; color: inherit; cursor: pointer; }
+
+/* thin, warm scrollbars */
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-ink-faint) 55%, transparent);
+  border-radius: var(--radius-full);
+  border: 2px solid transparent; background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--color-ink-faint); }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* ---- App shell ----------------------------------------------------------- */
+.app {
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 248px 1fr 224px;
+  grid-template-rows: 100%;
+  background: var(--color-bg);
+}
+.app[data-members="hidden"] { grid-template-columns: 248px 1fr 0; }
+
+/* =========================================================================== */
+/* LEFT — network + channel sidebar                                            */
+/* =========================================================================== */
+.sidebar {
+  background: var(--color-bg-sunken);
+  border-right: 1px solid var(--color-line);
+  display: flex; flex-direction: column;
+  min-width: 0;
+}
+.brand {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-4) var(--space-4) var(--space-3);
+}
+.brand__mark {
+  width: 26px; height: 26px; flex: none;
+  border-radius: 8px;
+  background: linear-gradient(150deg, var(--color-accent), var(--color-accent-dim));
+  color: var(--color-accent-ink);
+  display: grid; place-items: center;
+  font-family: var(--font-mono); font-weight: 600; font-size: 15px;
+  box-shadow: var(--shadow-sm), var(--edge-light);
+}
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 600; font-size: 1.5rem; letter-spacing: -.02em;
+  font-optical-sizing: auto;
+  font-variation-settings: "SOFT" 60, "WONK" 1;
+  color: var(--color-ink);
+}
+.wordmark b { color: var(--color-accent); font-weight: 600; }
+
+.search {
+  margin: 0 var(--space-3) var(--space-3);
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: 6px 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+.search:hover { border-color: var(--color-accent-dim); }
+.search kbd {
+  margin-left: auto;
+  font-family: var(--font-mono); font-size: 11px;
+  padding: 1px 5px; border-radius: 5px;
+  background: var(--color-bg-sunken);
+  border: 1px solid var(--color-line);
+  color: var(--color-ink-muted);
+}
+
+.nav { flex: 1; overflow-y: auto; padding: 0 var(--space-2) var(--space-4); }
+
+.net { margin-top: var(--space-2); }
+.net__head {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 8px;
+  font-family: var(--font-text);
+  font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+.net__dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+.net__dot--on  { background: var(--color-accent); box-shadow: 0 0 6px var(--color-accent); }
+.net__dot--off { background: var(--color-ink-faint); }
+.net__head span:first-of-type { color: var(--color-ink); font-weight: 800; }
+.net__chev { margin-left: auto; opacity: .5; font-size: 10px; }
+
+.chan {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--nav-py) 8px;
+  margin: 1px 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  line-height: 1.2;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard),
+              color var(--duration-fast) var(--ease-standard);
+  width: 100%; text-align: left; background: none;
+}
+.chan:hover { background: var(--color-surface); color: var(--color-ink); }
+.chan__sig { font-family: var(--font-mono); opacity: .6; font-size: 12px; }
+.chan__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chan--unread { color: var(--color-ink); font-weight: 700; }
+.chan--unread .chan__sig { opacity: 1; }
+.chan--active {
+  background: color-mix(in srgb, var(--color-accent) 15%, var(--color-surface));
+  color: var(--color-ink);
+  border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  font-weight: 700;
+}
+.chan--active .chan__sig { color: var(--color-accent); opacity: 1; }
+
+.badge {
+  margin-left: auto; flex: none;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  display: grid; place-items: center;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-2);
+  color: var(--color-ink-muted);
+  border: 1px solid var(--color-line);
+}
+.badge--mention {
+  background: var(--color-danger);
+  color: #1a0f08;
+  border-color: transparent;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 22%, transparent);
+}
+
+.avatar {
+  width: 18px; height: 18px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  font-size: 10px; font-weight: 800; color: #1a1611;
+  font-family: var(--font-mono);
+}
+
+.me {
+  border-top: 1px solid var(--color-line);
+  padding: var(--space-2) var(--space-3);
+  display: flex; align-items: center; gap: var(--space-2);
+}
+.me__av {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(150deg, var(--c-4), var(--color-accent-dim));
+  display: grid; place-items: center; font-family: var(--font-mono);
+  font-weight: 800; color: #12100a; font-size: 12px; flex: none;
+}
+.me__name { font-weight: 700; font-size: var(--text-sm); }
+.me__status { font-size: 11px; color: var(--color-accent); display: flex; align-items: center; gap: 4px; }
+.me__status::before { content:""; width:6px;height:6px;border-radius:50%;background:var(--color-accent); }
+
+/* =========================================================================== */
+/* CENTER — message list                                                       */
+/* =========================================================================== */
+.main { display: flex; flex-direction: column; min-width: 0; background: var(--color-bg); }
+
+.topbar {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--color-surface) 40%, var(--color-bg));
+}
+.topbar__title { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.topbar__hash { font-family: var(--font-mono); color: var(--color-accent); font-size: 1.05rem; }
+.topbar__name {
+  font-family: var(--font-display); font-weight: 600; font-size: 1.15rem;
+  letter-spacing: -.01em; font-optical-sizing: auto;
+}
+.topbar__topic {
+  color: var(--color-ink-muted); font-size: var(--text-sm);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding-left: 10px; margin-left: 4px; border-left: 1px solid var(--color-line);
+}
+.topbar__spacer { flex: 1; }
+.topbar__count { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--color-ink-muted); }
+
+.iconbtn {
+  width: 30px; height: 30px; display: grid; place-items: center;
+  border-radius: var(--radius-sm); background: transparent;
+  border: 1px solid transparent; color: var(--color-ink-muted);
+  transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+.iconbtn:hover { background: var(--color-surface-2); color: var(--color-ink); }
+.iconbtn svg { width: 16px; height: 16px; }
+
+/* density toggle */
+.density {
+  display: inline-flex; padding: 2px; gap: 2px;
+  background: var(--color-bg-sunken); border: 1px solid var(--color-line);
+  border-radius: var(--radius-full);
+}
+.density button {
+  border: 0; background: transparent; color: var(--color-ink-muted);
+  font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: var(--radius-full);
+  transition: all var(--duration-fast) var(--ease-standard);
+}
+.density button[aria-pressed="true"] {
+  background: var(--color-accent); color: var(--color-accent-ink);
+  box-shadow: var(--edge-light);
+}
+
+/* ---- message log --------------------------------------------------------- */
+.log {
+  flex: 1; overflow-y: auto;
+  padding: var(--space-3) 0 var(--space-4);
+  font-size: var(--msg-size);
+  line-height: var(--msg-lh);
+}
+
+.daybreak {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) var(--space-2);
+  color: var(--color-ink-muted); font-size: var(--text-xs);
+  font-family: var(--font-mono); letter-spacing: .04em;
+}
+.daybreak::before, .daybreak::after {
+  content: ""; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-line), transparent);
+}
+
+/* the core message row — grid keeps nick/time gutter aligned in a dense log */
+.msg {
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  gap: var(--space-3);
+  padding: var(--row-py) var(--space-4);
+  margin-top: var(--row-gap);
+  position: relative;
+  transition: background var(--duration-fast) var(--ease-standard);
+}
+.msg:hover { background: color-mix(in srgb, var(--color-surface) 55%, transparent); }
+.msg:hover .msg__actions { opacity: 1; transform: none; }
+
+.msg__ts {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--color-ink-faint); text-align: right;
+  padding-top: .18em; letter-spacing: -.02em; user-select: none;
+  white-space: nowrap;
+}
+.msg__body { min-width: 0; }
+.msg__line { word-wrap: break-word; }
+.msg__nick {
+  font-weight: 800; font-family: var(--font-mono); font-size: .9em;
+  cursor: pointer; margin-right: 6px;
+}
+.msg__nick:hover { text-decoration: underline; }
+.nk1{color:var(--c-1)} .nk2{color:var(--c-2)} .nk3{color:var(--c-3)}
+.nk4{color:var(--c-4)} .nk5{color:var(--c-5)} .nk6{color:var(--c-6)}
+
+/* consecutive message from same nick — collapse the nick, keep hover time */
+.msg--cont .msg__ts { color: transparent; }
+.msg:hover .msg__ts { color: var(--color-ink-faint); }
+
+/* op / voice prefix chip */
+.prefix { color: var(--color-ink-faint); font-family: var(--font-mono); }
+.prefix--op { color: var(--color-accent); }
+.prefix--voice { color: var(--c-4); }
+
+a { color: var(--color-accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* mIRC-style colored text run */
+.mirc { padding: 0 2px; border-radius: 3px; }
+.mirc--red   { color: #f0a48f; }
+.mirc--green { background: color-mix(in srgb, var(--c-3) 22%, transparent); color: var(--c-3); }
+.mirc--blue  { color: var(--c-5); font-weight: 700; }
+.mirc--yellow{ background: color-mix(in srgb, var(--c-2) 20%, transparent); color: var(--c-2); }
+
+/* mention highlight on a whole message */
+.msg--mention {
+  background: color-mix(in srgb, var(--color-danger) 9%, transparent);
+  box-shadow: inset 3px 0 0 var(--color-danger);
+}
+.msg--mention:hover { background: color-mix(in srgb, var(--color-danger) 13%, transparent); }
+.mention {
+  color: var(--color-danger); font-weight: 800;
+  background: color-mix(in srgb, var(--color-danger) 14%, transparent);
+  padding: 0 3px; border-radius: 4px;
+}
+
+/* inline code + code block */
+code.inline {
+  font-family: var(--font-mono); font-size: .86em;
+  background: var(--color-bg-sunken); border: 1px solid var(--color-line);
+  padding: 1px 5px; border-radius: 5px; color: var(--color-ink);
+}
+.codeblock {
+  margin: 4px 0 5px;
+  background: var(--color-bg-sunken);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--edge-light);
+}
+.codeblock__bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 10px; border-bottom: 1px solid var(--color-line);
+  font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-muted);
+  background: color-mix(in srgb, var(--color-surface) 50%, transparent);
+}
+.codeblock__lang { color: var(--color-accent); font-weight: 600; }
+.codeblock__copy { margin-left: auto; color: var(--color-ink-muted); background: none; border: 0; font-family: var(--font-mono); font-size: 11px; }
+.codeblock__copy:hover { color: var(--color-ink); }
+.codeblock pre {
+  margin: 0; padding: 9px 12px; overflow-x: auto;
+  font-family: var(--font-mono); font-size: 12.5px; line-height: 1.55;
+}
+.tok-kw { color: var(--c-6); } .tok-fn { color: var(--c-2); }
+.tok-str { color: var(--c-3); } .tok-com { color: var(--color-ink-faint); font-style: italic; }
+.tok-num { color: var(--color-danger); }
+
+/* link/image preview card */
+.preview {
+  margin: 5px 0;
+  max-width: 420px;
+  display: flex; gap: 0;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm), var(--edge-light);
+}
+.preview__thumb {
+  width: 96px; flex: none;
+  background:
+    repeating-linear-gradient(135deg, var(--color-accent-dim) 0 8px, transparent 8px 16px),
+    linear-gradient(150deg, var(--c-4), var(--c-6));
+  display: grid; place-items: center;
+}
+.preview__thumb svg { width: 26px; height: 26px; color: rgba(0,0,0,.5); }
+.preview__body { padding: 8px 11px; min-width: 0; }
+.preview__site { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--color-accent); font-weight: 800; }
+.preview__title { font-weight: 700; font-size: var(--text-sm); margin: 2px 0; color: var(--color-ink); }
+.preview__desc { font-size: var(--text-xs); color: var(--color-ink-muted); line-height: 1.4; }
+
+/* reply / quote */
+.reply {
+  display: flex; gap: 6px; align-items: center;
+  font-size: var(--text-xs); color: var(--color-ink-muted);
+  margin-bottom: 1px; padding-left: 2px;
+}
+.reply__bar { width: 0; height: 0; }
+.reply::before {
+  content: ""; width: 16px; height: 9px;
+  border-left: 2px solid var(--color-line);
+  border-top: 2px solid var(--color-line);
+  border-top-left-radius: 6px; margin-left: 2px; margin-bottom: -4px; flex: none;
+}
+.reply__nick { font-family: var(--font-mono); font-weight: 700; }
+.reply__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 340px; opacity: .85; }
+
+/* reactions */
+.reactions { display: flex; gap: 5px; margin-top: 4px; flex-wrap: wrap; }
+.react {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 1px 8px 1px 6px; border-radius: var(--radius-full);
+  background: var(--color-surface-2); border: 1px solid var(--color-line);
+  font-size: 12px; color: var(--color-ink-muted);
+  transition: all var(--duration-fast) var(--ease-standard);
+}
+.react:hover { border-color: var(--color-accent-dim); }
+.react--mine {
+  background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+  border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  color: var(--color-accent);
+}
+.react b { font-family: var(--font-mono); font-weight: 600; }
+
+/* system / join-part lines — dim, italic, dense */
+.sys {
+  padding: 1px var(--space-4) 1px calc(62px + var(--space-4) + var(--space-3));
+  color: var(--color-ink-faint); font-size: .82em; font-style: italic;
+}
+.sys .n { font-style: normal; font-family: var(--font-mono); color: var(--color-ink-muted); }
+.sys--join .arw { color: var(--color-accent); }
+.sys--part .arw { color: var(--color-danger); }
+
+/* hover actions */
+.msg__actions {
+  position: absolute; top: -10px; right: var(--space-4);
+  display: flex; gap: 2px; padding: 2px;
+  background: var(--color-surface-2); border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm); box-shadow: var(--shadow-md);
+  opacity: 0; transform: translateY(2px);
+  transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+}
+.msg__actions button { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 5px; background: none; border: 0; color: var(--color-ink-muted); }
+.msg__actions button:hover { background: var(--color-surface); color: var(--color-ink); }
+.msg__actions svg { width: 14px; height: 14px; }
+
+/* ---- composer ------------------------------------------------------------ */
+.composer { padding: var(--space-2) var(--space-4) var(--space-4); position: relative; }
+
+/* slash-command autocomplete popover */
+.slash {
+  position: absolute; left: var(--space-4); right: var(--space-4); bottom: calc(100% - var(--space-1));
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg), var(--edge-light);
+  overflow: hidden; margin-bottom: 6px;
+  max-width: 460px;
+}
+.slash__head { padding: 6px 12px; font-size: 11px; color: var(--color-ink-muted); font-weight: 800; letter-spacing: .05em; text-transform: uppercase; border-bottom: 1px solid var(--color-line); }
+.slash__item { display: flex; align-items: baseline; gap: 10px; padding: 6px 12px; font-size: var(--text-sm); }
+.slash__item--active { background: color-mix(in srgb, var(--color-accent) 15%, transparent); }
+.slash__cmd { font-family: var(--font-mono); font-weight: 700; color: var(--color-accent); }
+.slash__args { font-family: var(--font-mono); color: var(--color-ink-faint); font-size: 12px; }
+.slash__desc { margin-left: auto; color: var(--color-ink-muted); font-size: 12px; }
+
+.composer__box {
+  display: flex; align-items: flex-end; gap: var(--space-2);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  padding: 6px 6px 6px 12px;
+  box-shadow: var(--edge-light);
+  transition: border-color var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);
+}
+.composer__box:focus-within {
+  border-color: var(--color-accent-dim);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent), var(--edge-light);
+}
+.composer__nick { font-family: var(--font-mono); font-weight: 800; color: var(--c-3); font-size: var(--text-sm); padding-bottom: 6px; white-space: nowrap; }
+.composer__input {
+  flex: 1; background: none; border: 0; outline: 0; resize: none;
+  color: var(--color-ink); font-family: var(--font-text); font-size: var(--text-base);
+  line-height: 1.4; padding: 5px 0; min-height: 22px; max-height: 120px;
+}
+.composer__input::placeholder { color: var(--color-ink-faint); }
+.composer__send {
+  width: 32px; height: 32px; flex: none; border-radius: var(--radius-sm);
+  background: var(--color-accent); color: var(--color-accent-ink); border: 0;
+  display: grid; place-items: center;
+  transition: background var(--duration-fast) var(--ease-standard), transform 80ms var(--ease-standard);
+}
+.composer__send:hover { background: color-mix(in srgb, var(--color-accent), white 12%); }
+.composer__send:active { transform: translateY(1px); }
+.composer__send svg { width: 16px; height: 16px; }
+.composer__hint { display: flex; gap: var(--space-3); padding: 5px 4px 0; font-size: 11px; color: var(--color-ink-faint); }
+.composer__hint b { color: var(--color-ink-muted); font-family: var(--font-mono); font-weight: 600; }
+
+/* =========================================================================== */
+/* RIGHT — member list                                                         */
+/* =========================================================================== */
+.members {
+  background: var(--color-bg-sunken);
+  border-left: 1px solid var(--color-line);
+  overflow-y: auto;
+  min-width: 0;
+}
+.app[data-members="hidden"] .members { display: none; }
+.members__head {
+  padding: var(--space-3) var(--space-4) var(--space-2);
+  font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--color-ink-muted);
+  position: sticky; top: 0; background: var(--color-bg-sunken); z-index: 1;
+}
+.members__group { padding: var(--space-2) var(--space-2) 0; }
+.members__group h4 {
+  margin: 0 0 2px; padding: 0 8px;
+  font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--color-ink-faint);
+  display: flex; gap: 6px; align-items: center;
+}
+.members__group h4 span { margin-left: auto; font-family: var(--font-mono); }
+.member {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--nav-py) 8px; border-radius: var(--radius-sm);
+  font-size: var(--text-sm); color: var(--color-ink-muted);
+  transition: background var(--duration-fast) var(--ease-standard);
+  cursor: pointer;
+}
+.member:hover { background: var(--color-surface); color: var(--color-ink); }
+.member__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.member__pfx { font-family: var(--font-mono); font-weight: 800; }
+.member--away { opacity: .5; }
+.member--away .member__name { font-style: italic; }
+.dotstat { width: 7px; height: 7px; border-radius: 50%; margin-left: auto; flex: none; }
+.dotstat--on { background: var(--color-accent); }
+.dotstat--idle { background: var(--color-c2, var(--c-2)); }
+
+/* =========================================================================== */
+/* Cmd-K command palette overlay                                               */
+/* =========================================================================== */
+.palette-scrim {
+  position: fixed; inset: 0; z-index: var(--z-overlay);
+  background: color-mix(in srgb, #0a0805 62%, transparent);
+  backdrop-filter: blur(3px);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 12vh;
+  animation: scrim var(--duration-base) var(--ease-standard);
+}
+.palette-scrim[hidden] { display: none; }
+@keyframes scrim { from { opacity: 0; } }
+.palette {
+  width: min(560px, 92vw);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg), var(--edge-light);
+  overflow: hidden;
+  animation: pop var(--duration-base) var(--ease-standard);
+}
+@keyframes pop { from { opacity: 0; transform: translateY(-8px) scale(.98); } }
+.palette__search {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-line);
+}
+.palette__search svg { width: 18px; height: 18px; color: var(--color-ink-muted); flex: none; }
+.palette__search input {
+  flex: 1; background: none; border: 0; outline: 0;
+  color: var(--color-ink); font-family: var(--font-text); font-size: var(--text-lg);
+}
+.palette__search input::placeholder { color: var(--color-ink-faint); }
+.palette__esc {
+  font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-muted);
+  border: 1px solid var(--color-line); border-radius: 5px; padding: 2px 6px;
+}
+.palette__list { padding: var(--space-2); max-height: 46vh; overflow-y: auto; }
+.palette__group {
+  padding: var(--space-2) var(--space-3) 4px;
+  font-size: 10px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+.pcmd {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: 9px var(--space-3); border-radius: var(--radius-sm);
+  font-size: var(--text-base); color: var(--color-ink);
+}
+.pcmd__ico {
+  width: 26px; height: 26px; flex: none; border-radius: 7px;
+  display: grid; place-items: center;
+  background: var(--color-surface); border: 1px solid var(--color-line);
+  color: var(--color-ink-muted);
+}
+.pcmd__ico svg { width: 15px; height: 15px; }
+.pcmd__meta { color: var(--color-ink-muted); font-size: var(--text-sm); }
+.pcmd__kbd { margin-left: auto; display: flex; gap: 4px; }
+.pcmd__kbd kbd {
+  font-family: var(--font-mono); font-size: 11px; padding: 2px 6px; border-radius: 5px;
+  background: var(--color-bg-sunken); border: 1px solid var(--color-line); color: var(--color-ink-muted);
+}
+.pcmd--active {
+  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
+}
+.pcmd--active .pcmd__ico { border-color: var(--color-accent-dim); color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface)); }
+.palette__foot {
+  display: flex; gap: var(--space-4); align-items: center;
+  padding: 8px var(--space-4); border-top: 1px solid var(--color-line);
+  font-size: 11px; color: var(--color-ink-faint);
+}
+.palette__foot b { color: var(--color-ink-muted); font-family: var(--font-mono); font-weight: 600; }
+.palette__foot .sp { flex: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="app" data-members="shown" id="app">
+
+  <!-- ============ LEFT SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand__mark">&amp;</div>
+      <div class="wordmark">boo<b>l</b></div>
+    </div>
+
+    <button class="search" onclick="openPalette()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      Jump to…
+      <kbd>⌘K</kbd>
+    </button>
+
+    <nav class="nav">
+      <!-- Libera.Chat -->
+      <section class="net">
+        <div class="net__head">
+          <span class="net__dot net__dot--on"></span>
+          <span>Libera.Chat</span>
+          <span class="net__chev">▾</span>
+        </div>
+        <button class="chan chan--active">
+          <span class="chan__sig">#</span>
+          <span class="chan__name">linux</span>
+        </button>
+        <button class="chan chan--unread">
+          <span class="chan__sig">#</span>
+          <span class="chan__name">python</span>
+          <span class="badge">12</span>
+        </button>
+        <button class="chan chan--unread">
+          <span class="chan__sig">#</span>
+          <span class="chan__name">archlinux</span>
+          <span class="badge badge--mention">3</span>
+        </button>
+        <button class="chan">
+          <span class="chan__sig">#</span>
+          <span class="chan__name">rust</span>
+        </button>
+        <button class="chan">
+          <span class="chan__sig">#</span>
+          <span class="chan__name">neovim</span>
+        </button>
+      </section>
+
+      <!-- OFTC -->
+      <section class="net">
+        <div class="net__head">
+          <span class="net__dot net__dot--on"></span>
+          <span>OFTC</span>
+          <span class="net__chev">▾</span>
+        </div>
+        <button class="chan chan--unread">
+          <span class="chan__sig">#</span>
+          <span class="chan__name">debian</span>
+          <span class="badge">4</span>
+        </button>
+        <button class="chan">
+          <span class="chan__sig">#</span>
+          <span class="chan__name">tor</span>
+        </button>
+      </section>
+
+      <!-- DMs -->
+      <section class="net">
+        <div class="net__head">
+          <span class="net__dot net__dot--off"></span>
+          <span>Direct messages</span>
+          <span class="net__chev">▾</span>
+        </div>
+        <button class="chan chan--unread">
+          <span class="avatar" style="background:var(--c-6)">a</span>
+          <span class="chan__name">ariadne</span>
+          <span class="badge badge--mention">1</span>
+        </button>
+        <button class="chan">
+          <span class="avatar" style="background:var(--c-4)">t</span>
+          <span class="chan__name">tomasz_k</span>
+        </button>
+        <button class="chan">
+          <span class="avatar" style="background:var(--c-2)">n</span>
+          <span class="chan__name">nb_bot</span>
+        </button>
+      </section>
+    </nav>
+
+    <div class="me">
+      <div class="me__av">dm</div>
+      <div style="min-width:0">
+        <div class="me__name">dmfarcas</div>
+        <div class="me__status">online · 2 networks</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ CENTER ============ -->
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar__title">
+        <span class="topbar__hash">#</span>
+        <span class="topbar__name">linux</span>
+        <span class="topbar__topic">Kernel, distros &amp; userspace · pastebin, don't paste walls · be excellent</span>
+      </div>
+      <div class="topbar__spacer"></div>
+
+      <div class="density" role="group" aria-label="Message density">
+        <button id="d-compact" aria-pressed="true" onclick="setDensity('compact')">Compact</button>
+        <button id="d-comfortable" aria-pressed="false" onclick="setDensity('comfortable')">Comfortable</button>
+      </div>
+
+      <span class="topbar__count">248 online</span>
+      <button class="iconbtn" title="Pinned"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4v6l-2 4h10l-2-4V4"/><path d="M12 14v6"/><path d="M8 4h8"/></svg></button>
+      <button class="iconbtn" title="Toggle members" onclick="toggleMembers()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"/><path d="M3 21v-2a5 5 0 0 1 5-5h4"/><circle cx="18" cy="16" r="3"/></svg></button>
+    </header>
+
+    <div class="log" id="log">
+      <div class="daybreak">— Saturday, July 11, 2026 —</div>
+
+      <!-- op message -->
+      <div class="msg">
+        <div class="msg__ts">09:41</div>
+        <div class="msg__body">
+          <div class="msg__line">
+            <span class="msg__nick nk3"><span class="prefix prefix--op">@</span>ariadne</span>
+            morning all — heads up, the <code class="inline">linux-6.10.4</code> point release landed on the mirrors.
+          </div>
+        </div>
+        <div class="msg__actions">
+          <button title="React"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg></button>
+          <button title="Reply"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17l-5-5 5-5"/><path d="M4 12h11a4 4 0 0 1 4 4v3"/></svg></button>
+          <button title="More"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
+        </div>
+      </div>
+
+      <!-- continuation -->
+      <div class="msg msg--cont">
+        <div class="msg__ts">09:41</div>
+        <div class="msg__body">
+          <div class="msg__line">changelog is mostly netfilter + amdgpu fixes if anyone's tracking regressions.</div>
+        </div>
+      </div>
+
+      <!-- colored mIRC text -->
+      <div class="msg">
+        <div class="msg__ts">09:43</div>
+        <div class="msg__body">
+          <div class="msg__line">
+            <span class="msg__nick nk1">tomasz_k</span>
+            build status:
+            <span class="mirc mirc--green">✔ passing</span> on x86_64,
+            <span class="mirc mirc--yellow">◐ flaky</span> on aarch64,
+            <span class="mirc mirc--red">✘ failing</span> on riscv (bisecting now)
+          </div>
+        </div>
+      </div>
+
+      <!-- code snippet -->
+      <div class="msg">
+        <div class="msg__ts">09:45</div>
+        <div class="msg__body">
+          <div class="msg__line">
+            <span class="msg__nick nk4"><span class="prefix prefix--voice">+</span>kernelnewbie</span>
+            what's the incantation to see which module owns a device again?
+          </div>
+        </div>
+      </div>
+
+      <div class="msg">
+        <div class="msg__ts">09:46</div>
+        <div class="msg__body">
+          <div class="msg__line">
+            <span class="msg__nick nk1">tomasz_k</span>
+            like this — pipes lspci into the modalias:
+          </div>
+          <div class="codeblock">
+            <div class="codeblock__bar">
+              <span class="codeblock__lang">bash</span>
+              <span>snippet.sh</span>
+              <button class="codeblock__copy">⧉ copy</button>
+            </div>
+            <pre><span class="tok-com"># which driver is bound to each PCI device</span>
+<span class="tok-kw">for</span> d <span class="tok-kw">in</span> <span class="tok-fn">$(</span>lspci -D <span class="tok-kw">|</span> awk <span class="tok-str">'{print $1}'</span><span class="tok-fn">)</span>; <span class="tok-kw">do</span>
+  drv=<span class="tok-fn">$(</span>readlink /sys/bus/pci/devices/<span class="tok-str">"$d"</span>/driver <span class="tok-kw">2</span>&gt;/dev/null<span class="tok-fn">)</span>
+  printf <span class="tok-str">'%s -> %s\n'</span> <span class="tok-str">"$d"</span> <span class="tok-str">"${drv##*/}"</span>
+<span class="tok-kw">done</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- link/image preview -->
+      <div class="msg">
+        <div class="msg__ts">09:52</div>
+        <div class="msg__body">
+          <div class="msg__line">
+            <span class="msg__nick nk5">seraphine</span>
+            good writeup on the io_uring changes if you missed it → <a href="#">lwn.net/Articles/1029471</a>
+          </div>
+          <div class="preview">
+            <div class="preview__thumb">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            </div>
+            <div class="preview__body">
+              <div class="preview__site">lwn.net</div>
+              <div class="preview__title">The rocky road to io_uring in 6.10</div>
+              <div class="preview__desc">A look at the ring-buffer rework, the new registered-buffer semantics, and why several patches were reverted before merge.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- reply + reactions + mention -->
+      <div class="msg msg--mention">
+        <div class="msg__ts">09:55</div>
+        <div class="msg__body">
+          <div class="reply">
+            <span class="reply__nick nk5">seraphine</span>
+            <span class="reply__text">good writeup on the io_uring changes if you missed it → lwn.net…</span>
+          </div>
+          <div class="msg__line">
+            <span class="msg__nick nk6">ariadne</span>
+            oh nice, thanks <span class="mention">@dmfarcas</span> was asking about exactly this yesterday. bookmarking.
+          </div>
+          <div class="reactions">
+            <button class="react react--mine">👍 <b>4</b></button>
+            <button class="react">🔥 <b>2</b></button>
+            <button class="react">📌 <b>1</b></button>
+          </div>
+        </div>
+        <div class="msg__actions">
+          <button title="React"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg></button>
+          <button title="Reply"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17l-5-5 5-5"/><path d="M4 12h11a4 4 0 0 1 4 4v3"/></svg></button>
+        </div>
+      </div>
+
+      <!-- join / part system lines -->
+      <div class="sys sys--join"><span class="arw">→</span> <span class="n">glibc_hater</span> (~gh@2001:db8::4f) has joined <span class="n">#linux</span></div>
+      <div class="sys sys--part"><span class="arw">←</span> <span class="n">afk_dave</span> has quit (Ping timeout: 240 seconds)</div>
+
+      <div class="msg">
+        <div class="msg__ts">10:02</div>
+        <div class="msg__body">
+          <div class="msg__line">
+            <span class="msg__nick nk2">glibc_hater</span>
+            anyone else seeing <code class="inline">EAGAIN</code> storms after the 6.10 bump or is it just my nic firmware being cursed 🙃
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- composer -->
+    <div class="composer">
+      <!-- slash autocomplete popover -->
+      <div class="slash" id="slash">
+        <div class="slash__head">Commands</div>
+        <div class="slash__item slash__item--active">
+          <span class="slash__cmd">/me</span>
+          <span class="slash__args">&lt;action&gt;</span>
+          <span class="slash__desc">send an action message</span>
+        </div>
+        <div class="slash__item">
+          <span class="slash__cmd">/msg</span>
+          <span class="slash__args">&lt;nick&gt; &lt;text&gt;</span>
+          <span class="slash__desc">open a private message</span>
+        </div>
+        <div class="slash__item">
+          <span class="slash__cmd">/mode</span>
+          <span class="slash__args">&lt;chan&gt; &lt;flags&gt;</span>
+          <span class="slash__desc">set channel or user modes</span>
+        </div>
+        <div class="slash__item">
+          <span class="slash__cmd">/mute</span>
+          <span class="slash__args">&lt;nick&gt;</span>
+          <span class="slash__desc">hide messages from a user</span>
+        </div>
+      </div>
+
+      <div class="composer__box">
+        <span class="composer__nick">dmfarcas</span>
+        <textarea class="composer__input" id="input" rows="1" placeholder="Message #linux    —    / for commands, @ to mention">/m</textarea>
+        <button class="composer__send" title="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3-6-7-2z"/></svg></button>
+      </div>
+      <div class="composer__hint">
+        <span><b>↵</b> send</span>
+        <span><b>⇧↵</b> newline</span>
+        <span><b>Tab</b> complete nick</span>
+        <span><b>⌘K</b> palette</span>
+        <span style="margin-left:auto;color:var(--color-ink-faint)">connected · TLS · lag 38ms</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============ RIGHT — MEMBERS ============ -->
+  <aside class="members" id="members">
+    <div class="members__head">Members · 248</div>
+
+    <div class="members__group">
+      <h4>Ops <span>3</span></h4>
+      <div class="member"><span class="member__pfx nk3">@</span><span class="member__name nk3">ariadne</span><span class="dotstat dotstat--on"></span></div>
+      <div class="member"><span class="member__pfx nk3">@</span><span class="member__name">nyx</span><span class="dotstat dotstat--on"></span></div>
+      <div class="member"><span class="member__pfx nk3">@</span><span class="member__name">root_of_all</span><span class="dotstat dotstat--idle"></span></div>
+    </div>
+
+    <div class="members__group">
+      <h4>Voiced <span>2</span></h4>
+      <div class="member"><span class="member__pfx nk4">+</span><span class="member__name">kernelnewbie</span><span class="dotstat dotstat--on"></span></div>
+      <div class="member"><span class="member__pfx nk4">+</span><span class="member__name">nb_bot</span><span class="dotstat dotstat--on"></span></div>
+    </div>
+
+    <div class="members__group">
+      <h4>Online <span>243</span></h4>
+      <div class="member"><span class="member__name nk1">tomasz_k</span><span class="dotstat dotstat--on"></span></div>
+      <div class="member"><span class="member__name nk5">seraphine</span><span class="dotstat dotstat--on"></span></div>
+      <div class="member"><span class="member__name nk2">glibc_hater</span><span class="dotstat dotstat--on"></span></div>
+      <div class="member"><span class="member__name">quilliam</span><span class="dotstat dotstat--on"></span></div>
+      <div class="member"><span class="member__name">bitrot</span><span class="dotstat dotstat--on"></span></div>
+      <div class="member"><span class="member__name">pentode</span><span class="dotstat dotstat--idle"></span></div>
+      <div class="member member--away"><span class="member__name">afk_dave</span></div>
+      <div class="member member--away"><span class="member__name">zzz_marc</span></div>
+      <div class="member"><span class="member__name">hexdump_h</span><span class="dotstat dotstat--on"></span></div>
+      <div class="member"><span class="member__name">null_ptr</span><span class="dotstat dotstat--on"></span></div>
+    </div>
+  </aside>
+</div>
+
+<!-- ============ Cmd-K PALETTE (shown open) ============ -->
+<div class="palette-scrim" id="paletteScrim" onclick="if(event.target===this)closePalette()">
+  <div class="palette" role="dialog" aria-label="Command palette">
+    <div class="palette__search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      <input type="text" value="arch" placeholder="Jump to a channel, run a command…" id="palInput" autocomplete="off" />
+      <span class="palette__esc">esc</span>
+    </div>
+    <div class="palette__list">
+      <div class="palette__group">Channels</div>
+      <div class="pcmd pcmd--active">
+        <span class="pcmd__ico"><span style="font-family:var(--font-mono);color:var(--color-accent)">#</span></span>
+        <span>#<b>arch</b>linux</span>
+        <span class="pcmd__meta">Libera.Chat · 3 mentions</span>
+        <span class="pcmd__kbd"><kbd>↵</kbd></span>
+      </div>
+      <div class="pcmd">
+        <span class="pcmd__ico"><span style="font-family:var(--font-mono)">#</span></span>
+        <span>#<b>arch</b>-arm</span>
+        <span class="pcmd__meta">Libera.Chat</span>
+      </div>
+
+      <div class="palette__group">Actions</div>
+      <div class="pcmd">
+        <span class="pcmd__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5v14"/></svg></span>
+        <span>Join a channel…</span>
+        <span class="pcmd__kbd"><kbd>⌘</kbd><kbd>J</kbd></span>
+      </div>
+      <div class="pcmd">
+        <span class="pcmd__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span>
+        <span>Toggle density (compact / comfortable)</span>
+        <span class="pcmd__meta">now: compact</span>
+      </div>
+      <div class="pcmd">
+        <span class="pcmd__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a9 9 0 1 0 9 9c0-.5 0-.9-.1-1.4A6 6 0 0 1 12 3z"/></svg></span>
+        <span>Mark all as read</span>
+        <span class="pcmd__kbd"><kbd>⇧</kbd><kbd>Esc</kbd></span>
+      </div>
+      <div class="pcmd">
+        <span class="pcmd__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg></span>
+        <span>Set status…</span>
+      </div>
+    </div>
+    <div class="palette__foot">
+      <span><b>↑↓</b> navigate</span>
+      <span><b>↵</b> select</span>
+      <span class="sp"></span>
+      <span>bool</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const html = document.documentElement;
+  function setDensity(mode){
+    html.setAttribute('data-density', mode);
+    document.getElementById('d-compact').setAttribute('aria-pressed', mode==='compact');
+    document.getElementById('d-comfortable').setAttribute('aria-pressed', mode==='comfortable');
+  }
+  const app = document.getElementById('app');
+  function toggleMembers(){
+    app.dataset.members = app.dataset.members === 'shown' ? 'hidden' : 'shown';
+  }
+  const scrim = document.getElementById('paletteScrim');
+  function openPalette(){ scrim.hidden = false; setTimeout(()=>document.getElementById('palInput').focus(),0); }
+  function closePalette(){ scrim.hidden = true; }
+
+  document.addEventListener('keydown', (e)=>{
+    if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); scrim.hidden ? openPalette() : closePalette(); }
+    if(e.key==='Escape') closePalette();
+  });
+
+  // auto-grow composer
+  const input = document.getElementById('input');
+  const grow = ()=>{ input.style.height='auto'; input.style.height=Math.min(input.scrollHeight,120)+'px'; };
+  input.addEventListener('input', grow); grow();
+
+  // palette opens visible by default to showcase the state; press Esc to dismiss.
+</script>
+</body>
+</html>
