@@ -45,6 +45,14 @@ export function ensureAppSchema(db: Database.Database): void {
       ts INTEGER NOT NULL,
       PRIMARY KEY (user_id, network_id, target)
     );
+    CREATE TABLE IF NOT EXISTS push_subs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      endpoint TEXT NOT NULL UNIQUE,
+      keys_json TEXT NOT NULL,
+      created_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_push_subs_user ON push_subs(user_id);
   `)
 
   // Idempotent migration: add reply_to column to existing databases.
