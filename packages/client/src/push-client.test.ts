@@ -31,16 +31,15 @@ describe('urlBase64ToUint8Array', () => {
 
 describe('pushSupported', () => {
   it('returns false when serviceWorker is absent from navigator', () => {
-    // jsdom doesn't have serviceWorker / PushManager / Notification by default
-    expect(typeof pushSupported()).toBe('boolean')
+    // jsdom has no serviceWorker / PushManager / Notification, so this must be false
+    expect(pushSupported()).toBe(false)
   })
 })
 
 describe('notificationState', () => {
   it("returns 'unsupported' when Notification is not in window", () => {
-    // jsdom doesn't define Notification by default
-    const state = notificationState()
-    expect(['unsupported', 'default', 'granted', 'denied']).toContain(state)
+    // jsdom doesn't define Notification by default, so this must be 'unsupported'
+    expect(notificationState()).toBe('unsupported')
   })
 })
 
@@ -146,6 +145,31 @@ describe('enablePush', () => {
     expect(result).toBe(false)
     expect(fakePushManager.subscribe).not.toHaveBeenCalled()
     expect(fakeFetch).not.toHaveBeenCalledWith('/api/push/subscribe', expect.anything())
+  })
+
+  it('returns false when the vapid endpoint returns a non-ok response', async () => {
+    const fakeNotification = {
+      permission: 'default' as NotificationPermission,
+      requestPermission: vi.fn().mockResolvedValue('granted' as NotificationPermission),
+    }
+    const fakeFetch = vi.fn().mockImplementation((url: string) => {
+      if (url === '/api/push/vapid') {
+        return Promise.resolve({ ok: false, status: 404 })
+      }
+      return Promise.resolve({ ok: true })
+    })
+    const fakePushManager = makeFakePushManager()
+    const fakeRegistration = makeFakeRegistration(fakePushManager)
+    const fakeSW = makeFakeServiceWorker(fakeRegistration)
+
+    const result = await enablePush({
+      Notification: fakeNotification as unknown as typeof Notification,
+      serviceWorker: fakeSW as unknown as ServiceWorkerContainer,
+      fetch: fakeFetch,
+    })
+
+    expect(result).toBe(false)
+    expect(fakePushManager.subscribe).not.toHaveBeenCalled()
   })
 
   it('returns false when permission is dismissed/default', async () => {

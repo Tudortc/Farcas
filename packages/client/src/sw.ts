@@ -26,22 +26,21 @@ self.addEventListener('push', (e) => {
 // Handle notification clicks
 self.addEventListener('notificationclick', (e) => {
   e.notification.close()
-  const notifData = e.notification.data
+  const notifData = e.notification.data as { networkId: number; target: string }
 
   e.waitUntil(
     (async () => {
       const clientList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-      const existing = clientList.find((c) => c.url && c.visibilityState === 'visible')
+      const existing = clientList[0]
 
       if (existing) {
         await existing.focus()
         existing.postMessage({ type: 'notification:click', data: notifData })
       } else {
-        const newClient = await self.clients.openWindow('/')
-        // post after a brief wait for the window to load
-        if (newClient) {
-          newClient.postMessage({ type: 'notification:click', data: notifData })
-        }
+        // Cold open: encode target in URL so the page can route without a postMessage race
+        await self.clients.openWindow(
+          '/?net=' + notifData.networkId + '&target=' + encodeURIComponent(notifData.target),
+        )
       }
     })(),
   )

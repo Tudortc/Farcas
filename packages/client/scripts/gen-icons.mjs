@@ -6,7 +6,6 @@
  * Draws a rounded "b" glyph as a simple pixel-art pattern at each size.
  */
 
-import { createHash } from 'node:crypto'
 import { deflateSync } from 'node:zlib'
 import { writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'

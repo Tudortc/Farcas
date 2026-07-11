@@ -24,6 +24,7 @@ export async function savePushSubscription(userId: string, sub: PushSubscription
   db.prepare(`
     INSERT INTO push_subs (user_id, endpoint, keys_json, created_at)
     VALUES (?, ?, ?, ?)
+    -- ON CONFLICT: transferring user_id on endpoint conflict is deliberate (re-subscribe / shared-device account switch)
     ON CONFLICT(endpoint) DO UPDATE SET
       user_id = excluded.user_id,
       keys_json = excluded.keys_json,

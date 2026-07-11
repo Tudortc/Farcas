@@ -95,6 +95,7 @@ export async function enablePush(deps?: EnablePushDeps): Promise<boolean> {
 
   // 2. Fetch VAPID public key
   const vapidRes = await fetchFn('/api/push/vapid')
+  if (!vapidRes.ok) return false
   const { key } = (await vapidRes.json()) as { key: string }
 
   // 3. Subscribe via service worker

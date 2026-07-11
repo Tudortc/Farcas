@@ -56,6 +56,34 @@ describe('POST /api/push/subscribe', () => {
     expect(res.statusCode).toBe(401)
   })
 
+  it('returns 400 when body is missing endpoint', async () => {
+    const name = uniq()
+    const cookie = await signUpAndGetCookie(name)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/push/subscribe',
+      headers: { cookie },
+      payload: { keys: { p256dh: 'abc', auth: 'def' } }, // missing endpoint
+    })
+    expect(res.statusCode).toBe(400)
+    expect(res.json()).toEqual({ error: 'invalid subscription' })
+  })
+
+  it('returns 400 when body is missing keys', async () => {
+    const name = uniq()
+    const cookie = await signUpAndGetCookie(name)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/push/subscribe',
+      headers: { cookie },
+      payload: { endpoint: 'https://push.example.com/test' }, // missing keys
+    })
+    expect(res.statusCode).toBe(400)
+    expect(res.json()).toEqual({ error: 'invalid subscription' })
+  })
+
   it('stores a subscription row for the authenticated user', async () => {
     const name = uniq()
     const cookie = await signUpAndGetCookie(name)
