@@ -37,12 +37,15 @@ function toStored(r: DbRow): StoredMsg {
 
 export function storeMessage(userId: string, m: MessageInput): number {
   const db = getDb()
-  const info = db
-    .prepare('INSERT INTO messages (user_id, network_id, target, sender, kind, body, msgid, ts) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-    .run(userId, m.networkId, m.target, m.sender, m.kind, m.body, m.msgid ?? null, m.ts)
-  const id = Number(info.lastInsertRowid)
-  db.prepare('INSERT INTO messages_fts (rowid, body, sender, target) VALUES (?, ?, ?, ?)').run(id, m.body, m.sender, m.target)
-  return id
+  const insertMsg = db.prepare('INSERT INTO messages (user_id, network_id, target, sender, kind, body, msgid, ts) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+  const insertFts = db.prepare('INSERT INTO messages_fts (rowid, body, sender, target) VALUES (?, ?, ?, ?)')
+  const tx = db.transaction(() => {
+    const info = insertMsg.run(userId, m.networkId, m.target, m.sender, m.kind, m.body, m.msgid ?? null, m.ts)
+    const id = Number(info.lastInsertRowid)
+    insertFts.run(id, m.body, m.sender, m.target)
+    return id
+  })
+  return tx()
 }
 
 export function parseSearch(query: string): { terms: string; target?: string; sender?: string } {
@@ -94,7 +97,12 @@ export function getHistory(userId: string, networkId: number, target: string, li
 
 export function pruneOlderThan(cutoffTs: number): number {
   const db = getDb()
-  db.prepare('DELETE FROM messages_fts WHERE rowid IN (SELECT id FROM messages WHERE ts < ?)').run(cutoffTs)
-  const info = db.prepare('DELETE FROM messages WHERE ts < ?').run(cutoffTs)
-  return info.changes
+  const deleteFts = db.prepare('DELETE FROM messages_fts WHERE rowid IN (SELECT id FROM messages WHERE ts < ?)')
+  const deleteMsgs = db.prepare('DELETE FROM messages WHERE ts < ?')
+  const tx = db.transaction(() => {
+    deleteFts.run(cutoffTs)
+    const info = deleteMsgs.run(cutoffTs)
+    return info.changes
+  })
+  return tx()
 }

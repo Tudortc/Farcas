@@ -24,15 +24,19 @@ export class IrcManager {
     }
     const persistingSink = (msg: ServerMessage) => {
       if (msg.type === 'chat:msg') {
-        storeMessage(userId, {
-          networkId: msg.networkId,
-          target: msg.target,
-          sender: msg.from,
-          kind: msg.kind,
-          body: msg.text,
-          ts: msg.time ?? Date.now(),
-          ...(msg.msgid ? { msgid: msg.msgid } : {}),
-        })
+        try {
+          storeMessage(userId, {
+            networkId: msg.networkId,
+            target: msg.target,
+            sender: msg.from,
+            kind: msg.kind,
+            body: msg.text,
+            ts: msg.time ?? Date.now(),
+            ...(msg.msgid ? { msgid: msg.msgid } : {}),
+          })
+        } catch (err) {
+          console.error('[IrcManager] persistingSink: storeMessage failed (message still relayed):', err)
+        }
       }
       sink(msg)
     }

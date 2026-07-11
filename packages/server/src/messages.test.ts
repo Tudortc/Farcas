@@ -57,4 +57,43 @@ describe('messages store', () => {
     expect(getDb().prepare('SELECT COUNT(*) n FROM messages WHERE id = ?').get(id)).toEqual({ n: 0 })
     expect(searchMessages('u5', 'ancient')).toHaveLength(0)
   })
+
+  it('storeMessage: row is findable via both searchMessages (FTS) and getHistory (base table)', () => {
+    const id = storeMessage('uFTS', base({ body: 'unique fts probe text', ts: 5000 }))
+    expect(id).toBeGreaterThan(0)
+    // FTS path
+    const found = searchMessages('uFTS', 'probe')
+    expect(found).toHaveLength(1)
+    expect(found[0]!.body).toBe('unique fts probe text')
+    // base-table path
+    const hist = getHistory('uFTS', 1, '#linux')
+    expect(hist.some((m) => m.id === id)).toBe(true)
+  })
+
+  it('pruneOlderThan: row is gone from both searchMessages and getHistory', () => {
+    const id = storeMessage('uPRUNE', base({ body: 'old news item', ts: 10 }))
+    expect(id).toBeGreaterThan(0)
+    const del = pruneOlderThan(11)
+    expect(del).toBeGreaterThanOrEqual(1)
+    expect(searchMessages('uPRUNE', 'old news')).toHaveLength(0)
+    expect(getHistory('uPRUNE', 1, '#linux')).toHaveLength(0)
+  })
+
+  it('FTS integrity-check passes after store+prune cycle', () => {
+    storeMessage('uINT', base({ body: 'integrity test body', ts: 20 }))
+    pruneOlderThan(21)
+    expect(() => {
+      getDb().prepare("INSERT INTO messages_fts(messages_fts) VALUES('integrity-check')").run()
+    }).not.toThrow()
+  })
+
+  it('user-scope injection: adversarial queries as uY cannot see messages stored for uX', () => {
+    storeMessage('uX', base({ body: 'private data for uX', ts: 9000 }))
+    // Adversarial queries that could attempt to escape user scope via FTS or SQL
+    expect(searchMessages('uY', '" OR 1=1 --')).toEqual([])
+    expect(searchMessages('uY', 'from:uX* *')).toEqual([])
+    expect(searchMessages('uY', 'private')).toEqual([])
+    // Positive sanity: uX can see their own data
+    expect(searchMessages('uX', 'private')).toHaveLength(1)
+  })
 })

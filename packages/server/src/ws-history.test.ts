@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { randomUUID } from 'node:crypto'
 import WebSocket from 'ws'
 import type { FastifyInstance } from 'fastify'
 import { buildApp } from './app.js'
@@ -19,7 +20,7 @@ beforeAll(async () => {
   if (addr === null || typeof addr === 'string') throw new Error('no address')
   base = `127.0.0.1:${addr.port}`
 
-  const name = `h${Math.floor(performance.now() * 1000) % 1_000_000}`
+  const name = `h${randomUUID().slice(0, 8)}`
   const res = await app.inject({ method: 'POST', url: '/api/auth/sign-up/email', payload: { email: `${name}@example.test`, password: 'password1234', name, username: name } })
   cookie = String(res.headers['set-cookie'])
   const me = await app.inject({ method: 'GET', url: '/api/me', headers: { cookie } })
@@ -33,12 +34,24 @@ afterAll(async () => { await app.close() })
 function ask(payload: object, until: (m: any) => boolean): Promise<any> {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(`ws://${base}/ws`, { headers: { cookie } })
+    const t = setTimeout(() => {
+      ws.close()
+      reject(new Error('ws ask timeout'))
+    }, 5000)
     ws.on('open', () => ws.send(JSON.stringify(payload)))
     ws.on('message', (d) => {
       const m = JSON.parse(d.toString())
-      if (until(m)) { resolve(m); ws.close() }
+      if (until(m)) {
+        clearTimeout(t)
+        resolve(m)
+        ws.close()
+      }
     })
-    ws.on('error', reject)
+    ws.on('error', (err) => {
+      clearTimeout(t)
+      ws.close()
+      reject(err)
+    })
   })
 }
 
