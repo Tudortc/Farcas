@@ -107,6 +107,10 @@ dedicated-server shape; TypeScript end-to-end; no framework fight).
 - **Server:** **Fastify** + TypeScript
   - IRC: **irc-framework** (MIT, most complete IRCv3 surface)
   - Storage: **better-sqlite3** (synchronous, fast, zero-config) + FTS5
+  - Auth: **Better Auth** (MIT) — email/username + password, sessions, and the
+    **admin plugin** for multi-user management; uses the same better-sqlite3
+    driver. Official Fastify integration (catch-all handler at `/api/auth/*`).
+    Default hashing scrypt (secure); argon2id pluggable if desired.
   - Push: Web Push (VAPID)
 - **Desktop:** Electron wrapper (optional)
 
@@ -121,22 +125,29 @@ study only. The Lounge (MIT) and Kiwi IRC (Apache-2.0) are safe references.
 
 ## 5. Data Model
 
-SQLite (`beacon.db`) via better-sqlite3, with FTS5. Every query filters by
+SQLite (`bool.db`) via better-sqlite3, with FTS5. Every query filters by
 `user_id`; users are fully isolated.
 
+**Better Auth owns the `user`, `session`, `account`, and `verification`
+tables** (created/migrated by its CLI). Our app tables reference the Better Auth
+`user.id` as `user_id`:
+
 ```
-users        (id, username, password_hash, role, created_at, settings_json)
-networks     (id, user_id, name, host, port, tls, sasl_*, nick, enabled)
-channels     (id, network_id, name, joined, last_read_msgid, notify_level)
-messages     (id, network_id, target, msgid, sender, type, body, tags_json, ts)
-             └─ FTS5 virtual table over (body, sender, target) for search
-attachments  (id, message_id, url, mime, thumb_url, meta_json)
-reactions    (id, message_id, emoji, sender, ts)          # IRCv3 +draft/react
-push_subs    (id, user_id, endpoint, keys_json, device_label)
-sessions     (id, user_id, token_hash, device, last_seen)
+# --- managed by Better Auth (user, session, account, verification, + admin fields: role, banned) ---
+
+# --- our app tables ---
+user_settings (user_id, settings_json)                    # app prefs per user
+networks      (id, user_id, name, host, port, tls, sasl_*, nick, enabled)
+channels      (id, network_id, name, joined, last_read_msgid, notify_level)
+messages      (id, network_id, target, msgid, sender, type, body, tags_json, ts)
+              └─ FTS5 virtual table over (body, sender, target) for search
+attachments   (id, message_id, url, mime, thumb_url, meta_json)
+reactions     (id, message_id, emoji, sender, ts)          # IRCv3 +draft/react
+push_subs     (id, user_id, endpoint, keys_json, device_label)
 ```
 
-Full history retained, with admin-configurable retention.
+Full history retained, with admin-configurable retention. Network/SASL secrets
+in `networks` are encrypted at rest (see Security).
 
 ## 6. Message Flows
 
@@ -234,11 +245,13 @@ TDD where it fits.
 The instance is internet-facing and multi-user, so security is a first-class
 concern, not an afterthought.
 
-- **Passwords:** hashed with **argon2id** (never plaintext/fast hashes).
-- **Login hardening:** rate limiting + exponential backoff on failed logins;
-  optional lockout; generic error messages (no user-enumeration).
-- **Sessions:** `httpOnly` + `Secure` + `SameSite` cookies (or short-lived
-  tokens with rotation); server-side session revocation; per-device sessions.
+- **Auth handled by Better Auth** (don't roll our own): secure password hashing
+  (scrypt default, argon2id pluggable), `httpOnly`+`Secure`+`SameSite` session
+  cookies, server-side revocation, per-device sessions, built-in rate limiting,
+  and CSRF protection via `trustedOrigins`. The admin plugin gates user
+  management to admin roles.
+- **Login hardening:** Better Auth rate limiting on auth endpoints; generic
+  error messages (no user-enumeration); optional account lockout.
 - **Secrets at rest:** IRC/SASL/network passwords and push keys stored
   **encrypted at rest** (key from env/keyfile, not in the DB in plaintext).
 - **Transport:** TLS everywhere; enforce HTTPS; secure WebSocket (`wss://`).
