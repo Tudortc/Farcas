@@ -1,10 +1,14 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { registerSW } from 'virtual:pwa-register'
 import './styles/tokens.css'
 import './styles/base.css'
 import { applyAppearance, useAppearance } from './theme.js'
 import { useChat } from './store/chat-store.js'
 import { App } from './App.js'
+
+// Register the service worker (vite-plugin-pwa; no-ops where unsupported)
+registerSW({ immediate: true })
 
 // Apply persisted appearance before first render
 applyAppearance(useAppearance.getState().theme, useAppearance.getState().density)
