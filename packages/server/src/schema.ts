@@ -23,5 +23,19 @@ export function ensureAppSchema(db: Database.Database): void {
       UNIQUE(network_id, name)
     );
     CREATE INDEX IF NOT EXISTS idx_networks_user ON networks(user_id);
+    CREATE TABLE IF NOT EXISTS messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      network_id INTEGER NOT NULL,
+      target TEXT NOT NULL,
+      sender TEXT NOT NULL,
+      kind TEXT NOT NULL,
+      body TEXT NOT NULL,
+      msgid TEXT,
+      ts INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_messages_hist ON messages(user_id, network_id, target, ts);
+    CREATE INDEX IF NOT EXISTS idx_messages_ts ON messages(ts);
+    CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(body, sender, target, content='messages', content_rowid='id');
   `)
 }
