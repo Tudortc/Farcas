@@ -1,9 +1,12 @@
 import '../styles/app.css'
 import { useChat } from '../store/chat-store.js'
+import { MessageList } from './MessageList.js'
+import { Composer } from './Composer.js'
 
 export function MainPane() {
   const selected = useChat((s) => s.selected)
   const targets = useChat((s) => s.targets)
+  const send = useChat((s) => s.send)
 
   const target = selected != null ? targets[selected] : null
   const isChannel = target?.kind === 'channel'
@@ -31,7 +34,6 @@ export function MainPane() {
         <div className="spacer" />
       </header>
 
-      {/* Message body — Task 4 will mount the message list here */}
       {name != null ? (
         <div
           style={{
@@ -42,7 +44,8 @@ export function MainPane() {
           }}
           id="message-pane"
         >
-          {/* Message list placeholder — replaced in Task 4 */}
+          <MessageList />
+          <Composer onSend={send} placeholder={`Message ${name} · / for commands`} />
         </div>
       ) : (
         <div className="msgs-empty">
