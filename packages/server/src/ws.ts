@@ -95,14 +95,18 @@ export function registerWebSocket(app: FastifyInstance): void {
         case 'typing:set':
           ircManager.setTyping(userId, msg.networkId, msg.target, msg.state)
           break
-        case 'react:add':
+        case 'react:add': {
           ircManager.react(userId, msg.networkId, msg.target, msg.msgid, msg.emoji, true)
-          hub.publish(userId, { type: 'react:update', networkId: msg.networkId, target: msg.target, msgid: msg.msgid, emoji: msg.emoji, nick: userId, action: 'add' })
+          const addNick = ircManager.getConnection(userId, msg.networkId)?.currentNick() ?? 'you'
+          hub.publish(userId, { type: 'react:update', networkId: msg.networkId, target: msg.target, msgid: msg.msgid, emoji: msg.emoji, nick: addNick, action: 'add' })
           break
-        case 'react:remove':
+        }
+        case 'react:remove': {
           ircManager.react(userId, msg.networkId, msg.target, msg.msgid, msg.emoji, false)
-          hub.publish(userId, { type: 'react:update', networkId: msg.networkId, target: msg.target, msgid: msg.msgid, emoji: msg.emoji, nick: userId, action: 'remove' })
+          const removeNick = ircManager.getConnection(userId, msg.networkId)?.currentNick() ?? 'you'
+          hub.publish(userId, { type: 'react:update', networkId: msg.networkId, target: msg.target, msgid: msg.msgid, emoji: msg.emoji, nick: removeNick, action: 'remove' })
           break
+        }
         case 'chat:search':
           send({ type: 'search:results', query: msg.query, results: searchMessages(userId, msg.query, msg.limit) })
           break

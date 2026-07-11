@@ -63,6 +63,15 @@ describe('IrcConnection tag features — cap enabled', () => {
     })
   })
 
+  it('sendReaction (remove) calls tagmsg with +draft/unreact and +draft/reply', () => {
+    const { conn, client } = makeConn(true)
+    conn.sendReaction('#x', 'msgid-2', '👎', false)
+    expect((client as any).tagmsg).toHaveBeenCalledWith('#x', {
+      '+draft/unreact': '👎',
+      '+draft/reply': 'msgid-2',
+    })
+  })
+
   it('say() with replyTo attaches +draft/reply tag when cap is enabled', () => {
     const { conn, client } = makeConn(true)
     conn.say('#x', 'hey there', 'msgid-abc')
@@ -150,6 +159,26 @@ describe('IrcConnection inbound tag events', () => {
     const msg = out.find((m) => m.type === 'chat:msg') as any
     expect(msg).toBeDefined()
     expect(msg.replyTo).toBe('msgid-original')
+  })
+
+  it('maps inbound tagmsg with +draft/unreact to sink react:update with action=remove', () => {
+    const { client, out } = makeConn(true)
+    client.emit('tagmsg', {
+      nick: 'bob',
+      target: '#x',
+      tags: { '+draft/unreact': '🔥', '+draft/reply': 'msg-42' },
+    })
+    const msg = out.find((m) => m.type === 'react:update') as any
+    expect(msg).toBeDefined()
+    expect(msg).toMatchObject({
+      type: 'react:update',
+      networkId: 1,
+      target: '#x',
+      msgid: 'msg-42',
+      emoji: '🔥',
+      nick: 'bob',
+      action: 'remove',
+    })
   })
 
   it('inbound privmsg without +draft/reply has no replyTo field', () => {

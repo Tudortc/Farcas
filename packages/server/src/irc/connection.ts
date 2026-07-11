@@ -127,6 +127,16 @@ export class IrcConnection {
           nick: e.nick ?? '',
           action: 'add',
         })
+      } else if (tags['+draft/unreact'] !== undefined) {
+        this.sink({
+          type: 'react:update',
+          networkId: nid,
+          target: e.target,
+          msgid: tags['+draft/reply'] ?? '',
+          emoji: tags['+draft/unreact'],
+          nick: e.nick ?? '',
+          action: 'remove',
+        })
       }
     })
 
@@ -185,7 +195,7 @@ export class IrcConnection {
     if (add) {
       this.client.tagmsg(target, { '+draft/react': emoji, '+draft/reply': msgid })
     } else {
-      this.client.tagmsg(target, { '+draft/react': emoji, '+draft/reply': msgid })
+      this.client.tagmsg(target, { '+draft/unreact': emoji, '+draft/reply': msgid })
     }
   }
   disconnect(): void {

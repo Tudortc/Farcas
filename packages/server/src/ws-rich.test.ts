@@ -140,6 +140,7 @@ describe('ws rich features — typing and reactions', () => {
       target: '#x',
       msgid: 'msg-1',
       emoji: '👍',
+      nick: 'bool',
       action: 'add',
     })
 
@@ -177,6 +178,13 @@ describe('ws rich features — typing and reactions', () => {
       action: 'remove',
       emoji: '👎',
       msgid: 'msg-2',
+      nick: 'bool',
+    })
+
+    // Check the IRC client got +draft/unreact (not +draft/react) for a remove
+    expect(lastClient.tagmsg).toHaveBeenCalledWith('#x', {
+      '+draft/unreact': '👎',
+      '+draft/reply': 'msg-2',
     })
 
     s.ws.close()

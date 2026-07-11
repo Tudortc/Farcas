@@ -87,6 +87,14 @@ describe('messages store', () => {
     }).not.toThrow()
   })
 
+  it('storeMessage with replyTo persists and is returned by getHistory', () => {
+    storeMessage('uReply', base({ body: 'a reply message', ts: 6000, msgid: 'm2', replyTo: 'm1' }))
+    const hist = getHistory('uReply', 1, '#linux')
+    const msg = hist.find((m) => m.body === 'a reply message')
+    expect(msg).toBeDefined()
+    expect((msg as any).replyTo).toBe('m1')
+  })
+
   it('user-scope injection: adversarial queries as uY cannot see messages stored for uX', () => {
     storeMessage('uX', base({ body: 'private data for uX', ts: 9000 }))
     // Adversarial queries that could attempt to escape user scope via FTS or SQL
