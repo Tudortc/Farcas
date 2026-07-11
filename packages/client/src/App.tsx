@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react'
 import { createWsClient } from './ws-client.js'
 import { AuthGate } from './AuthGate.js'
 import { authClient, useSession } from './auth-client.js'
+import { AdminPanel } from './AdminPanel.js'
 
 function ConnectedApp() {
   const { data: session } = useSession()
   const [connected, setConnected] = useState(false)
+  const [showAdmin, setShowAdmin] = useState(false)
+  const isAdmin = session?.user.role === 'admin'
 
   useEffect(() => {
     const proto = location.protocol === 'https:' ? 'wss' : 'ws'
@@ -21,9 +24,11 @@ function ConnectedApp() {
     <main>
       <header>
         <span>{session?.user.username}</span>
+        {isAdmin && <button onClick={() => setShowAdmin((v) => !v)}>Admin</button>}
         <button onClick={() => authClient.signOut()}>Sign out</button>
       </header>
       <p>{connected ? 'Connected' : 'Connecting…'}</p>
+      {showAdmin && isAdmin && <AdminPanel />}
     </main>
   )
 }
