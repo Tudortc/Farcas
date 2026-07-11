@@ -9,6 +9,7 @@ import {
 } from 'cmdk'
 import { useChat } from '../store/chat-store.js'
 import { useAppearance, type ThemeId } from '../theme.js'
+import { useFocusRestore } from './Dialog.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -105,6 +106,9 @@ const THEMES: { id: ThemeId; label: string }[] = [
 ]
 
 export function CommandPalette({ open, onClose, onOpenSearch }: CommandPaletteProps) {
+  // Restore focus to the previously focused element when the palette closes
+  useFocusRestore(open)
+
   const targets = useChat((s) => s.targets)
   const networks = useChat((s) => s.networks)
   const select = useChat((s) => s.select)

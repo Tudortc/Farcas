@@ -335,6 +335,10 @@ function createActions(
       _send?.({ type: 'net:add', ...input })
     },
 
+    removeNetwork(id: number) {
+      _send?.({ type: 'net:remove', networkId: id })
+    },
+
     connectNetwork(id: number) {
       _send?.({ type: 'net:connect', networkId: id })
     },

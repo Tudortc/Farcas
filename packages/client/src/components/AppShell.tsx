@@ -6,6 +6,8 @@ import { MainPane } from './MainPane.js'
 import { CommandPalette, usePaletteShortcut } from './CommandPalette.js'
 import { SearchPanel } from './SearchPanel.js'
 import { MemberList } from './MemberList.js'
+import { Dialog } from './Dialog.js'
+import { NetworkSettings } from './NetworkSettings.js'
 
 /** Dismissible error banner for net:error messages */
 function ErrorBanner() {
@@ -103,6 +105,10 @@ function useSearchShortcut(): [boolean, () => void] {
 export function AppShell() {
   const [paletteOpen, closePalette] = usePaletteShortcut()
   const [searchOpen, closeSearch] = useSearchShortcut()
+  const [networkSettingsOpen, setNetworkSettingsOpen] = useState(false)
+
+  const openNetworkSettings = useCallback(() => setNetworkSettingsOpen(true), [])
+  const closeNetworkSettings = useCallback(() => setNetworkSettingsOpen(false), [])
 
   return (
     <div className="app">
@@ -115,8 +121,13 @@ export function AppShell() {
       {/* Global Cmd-Shift-F / bool:open-search search panel */}
       <SearchPanel open={searchOpen} onClose={closeSearch} />
 
+      {/* Network settings dialog */}
+      <Dialog open={networkSettingsOpen} onClose={closeNetworkSettings} title="Network Settings">
+        <NetworkSettings onClose={closeNetworkSettings} />
+      </Dialog>
+
       {/* Sidebar renders the rail + channel sidebar as two grid columns */}
-      <Sidebar />
+      <Sidebar onOpenNetworkSettings={openNetworkSettings} />
 
       {/* Center message pane */}
       <MainPane />

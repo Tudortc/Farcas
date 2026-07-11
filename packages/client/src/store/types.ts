@@ -59,6 +59,7 @@ export interface ChatActions {
     saslAccount?: string
     saslPassword?: string
   }): void
+  removeNetwork(id: number): void
   connectNetwork(id: number): void
   join(networkId: number, channel: string): void
   part(networkId: number, channel: string): void

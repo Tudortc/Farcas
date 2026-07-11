@@ -117,7 +117,11 @@ function NetworkGroup({
   )
 }
 
-export function Sidebar() {
+export interface SidebarProps {
+  onOpenNetworkSettings?: () => void
+}
+
+export function Sidebar({ onOpenNetworkSettings }: SidebarProps = {}) {
   const networks = useChat((s) => s.networks)
   const targets = useChat((s) => s.targets)
   const selected = useChat((s) => s.selected)
@@ -155,8 +159,9 @@ export function Sidebar() {
           const unread = networkUnread(net.id)
           const isActive = net.id === activeNetId
           return (
-            <div
+            <button
               key={net.id}
+              type="button"
               className={`net-btn${isActive ? ' active' : ''}`}
               title={net.name}
               onClick={() => {
@@ -164,29 +169,23 @@ export function Sidebar() {
                 const first = targetList.find((t) => t.networkId === net.id)
                 if (first) select(targetKey(first.networkId, first.target))
               }}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  const first = targetList.find((t) => t.networkId === net.id)
-                  if (first) select(targetKey(first.networkId, first.target))
-                }
-              }}
             >
               {netAbbr(net.name)}
               {unread > 0 && <span className="badge">{unread}</span>}
-            </div>
+            </button>
           )
         })}
-        {networkList.length === 0 && (
-          <div
-            className="net-btn"
-            title="No networks — connect one"
-            style={{ color: 'var(--ink-3)', borderStyle: 'dashed' }}
-          >
-            +
-          </div>
-        )}
+        {/* Add network button — always visible, opens Network Settings */}
+        <button
+          type="button"
+          className="net-btn"
+          title="Add network"
+          aria-label="Add network"
+          onClick={onOpenNetworkSettings}
+          style={{ color: 'var(--ink-3)', borderStyle: 'dashed' }}
+        >
+          +
+        </button>
       </nav>
 
       {/* Channel sidebar */}
