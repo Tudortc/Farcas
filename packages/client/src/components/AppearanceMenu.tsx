@@ -1,5 +1,6 @@
 import { useAppearance } from '../theme.js'
 import type { ThemeId, Density } from '../theme.js'
+import { NotificationsToggle } from './NotificationsToggle.js'
 
 const THEMES: { id: ThemeId; label: string }[] = [
   { id: 'a', label: 'A' },
@@ -54,6 +55,11 @@ export function AppearanceMenu() {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="appearance-section">
+        <div className="appearance-label">Notifications</div>
+        <NotificationsToggle />
       </div>
     </div>
   )

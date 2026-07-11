@@ -3,6 +3,7 @@ import { IrcConnection, type IrcClientFactory } from './connection.js'
 import { getNetwork } from '../networks.js'
 import { storeMessage } from '../messages.js'
 import { Hub } from './hub.js'
+import { maybeNotify } from '../notifier.js'
 
 const keyOf = (userId: string, networkId: number) => `${userId}:${networkId}`
 
@@ -48,6 +49,12 @@ export class IrcManager {
         }
       }
       this.hub.publish(userId, msg)
+      if (msg.type === 'chat:msg') {
+        maybeNotify(userId, msg, {
+          selfNick: conn.currentNick(),
+          activeSockets: this.hub.subscriberCount(userId),
+        }).catch((err) => console.error('[IrcManager] maybeNotify failed', err))
+      }
     }
     const conn = new IrcConnection(
       networkId,
