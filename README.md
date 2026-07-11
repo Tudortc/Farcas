@@ -8,7 +8,7 @@
 IRC, but it finally feels like 2026.</p>
 
 <p>
-  <a href="https://dmfarcas.github.io/bool/"><strong>🌐 Live preview</strong></a> ·
+  <a href="https://bool.ro/"><strong>🌐 Live preview</strong></a> ·
   <a href="#-roadmap"><strong>🗺️ Roadmap</strong></a> ·
   <a href="https://github.com/sponsors/dmfarcas"><strong>☕ Sponsor</strong></a>
 </p>
@@ -56,7 +56,7 @@ hosts many users, with per-user isolation (think soju, but web-first and pretty)
 
 Design/UX quality is the **#1 priority** of this project, so it came first. These
 are interactive mockups (dark + light, live density toggle) — the shipping UI is
-Milestone 5. Explore them all on the **[live preview site](https://dmfarcas.github.io/bool/)**.
+Milestone 5. Explore them all on the **[live preview site](https://bool.ro/)**.
 
 <div align="center">
 
