@@ -3,7 +3,7 @@ import { parseClientMessage, parseServerMessage, PROTOCOL_VERSION } from './inde
 
 describe('history/search protocol', () => {
   it('bumped PROTOCOL_VERSION to 3', () => {
-    expect(PROTOCOL_VERSION).toBe(3)
+    expect(PROTOCOL_VERSION).toBe(4)
   })
   it('parses chat:search and history:request', () => {
     expect(parseClientMessage(JSON.stringify({ type: 'chat:search', query: 'from:bob hello' })).type).toBe('chat:search')

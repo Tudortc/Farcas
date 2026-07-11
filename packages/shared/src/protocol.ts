@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const PROTOCOL_VERSION = 3
+export const PROTOCOL_VERSION = 4
 
 // --- Client -> Server ---
 export const helloSchema = z.object({ type: z.literal('hello'), clientVersion: z.number().int() })
@@ -35,10 +35,14 @@ export const historyRequestSchema = z.object({
   before: z.number().optional(),
 })
 
+export const readSetSchema = z.object({ type: z.literal('read:set'), networkId: z.number().int(), target: z.string(), ts: z.number() })
+export const readListReqSchema = z.object({ type: z.literal('read:list') })
+
 export const clientMessageSchema = z.discriminatedUnion('type', [
   helloSchema, pingSchema,
   netAddSchema, netRemoveSchema, netConnectSchema, netDisconnectSchema, netListReqSchema,
   chanJoinSchema, chanPartSchema, chatSendSchema, chatSearchSchema, historyRequestSchema,
+  readSetSchema, readListReqSchema,
 ])
 export type ClientMessage = z.infer<typeof clientMessageSchema>
 
@@ -113,12 +117,19 @@ export type StoredMsg = z.infer<typeof storedMsgSchema>
 export const searchResultsSchema = z.object({ type: z.literal('search:results'), query: z.string(), results: z.array(storedMsgSchema) })
 export const historyBatchSchema = z.object({ type: z.literal('history:batch'), networkId: z.number().int(), target: z.string(), messages: z.array(storedMsgSchema) })
 
+export const readUpdateSchema = z.object({ type: z.literal('read:update'), networkId: z.number().int(), target: z.string(), ts: z.number() })
+export const readListSchema = z.object({
+  type: z.literal('read:list'),
+  markers: z.array(z.object({ networkId: z.number().int(), target: z.string(), ts: z.number() })),
+})
+
 export const serverMessageSchema = z.discriminatedUnion('type', [
   welcomeSchema, pongSchema, errorSchema,
   netStateSchema, netListSchema, netErrorSchema,
   chatMsgSchema, chanNamesSchema, chanJoinEvtSchema, chanPartEvtSchema, chanTopicSchema,
   presenceQuitSchema, presenceNickSchema,
   searchResultsSchema, historyBatchSchema,
+  readUpdateSchema, readListSchema,
 ])
 export type ServerMessage = z.infer<typeof serverMessageSchema>
 

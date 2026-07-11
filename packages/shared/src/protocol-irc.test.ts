@@ -3,7 +3,7 @@ import { parseClientMessage, parseServerMessage, PROTOCOL_VERSION } from './inde
 
 describe('irc protocol messages', () => {
   it('bumped PROTOCOL_VERSION to 3', () => {
-    expect(PROTOCOL_VERSION).toBe(3)
+    expect(PROTOCOL_VERSION).toBe(4)
   })
 
   it('parses net:add', () => {
