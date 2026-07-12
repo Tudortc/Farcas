@@ -61,8 +61,8 @@ function isBlockedIPv4(ip: string): boolean {
  * Handles :: abbreviation and strips zone IDs (%eth0 etc).
  */
 function expandIPv6(ip: string): string {
-  // Strip zone ID
-  const withoutZone = ip.split('%')[0]!
+  // Strip zone ID and lowercase for case-insensitive prefix comparisons
+  const withoutZone = ip.split('%')[0]!.toLowerCase()
 
   // Handle IPv4-mapped: ::ffff:a.b.c.d — normalize to hex form
   // (We handle this case separately in isBlockedAddress)
@@ -109,6 +109,17 @@ function isBlockedIPv6(ip: string): boolean {
   // Check IPv4-mapped: ::ffff:a.b.c.d — prefix is 0000:0000:0000:0000:0000:ffff
   if (expanded.startsWith('0000:0000:0000:0000:0000:ffff:')) {
     // Extract the embedded IPv4 address from the last two groups
+    const parts = expanded.split(':')
+    const hi = parseInt(parts[6]!, 16)
+    const lo = parseInt(parts[7]!, 16)
+    const ipv4 = `${hi >> 8}.${hi & 0xff}.${lo >> 8}.${lo & 0xff}`
+    return isBlockedIPv4(ipv4)
+  }
+
+  // NAT64: 64:ff9b::/96 — the well-known NAT64 prefix embeds an IPv4 in the
+  // last 32 bits. Block if the embedded IPv4 is in a private/reserved range.
+  // expanded is already lowercased so this comparison is case-insensitive.
+  if (expanded.startsWith('0064:ff9b:0000:0000:0000:0000:')) {
     const parts = expanded.split(':')
     const hi = parseInt(parts[6]!, 16)
     const lo = parseInt(parts[7]!, 16)

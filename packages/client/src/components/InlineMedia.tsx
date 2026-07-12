@@ -21,6 +21,8 @@ interface InlineMediaProps {
  */
 export function InlineMedia({ url, isImage }: InlineMediaProps) {
   if (!isImage && !isImageUrl(url)) return null
+  // Belt-and-suspenders: only render http/https URLs as images
+  if (!/^https?:\/\//i.test(url) && !url.startsWith('/api/media/')) return null
 
   return (
     <div

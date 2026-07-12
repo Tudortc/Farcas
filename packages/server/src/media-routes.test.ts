@@ -121,6 +121,25 @@ describe('POST /api/upload', () => {
     })
     expect(res.statusCode).toBe(415)
   })
+
+  it('returns 413 when the uploaded file exceeds the size limit', async () => {
+    const name = uniq()
+    const cookie = await signUpAndGetCookie(name)
+
+    // 11 MB exceeds the 10 MB cap
+    const oversized = Buffer.alloc(11 * 1024 * 1024, 0x42)
+    const body = buildMultipart('big.png', 'image/png', oversized)
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/upload',
+      headers: {
+        cookie,
+        'content-type': `multipart/form-data; boundary=${BOUNDARY}`,
+      },
+      body,
+    })
+    expect(res.statusCode).toBe(413)
+  })
 })
 
 describe('GET /api/media/:id', () => {
@@ -168,6 +187,7 @@ describe('GET /api/media/:id', () => {
     expect(res.statusCode).toBe(200)
     expect(res.headers['content-type']).toMatch(/^image\/png/)
     expect(res.headers['x-content-type-options']).toBe('nosniff')
+    expect(res.headers['content-disposition']).toMatch(/filename\*=UTF-8''/)
     expect(res.rawPayload).toEqual(TINY_PNG)
   })
 })

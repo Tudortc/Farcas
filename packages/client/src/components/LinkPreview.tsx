@@ -32,7 +32,7 @@ export function LinkPreview({ preview }: LinkPreviewProps) {
         overflow: 'hidden',
       }}
     >
-      {preview.image && (
+      {preview.image && /^https?:\/\//i.test(preview.image) && (
         <img
           src={preview.image}
           alt=""

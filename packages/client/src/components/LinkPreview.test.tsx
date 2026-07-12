@@ -57,6 +57,30 @@ describe('LinkPreview', () => {
     expect(screen.getByText('Minimal Page')).toBeInTheDocument()
     expect(screen.queryByRole('img')).toBeNull()
   })
+
+  it('does not render an <img> when preview.image is a data: URL', () => {
+    const withDataImage = {
+      type: 'preview:result' as const,
+      url: 'https://example.com/',
+      ok: true as const,
+      title: 'Data Image Page',
+      image: 'data:image/png;base64,abc123',
+    }
+    const { container } = render(<LinkPreview preview={withDataImage} />)
+    expect(container.querySelector('img')).toBeNull()
+  })
+
+  it('does not render an <img> when preview.image is a javascript: URL', () => {
+    const withJsImage = {
+      type: 'preview:result' as const,
+      url: 'https://example.com/',
+      ok: true as const,
+      title: 'JS Image Page',
+      image: 'javascript:alert(1)',
+    }
+    const { container } = render(<LinkPreview preview={withJsImage} />)
+    expect(container.querySelector('img')).toBeNull()
+  })
 })
 
 describe('InlineMedia', () => {

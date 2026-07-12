@@ -76,6 +76,30 @@ describe('extractMeta', () => {
     expect(meta.siteName).toBeUndefined()
   })
 
+  it('drops og:image with javascript: scheme', () => {
+    const html = `<meta property="og:image" content="javascript:alert(1)" />`
+    const meta = extractMeta(html)
+    expect(meta.image).toBeUndefined()
+  })
+
+  it('drops og:image with data: scheme', () => {
+    const html = `<meta property="og:image" content="data:image/png;base64,abc" />`
+    const meta = extractMeta(html)
+    expect(meta.image).toBeUndefined()
+  })
+
+  it('keeps og:image with https: scheme', () => {
+    const html = `<meta property="og:image" content="https://cdn.example.com/img.png" />`
+    const meta = extractMeta(html)
+    expect(meta.image).toBe('https://cdn.example.com/img.png')
+  })
+
+  it('keeps og:image with http: scheme', () => {
+    const html = `<meta property="og:image" content="http://example.com/img.png" />`
+    const meta = extractMeta(html)
+    expect(meta.image).toBe('http://example.com/img.png')
+  })
+
   it('handles self-closing meta tags with double-quoted content', () => {
     const html = `<meta property="og:title" content="Self Closing" />`
     const meta = extractMeta(html)

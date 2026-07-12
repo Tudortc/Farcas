@@ -20,7 +20,12 @@ export async function registerMedia(app: FastifyInstance): Promise<void> {
       part = await request.file()
     } catch (err: any) {
       // @fastify/multipart throws when the file size limit is reached
-      if (err?.code === 'FST_FILES_LIMIT' || err?.statusCode === 413 || err?.message?.includes('size limit')) {
+      if (
+        err?.code === 'FST_FILES_LIMIT' ||
+        err?.code === 'FST_REQ_FILE_TOO_LARGE' ||
+        err?.statusCode === 413 ||
+        err?.message?.includes('size limit')
+      ) {
         return reply.status(413).send({ error: 'file too large' })
       }
       throw err
@@ -41,7 +46,13 @@ export async function registerMedia(app: FastifyInstance): Promise<void> {
     try {
       bytes = await part.toBuffer()
     } catch (err: any) {
-      if (err?.code === 'FST_FILES_LIMIT' || err?.statusCode === 413 || err?.message?.includes('size limit') || err?.code === 'RequestFileTooLargeError') {
+      if (
+        err?.code === 'FST_FILES_LIMIT' ||
+        err?.code === 'FST_REQ_FILE_TOO_LARGE' ||
+        err?.statusCode === 413 ||
+        err?.message?.includes('size limit') ||
+        err?.code === 'RequestFileTooLargeError'
+      ) {
         return reply.status(413).send({ error: 'file too large' })
       }
       throw err
@@ -69,8 +80,17 @@ export async function registerMedia(app: FastifyInstance): Promise<void> {
     const record = getMedia(id)
     if (!record) return reply.status(404).send({ error: 'not found' })
 
+    // Sanitize filename: strip control chars and characters unsafe in quoted-string
+    const asciiSafe = record.filename
+      .replace(/[\x00-\x1f\x7f"\\]/g, '_')
+      .replace(/[^\x20-\x7e]/g, '_')
+    const rfc5987 = encodeURIComponent(record.filename)
+
     reply.header('Content-Type', record.mime)
-    reply.header('Content-Disposition', `inline; filename="${record.filename}"`)
+    reply.header(
+      'Content-Disposition',
+      `inline; filename="${asciiSafe}"; filename*=UTF-8''${rfc5987}`,
+    )
     reply.header('X-Content-Type-Options', 'nosniff')
 
     return reply.send(createReadStream(record.path))

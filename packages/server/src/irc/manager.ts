@@ -61,7 +61,7 @@ export class IrcManager {
 
         // Kick off a non-blocking link preview fetch for the first URL in the message.
         // Failure must never affect relay or persistence.
-        const urlMatch = msg.text.match(URL_REGEX)
+        const urlMatch = msg.text?.match(URL_REGEX)
         if (urlMatch) {
           void fetchPreview(urlMatch[0]!)
             .then((res) => {

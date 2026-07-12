@@ -82,10 +82,13 @@ export function extractMeta(html: string): {
   // Fall back to <meta name="description">
   const plainDesc = metaName('description')
 
+  // Only allow absolute http/https image URLs — drop data:, blob:, javascript:, etc.
+  const safeImage = ogImage && /^https?:\/\//i.test(ogImage) ? ogImage : undefined
+
   return {
     title: ogTitle ?? plainTitle,
     description: ogDescription ?? plainDesc,
-    image: ogImage,
+    image: safeImage,
     siteName: ogSiteName,
   }
 }

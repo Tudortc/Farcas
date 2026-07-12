@@ -31,6 +31,13 @@ describe('isBlockedAddress', () => {
     it('blocks ::ffff:192.168.1.1 (mapped private)', () => expect(isBlockedAddress('::ffff:192.168.1.1')).toBe(true))
     it('blocks ::ffff:127.0.0.1 (mapped loopback)', () => expect(isBlockedAddress('::ffff:127.0.0.1')).toBe(true))
     it('does not block ::ffff:1.1.1.1 (mapped public)', () => expect(isBlockedAddress('::ffff:1.1.1.1')).toBe(false))
+    it('blocks ::FFFF:A9FE:A9FE (uppercase IPv4-mapped link-local)', () => expect(isBlockedAddress('::FFFF:A9FE:A9FE')).toBe(true))
+  })
+
+  describe('NAT64 (64:ff9b::/96)', () => {
+    it('blocks 64:ff9b::a9fe:a9fe (NAT64 link-local 169.254.169.254)', () => expect(isBlockedAddress('64:ff9b::a9fe:a9fe')).toBe(true))
+    it('blocks 64:ff9b::7f00:1 (NAT64 loopback 127.0.0.1)', () => expect(isBlockedAddress('64:ff9b::7f00:1')).toBe(true))
+    it('does not block 64:ff9b::808:808 (NAT64 public 8.8.8.8)', () => expect(isBlockedAddress('64:ff9b::808:808')).toBe(false))
   })
 
   describe('public addresses (must not block)', () => {
