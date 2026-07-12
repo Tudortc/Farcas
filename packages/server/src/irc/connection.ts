@@ -1,5 +1,6 @@
 import { Client } from 'irc-framework'
 import type { ServerMessage } from '@bool/shared'
+import { formatNumeric } from './numerics.js'
 
 export interface IrcClientLike {
   on(event: string, cb: (arg: any) => void): void
@@ -165,6 +166,14 @@ export class IrcConnection {
         users: (e.users ?? []).map((u: any) => ({ nick: u.nick, modes: u.modes ?? [] })),
       })
     })
+
+    client.on('raw', (e: any) => {
+      if (!e?.from_server || typeof e.line !== 'string') return
+      const text = formatNumeric(e.line, client.user.nick)
+      if (text) {
+        this.sink({ type: 'chat:msg', networkId: nid, target: '*', from: '*', kind: 'notice', text, self: false, time: Date.now() })
+      }
+    })
   }
 
   join(channel: string): void {
@@ -172,6 +181,27 @@ export class IrcConnection {
   }
   part(channel: string): void {
     this.client?.part(channel)
+  }
+  setNick(nick: string): void {
+    this.client?.changeNick(nick)
+  }
+  setTopic(channel: string, topic: string): void {
+    this.client?.raw(`TOPIC ${channel} :${topic}`)
+  }
+  kick(channel: string, nick: string, reason?: string): void {
+    this.client?.raw(`KICK ${channel} ${nick}${reason ? ` :${reason}` : ''}`)
+  }
+  setMode(target: string, modes: string, args?: string): void {
+    this.client?.raw(`MODE ${target} ${modes}${args ? ` ${args}` : ''}`)
+  }
+  whois(nick: string): void {
+    this.client?.raw(`WHOIS ${nick}`)
+  }
+  listChannels(filter?: string): void {
+    this.client?.raw(`LIST${filter ? ` ${filter}` : ''}`)
+  }
+  action(target: string, text: string): void {
+    this.client?.say(target, `\x01ACTION ${text}\x01`)
   }
   say(target: string, text: string, replyTo?: string): void {
     if (!this.client) return

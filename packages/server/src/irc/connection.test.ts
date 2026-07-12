@@ -142,4 +142,35 @@ describe('IrcConnection', () => {
     expect(clients).toHaveLength(2)
     expect(clients[1]!.connect).toHaveBeenCalled()
   })
+
+  it('routes numeric replies into the * status buffer', () => {
+    const { client, out } = makeConn()
+    client.emit('raw', { line: ':server 322 bool #chan 42 :a topic', from_server: true })
+    const msg = out.find((m) => m.type === 'chat:msg' && (m as any).target === '*') as any
+    expect(msg).toMatchObject({ target: '*', from: '*', kind: 'notice', text: '#chan 42 a topic' })
+  })
+
+  it('ignores client-originated raw lines', () => {
+    const { client, out } = makeConn()
+    client.emit('raw', { line: ':server 322 bool #chan 42 :a topic', from_server: false })
+    expect(out.some((m) => m.type === 'chat:msg' && (m as any).target === '*')).toBe(false)
+  })
+
+  it('sends command methods through the client', () => {
+    const { conn, client } = makeConn()
+    conn.setNick('neo')
+    conn.setTopic('#x', 'hello world')
+    conn.kick('#x', 'bob', 'spam')
+    conn.setMode('#x', '+o', 'bob')
+    conn.whois('bob')
+    conn.listChannels('*rust*')
+    conn.action('#x', 'waves')
+    expect(client.changeNick).toHaveBeenCalledWith('neo')
+    expect(client.raw).toHaveBeenCalledWith('TOPIC #x :hello world')
+    expect(client.raw).toHaveBeenCalledWith('KICK #x bob :spam')
+    expect(client.raw).toHaveBeenCalledWith('MODE #x +o bob')
+    expect(client.raw).toHaveBeenCalledWith('WHOIS bob')
+    expect(client.raw).toHaveBeenCalledWith('LIST *rust*')
+    expect(client.say).toHaveBeenCalledWith('#x', '\x01ACTION waves\x01')
+  })
 })
