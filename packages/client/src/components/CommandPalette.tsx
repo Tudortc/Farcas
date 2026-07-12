@@ -292,7 +292,11 @@ export function CommandPalette({ open, onClose, onOpenSearch }: CommandPalettePr
                 <CommandItem
                   value="join-channel"
                   onSelect={() => {
-                    const net = Object.values(networks)[0]
+                    const selected = useChat.getState().selected
+                    const activeNetworkId = selected ? parseInt(selected.split(':')[0] ?? '', 10) : NaN
+                    const net =
+                      (!isNaN(activeNetworkId) && networks[activeNetworkId]) ||
+                      Object.values(networks)[0]
                     if (!net) return
                     const chan = window.prompt('Join channel (e.g. #general):')?.trim()
                     if (chan) useChat.getState().join(net.id, normalizeChannel(chan))

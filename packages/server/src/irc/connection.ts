@@ -2,6 +2,10 @@ import { Client } from 'irc-framework'
 import type { ServerMessage } from '@bool/shared'
 import { formatNumeric } from './numerics.js'
 
+function stripCrlf(s: string): string {
+  return s.replace(/[\r\n]/g, '')
+}
+
 export interface IrcClientLike {
   on(event: string, cb: (arg: any) => void): void
   emit(event: string, arg?: any): boolean
@@ -186,19 +190,19 @@ export class IrcConnection {
     this.client?.changeNick(nick)
   }
   setTopic(channel: string, topic: string): void {
-    this.client?.raw(`TOPIC ${channel} :${topic}`)
+    this.client?.raw(`TOPIC ${stripCrlf(channel)} :${stripCrlf(topic)}`)
   }
   kick(channel: string, nick: string, reason?: string): void {
-    this.client?.raw(`KICK ${channel} ${nick}${reason ? ` :${reason}` : ''}`)
+    this.client?.raw(`KICK ${stripCrlf(channel)} ${stripCrlf(nick)}${reason ? ` :${stripCrlf(reason)}` : ''}`)
   }
   setMode(target: string, modes: string, args?: string): void {
-    this.client?.raw(`MODE ${target} ${modes}${args ? ` ${args}` : ''}`)
+    this.client?.raw(`MODE ${stripCrlf(target)} ${stripCrlf(modes)}${args ? ` ${stripCrlf(args)}` : ''}`)
   }
   whois(nick: string): void {
-    this.client?.raw(`WHOIS ${nick}`)
+    this.client?.raw(`WHOIS ${stripCrlf(nick)}`)
   }
   listChannels(filter?: string): void {
-    this.client?.raw(`LIST${filter ? ` ${filter}` : ''}`)
+    this.client?.raw(`LIST${filter ? ` ${stripCrlf(filter)}` : ''}`)
   }
   action(target: string, text: string): void {
     this.client?.say(target, `\x01ACTION ${text}\x01`)

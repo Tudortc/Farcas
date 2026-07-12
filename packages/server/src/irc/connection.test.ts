@@ -156,6 +156,16 @@ describe('IrcConnection', () => {
     expect(out.some((m) => m.type === 'chat:msg' && (m as any).target === '*')).toBe(false)
   })
 
+  it('strips CR/LF from interpolated arguments in raw command methods', () => {
+    const { conn, client } = makeConn()
+    conn.setTopic('#x', 'hi\r\nJOIN #evil')
+    expect(client.raw).toHaveBeenCalledWith('TOPIC #x :hiJOIN #evil')
+    conn.whois('bob\r\nQUIT')
+    expect(client.raw).toHaveBeenCalledWith('WHOIS bobQUIT')
+    conn.kick('#x', 'bad\rnick', 'sp\nam')
+    expect(client.raw).toHaveBeenCalledWith('KICK #x badnick :spam')
+  })
+
   it('sends command methods through the client', () => {
     const { conn, client } = makeConn()
     conn.setNick('neo')
