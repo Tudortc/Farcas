@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import '../styles/app.css'
 import { useChat, targetKey } from '../store/chat-store.js'
 import type { NetworkState, TargetState } from '../store/types.js'
+import { normalizeChannel } from '../commands.js'
 
 /** Derive a two-letter abbreviation from a network name */
 function netAbbr(name: string): string {
@@ -63,6 +65,18 @@ function NetworkGroup({
 }) {
   const channels = targets.filter((t) => t.kind === 'channel')
   const dms = targets.filter((t) => t.kind === 'pm')
+  const statusTargets = targets.filter((t) => t.kind === 'status')
+
+  const [joinOpen, setJoinOpen] = useState(false)
+  const [joinValue, setJoinValue] = useState('')
+  const join = useChat((s) => s.join)
+
+  function submitJoin() {
+    const v = joinValue.trim()
+    if (v) join(network.id, normalizeChannel(v))
+    setJoinValue('')
+    setJoinOpen(false)
+  }
 
   return (
     <>
@@ -74,13 +88,37 @@ function NetworkGroup({
         <div className="net-sub">{network.host}</div>
       </div>
       <div className="side-scroll">
-        {channels.length > 0 && (
+        {(
           <div className="grp">
             <div className="grp-h">
               Channels
               <span className="count">{channels.length}</span>
+              <button
+                type="button"
+                className="grp-add"
+                aria-label="Join a channel"
+                title="Join a channel"
+                onClick={() => setJoinOpen((v) => !v)}
+                style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--ink-3)', cursor: 'pointer' }}
+              >
+                +
+              </button>
             </div>
-            {channels.map((t) => {
+            {joinOpen && (
+              <input
+                className="join-input"
+                aria-label="Channel to join"
+                placeholder="#channel — Enter to join"
+                autoFocus
+                value={joinValue}
+                onChange={(e) => setJoinValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { e.preventDefault(); submitJoin() }
+                  if (e.key === 'Escape') { setJoinValue(''); setJoinOpen(false) }
+                }}
+              />
+            )}
+            {channels.length > 0 && channels.map((t) => {
               const key = targetKey(t.networkId, t.target)
               return (
                 <ChannelRow
@@ -108,6 +146,26 @@ function NetworkGroup({
                   isActive={selected === key}
                   onSelect={() => onSelect(key)}
                 />
+              )
+            })}
+          </div>
+        )}
+        {statusTargets.length > 0 && (
+          <div className="grp">
+            <div className="grp-h">Server</div>
+            {statusTargets.map((t) => {
+              const key = targetKey(t.networkId, t.target)
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  className={`chan${selected === key ? ' active' : ''}`}
+                  onClick={() => onSelect(key)}
+                  title={network.name}
+                >
+                  <span className="hash">*</span>
+                  <span className="name">{network.name}</span>
+                </button>
               )
             })}
           </div>

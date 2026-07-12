@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { useChat, targetKey } from '../store/chat-store.js'
+import type { WebSocketLike } from '../ws-client.js'
 import { Sidebar } from './Sidebar.js'
 
 // Seed store helper — merges state without replacing actions
@@ -71,5 +72,74 @@ describe('Sidebar', () => {
     render(<Sidebar />)
     const pythonBtn = screen.getByTitle('#python')
     expect(pythonBtn).toHaveClass('active')
+  })
+})
+
+// --- Task 8: channel-join affordance + Server (status) group ---
+
+function fakeSocket() {
+  const listeners: Record<string, ((ev: unknown) => void)[]> = {}
+  const sock: WebSocketLike = {
+    send: vi.fn(),
+    close: vi.fn(),
+    addEventListener: (t, cb) => ((listeners[t] ??= []).push(cb as any)),
+  }
+  const open = () => (listeners['open'] ?? []).forEach((cb) => cb({}))
+  return { sock, open }
+}
+
+function seedWithSocket() {
+  const { sock, open } = fakeSocket()
+  useChat.getState().init(() => sock)
+  open()
+  useChat.setState({
+    networks: {
+      1: { id: 1, name: 'Libera.Chat', host: 'irc.libera.chat', nick: 'dmf', connected: true },
+    },
+    targets: {
+      [targetKey(1, '#python')]: {
+        networkId: 1,
+        target: '#python',
+        kind: 'channel',
+        unread: 0,
+        topic: 'Python 3.13',
+      },
+    },
+    selected: targetKey(1, '#python'),
+    connection: 'open',
+  })
+  return sock
+}
+
+function renderSidebar() {
+  render(<Sidebar />)
+}
+
+describe('Sidebar — join affordance + server group', () => {
+  it('joins a channel from the sidebar + affordance', () => {
+    const sockSend = seedWithSocket().send as ReturnType<typeof vi.fn>
+    renderSidebar()
+    fireEvent.click(screen.getByRole('button', { name: /join a channel/i }))
+    const input = screen.getByRole('textbox', { name: /channel to join/i })
+    fireEvent.change(input, { target: { value: 'newchan' } })
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
+    expect(sockSend).toHaveBeenCalledWith(JSON.stringify({ type: 'chan:join', networkId: 1, channel: '#newchan' }))
+  })
+
+  it('renders a Server group for the * status target', () => {
+    seedWithSocket()
+    useChat.setState({
+      targets: {
+        ...useChat.getState().targets,
+        [targetKey(1, '*')]: {
+          networkId: 1,
+          target: '*',
+          kind: 'status',
+          unread: 0,
+        },
+      },
+    })
+    renderSidebar()
+    expect(screen.getByText(/server/i)).toBeInTheDocument()
   })
 })
