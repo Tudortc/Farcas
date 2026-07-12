@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const PROTOCOL_VERSION = 6
+export const PROTOCOL_VERSION = 7
 
 // --- Client -> Server ---
 export const helloSchema = z.object({ type: z.literal('hello'), clientVersion: z.number().int() })
@@ -25,7 +25,13 @@ export const netDisconnectSchema = z.object({ type: z.literal('net:disconnect'),
 export const netListReqSchema = z.object({ type: z.literal('net:list') })
 export const chanJoinSchema = z.object({ type: z.literal('chan:join'), networkId: z.number().int(), channel: z.string() })
 export const chanPartSchema = z.object({ type: z.literal('chan:part'), networkId: z.number().int(), channel: z.string() })
-export const chatSendSchema = z.object({ type: z.literal('chat:send'), networkId: z.number().int(), target: z.string(), text: z.string(), replyTo: z.string().optional() })
+export const chatSendSchema = z.object({ type: z.literal('chat:send'), networkId: z.number().int(), target: z.string(), text: z.string(), replyTo: z.string().optional(), action: z.boolean().optional() })
+export const userNickSchema = z.object({ type: z.literal('user:nick'), networkId: z.number().int(), nick: z.string() })
+export const chanTopicSetSchema = z.object({ type: z.literal('chan:topic:set'), networkId: z.number().int(), channel: z.string(), topic: z.string() })
+export const chanKickSchema = z.object({ type: z.literal('chan:kick'), networkId: z.number().int(), channel: z.string(), nick: z.string(), reason: z.string().optional() })
+export const chanModeSchema = z.object({ type: z.literal('chan:mode'), networkId: z.number().int(), target: z.string(), modes: z.string(), args: z.string().optional() })
+export const userWhoisSchema = z.object({ type: z.literal('user:whois'), networkId: z.number().int(), nick: z.string() })
+export const chanListSchema = z.object({ type: z.literal('chan:list'), networkId: z.number().int(), filter: z.string().optional() })
 
 export const typingSetSchema = z.object({ type: z.literal('typing:set'), networkId: z.number().int(), target: z.string(), state: z.enum(['active', 'done']) })
 export const reactAddSchema = z.object({ type: z.literal('react:add'), networkId: z.number().int(), target: z.string(), msgid: z.string(), emoji: z.string() })
@@ -48,6 +54,7 @@ export const clientMessageSchema = z.discriminatedUnion('type', [
   chanJoinSchema, chanPartSchema, chatSendSchema, chatSearchSchema, historyRequestSchema,
   readSetSchema, readListReqSchema,
   typingSetSchema, reactAddSchema, reactRemoveSchema,
+  userNickSchema, chanTopicSetSchema, chanKickSchema, chanModeSchema, userWhoisSchema, chanListSchema,
 ])
 export type ClientMessage = z.infer<typeof clientMessageSchema>
 
