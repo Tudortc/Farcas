@@ -5,3 +5,9 @@ beacon.db*
 bool.db*
 .DS_Store
 coverage/
+
+# Playwright e2e
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/

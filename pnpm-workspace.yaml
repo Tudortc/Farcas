@@ -6,3 +6,4 @@ allowBuilds:
   core-js: false
   electron: true
   esbuild: true
+verifyDepsBeforeRun: false
