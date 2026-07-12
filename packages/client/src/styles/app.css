@@ -1588,3 +1588,29 @@ a.link:hover {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---- Theme swatch cards ---- */
+.theme-swatch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: border-color 0.12s, background 0.12s;
+}
+.theme-swatch:hover { border-color: var(--line-2); }
+.theme-swatch.on { border-color: var(--focus); box-shadow: 0 0 0 1px var(--focus); }
+.theme-swatch:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.theme-swatch .chips { display: flex; height: 18px; border-radius: 3px; overflow: hidden; }
+.theme-swatch .chip { flex: 1; }
+.theme-swatch-label {
+  font-family: var(--mono);
+  font-size: var(--meta-fs);
+  color: var(--ink-1);
+}
+.theme-swatch.on .theme-swatch-label { color: var(--ink-0); }
