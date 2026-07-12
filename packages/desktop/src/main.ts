@@ -14,13 +14,20 @@
  *  - Minimize-to-tray: closing the window hides it; Quit from the tray menu
  *    (or Cmd-Q / app.quit()) actually exits
  *  - System tray: Show bool / Quit context menu, click-to-toggle
+ *
+ * Features added in Task 3:
+ *  - Native mention notifications via bool.notify(payload) IPC
+ *  - Unread badge via bool.setBadge(count) IPC (app.badgeCount + tray tooltip)
+ *  - Launch-at-login via bool.setAutostart(enabled) IPC (persisted preference)
  */
-import { app, BrowserWindow, ipcMain, shell, screen, Tray } from 'electron'
+import { app, BrowserWindow, ipcMain, shell, screen, Tray, Notification } from 'electron'
 import { join } from 'node:path'
 import { isValidServerUrl, normalizeServerUrl } from './url'
 import { loadConfig, saveConfig } from './config'
 import { sanitizeBounds, loadWindowState, saveWindowState } from './window-state'
-import { createTray } from './tray'
+import { createTray, setUnread } from './tray'
+import { buildNotification, shouldNotify } from './notify'
+import { loginItemSettings, readAutostart, writeAutostart } from './autostart'
 
 const CONFIG_DIR = app.getPath('userData')
 const ICON_PATH = join(__dirname, '..', 'assets', 'tray.png')
@@ -209,6 +216,58 @@ ipcMain.handle('bool:getServerUrl', (): string | null => {
   return cfg.serverUrl
 })
 
+/**
+ * Show a native OS notification for a mention or DM.
+ * Gated by shouldNotify — skipped when the window is focused.
+ * On click, the window is restored and focused.
+ */
+ipcMain.on('bool:notify', (_event, payload: unknown) => {
+  const safe = payload as { title: string; body: string; tag?: string; data?: unknown }
+  if (!mainWindow) return
+  if (!shouldNotify({ focused: mainWindow.isFocused() })) return
+
+  const { title, body } = buildNotification({
+    title: typeof safe.title === 'string' ? safe.title : '',
+    body: typeof safe.body === 'string' ? safe.body : '',
+    tag: typeof safe.tag === 'string' ? safe.tag : undefined,
+  })
+
+  if (!Notification.isSupported()) return
+
+  const notification = new Notification({ title, body, silent: false })
+  notification.on('click', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      if (!mainWindow.isVisible()) mainWindow.show()
+      mainWindow.focus()
+    }
+  })
+  notification.show()
+})
+
+/**
+ * Set the unread badge count.
+ * Updates app.badgeCount (macOS/Linux) and the tray tooltip.
+ */
+ipcMain.on('bool:setBadge', (_event, count: unknown) => {
+  const n = typeof count === 'number' && Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0
+  // app.badgeCount is supported on macOS and some Linux environments
+  app.badgeCount = n
+  if (tray) {
+    setUnread(tray, n)
+  }
+})
+
+/**
+ * Enable or disable launch-at-login.
+ * Persists the preference and applies it via app.setLoginItemSettings.
+ */
+ipcMain.on('bool:setAutostart', (_event, enabled: unknown) => {
+  const value = typeof enabled === 'boolean' ? enabled : false
+  writeAutostart(CONFIG_DIR, value)
+  app.setLoginItemSettings(loginItemSettings(value))
+})
+
 ipcMain.handle(
   'bool:setServerUrl',
   (_event, raw: unknown): { ok: true } | { ok: false; error: string } => {
@@ -240,6 +299,10 @@ ipcMain.handle(
 // App lifecycle
 // ---------------------------------------------------------------------------
 app.whenReady().then(() => {
+  // Apply persisted launch-at-login preference on every startup
+  const autostartEnabled = readAutostart(CONFIG_DIR)
+  app.setLoginItemSettings(loginItemSettings(autostartEnabled))
+
   const cfg = loadConfig(CONFIG_DIR)
   const url = cfg.serverUrl
 
