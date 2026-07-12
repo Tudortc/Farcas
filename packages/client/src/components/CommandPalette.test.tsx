@@ -146,6 +146,18 @@ describe('CommandPalette', () => {
     expect(handler).toHaveBeenCalled()
     document.removeEventListener('bool:open-search', handler)
   })
+
+  it('shows a Join channel action', () => {
+    seedStore()
+    render(<CommandPalette open onClose={() => {}} />)
+    expect(screen.getByText(/join channel/i)).toBeInTheDocument()
+  })
+
+  it('shows a Sign out action', () => {
+    seedStore()
+    render(<CommandPalette open onClose={() => {}} />)
+    expect(screen.getByText(/sign out/i)).toBeInTheDocument()
+  })
 })
 
 describe('usePaletteShortcut', () => {

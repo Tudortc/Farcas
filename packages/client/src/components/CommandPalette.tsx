@@ -10,6 +10,8 @@ import {
 import { useChat } from '../store/chat-store.js'
 import { useAppearance, type ThemeId } from '../theme.js'
 import { useFocusRestore } from './Dialog.js'
+import { signOut } from '../auth-client.js'
+import { normalizeChannel } from '../commands.js'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -285,6 +287,28 @@ export function CommandPalette({ open, onClose, onOpenSearch }: CommandPalettePr
 
             {/* Actions */}
             <CommandGroup heading="Actions & Commands" className="cp-group">
+              {/* Join channel */}
+              {Object.values(networks).length > 0 && (
+                <CommandItem
+                  value="join-channel"
+                  onSelect={() => {
+                    const net = Object.values(networks)[0]
+                    if (!net) return
+                    const chan = window.prompt('Join channel (e.g. #general):')?.trim()
+                    if (chan) useChat.getState().join(net.id, normalizeChannel(chan))
+                    onClose()
+                  }}
+                  className="cp-item"
+                  keywords={['join', 'channel', 'add']}
+                >
+                  <span className="cp-icon cp-icon-act" aria-hidden><IconConnect /></span>
+                  <span className="cp-main">
+                    <span className="cp-name">Join channel…</span>
+                    <span className="cp-sub">Join a channel on the active network</span>
+                  </span>
+                </CommandItem>
+              )}
+
               {/* Search */}
               <CommandItem
                 value="search-messages"
@@ -341,6 +365,20 @@ export function CommandPalette({ open, onClose, onOpenSearch }: CommandPalettePr
                   </span>
                 </CommandItem>
               ))}
+
+              {/* Sign out */}
+              <CommandItem
+                value="sign-out"
+                onSelect={() => { void signOut(); onClose() }}
+                className="cp-item"
+                keywords={['sign out', 'logout', 'log out', 'account']}
+              >
+                <span className="cp-icon cp-icon-act" aria-hidden><IconConnect /></span>
+                <span className="cp-main">
+                  <span className="cp-name">Sign out</span>
+                  <span className="cp-sub">End your session</span>
+                </span>
+              </CommandItem>
             </CommandGroup>
           </CommandList>
         </CommandRoot>
