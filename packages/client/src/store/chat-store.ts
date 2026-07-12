@@ -55,6 +55,7 @@ function mergeMessages(existing: StoredMsg[], incoming: StoredMsg[]): StoredMsg[
 }
 
 function inferKind(target: string): TargetKind {
+  if (target === '*') return 'status'
   return target.startsWith('#') || target.startsWith('&') ? 'channel' : 'pm'
 }
 
@@ -370,6 +371,52 @@ function createActions(
 
     part(networkId: number, channel: string) {
       _send?.({ type: 'chan:part', networkId, channel })
+    },
+
+    sendAction(text: string) {
+      const { selected } = get()
+      if (!selected) return
+      const colonIdx = selected.indexOf(':')
+      if (colonIdx === -1) return
+      const networkId = Number(selected.slice(0, colonIdx))
+      const target = selected.slice(colonIdx + 1)
+      _send?.({ type: 'chat:send', networkId, target, text, action: true })
+    },
+
+    setNick(networkId: number, nick: string) {
+      _send?.({ type: 'user:nick', networkId, nick })
+    },
+
+    setTopic(networkId: number, channel: string, topic: string) {
+      _send?.({ type: 'chan:topic:set', networkId, channel, topic })
+    },
+
+    whois(networkId: number, nick: string) {
+      _send?.({ type: 'user:whois', networkId, nick })
+    },
+
+    kick(networkId: number, channel: string, nick: string, reason?: string) {
+      _send?.({ type: 'chan:kick', networkId, channel, nick, ...(reason ? { reason } : {}) })
+    },
+
+    setMode(networkId: number, target: string, modes: string, args?: string) {
+      _send?.({ type: 'chan:mode', networkId, target, modes, ...(args ? { args } : {}) })
+    },
+
+    listChannels(networkId: number, filter?: string) {
+      _send?.({ type: 'chan:list', networkId, ...(filter ? { filter } : {}) })
+    },
+
+    messageUser(networkId: number, nick: string, text: string) {
+      const key = targetKey(networkId, nick)
+      set((state) => ({
+        selected: key,
+        targets: {
+          ...state.targets,
+          [key]: state.targets[key] ?? { networkId, target: nick, kind: 'pm', unread: 0 },
+        },
+      }))
+      _send?.({ type: 'chat:send', networkId, target: nick, text })
     },
 
     select(key: string) {

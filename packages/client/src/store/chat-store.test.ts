@@ -235,4 +235,52 @@ describe('chat store', () => {
     const previews = useChat.getState().previews
     expect(previews['https://broken.com/']).toBeUndefined()
   })
+
+  // --- status target kind ---
+  it('classifies the * target as a status buffer', () => {
+    const { sock, emitServer, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    emitServer({ type: 'chat:msg', networkId: 1, target: '*', from: '*', kind: 'notice', text: 'MOTD line', self: false, time: 1 })
+    const key = targetKey(1, '*')
+    expect(useChat.getState().targets[key]!.kind).toBe('status')
+  })
+
+  it('sendAction posts chat:send with action:true for the selected target', () => {
+    const { sock, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    useChat.getState().select(targetKey(2, '#dev'))
+    useChat.getState().sendAction('waves')
+    expect(sock.send).toHaveBeenCalledWith(JSON.stringify({ type: 'chat:send', networkId: 2, target: '#dev', text: 'waves', action: true }))
+  })
+
+  it('command actions post their messages', () => {
+    const { sock, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    useChat.getState().setNick(1, 'neo')
+    useChat.getState().setTopic(1, '#x', 't')
+    useChat.getState().whois(1, 'bob')
+    useChat.getState().kick(1, '#x', 'bob', 'spam')
+    useChat.getState().setMode(1, '#x', '+o', 'bob')
+    useChat.getState().listChannels(1, '*rust*')
+    expect(sock.send).toHaveBeenCalledWith(JSON.stringify({ type: 'user:nick', networkId: 1, nick: 'neo' }))
+    expect(sock.send).toHaveBeenCalledWith(JSON.stringify({ type: 'chan:topic:set', networkId: 1, channel: '#x', topic: 't' }))
+    expect(sock.send).toHaveBeenCalledWith(JSON.stringify({ type: 'user:whois', networkId: 1, nick: 'bob' }))
+    expect(sock.send).toHaveBeenCalledWith(JSON.stringify({ type: 'chan:kick', networkId: 1, channel: '#x', nick: 'bob', reason: 'spam' }))
+    expect(sock.send).toHaveBeenCalledWith(JSON.stringify({ type: 'chan:mode', networkId: 1, target: '#x', modes: '+o', args: 'bob' }))
+    expect(sock.send).toHaveBeenCalledWith(JSON.stringify({ type: 'chan:list', networkId: 1, filter: '*rust*' }))
+  })
+
+  it('messageUser opens/selects a PM and sends', () => {
+    const { sock, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    useChat.getState().messageUser(1, 'bob', 'hey')
+    const key = targetKey(1, 'bob')
+    expect(useChat.getState().targets[key]!.kind).toBe('pm')
+    expect(useChat.getState().selected).toBe(key)
+    expect(sock.send).toHaveBeenCalledWith(JSON.stringify({ type: 'chat:send', networkId: 1, target: 'bob', text: 'hey' }))
+  })
 })

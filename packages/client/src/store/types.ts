@@ -12,7 +12,7 @@ export interface PreviewResult {
 
 export type ConnectionState = 'connecting' | 'open' | 'closed'
 
-export type TargetKind = 'channel' | 'pm'
+export type TargetKind = 'channel' | 'pm' | 'status'
 
 export interface NameEntry {
   nick: string
@@ -92,6 +92,15 @@ export interface ChatActions {
   setReplyTarget(msgid: string | null): void
   /** Upload a file to /api/upload and return the media URL, or null on failure. */
   uploadFile(file: File): Promise<string | null>
+  sendAction(text: string): void
+  setNick(networkId: number, nick: string): void
+  setTopic(networkId: number, channel: string, topic: string): void
+  whois(networkId: number, nick: string): void
+  kick(networkId: number, channel: string, nick: string, reason?: string): void
+  setMode(networkId: number, target: string, modes: string, args?: string): void
+  listChannels(networkId: number, filter?: string): void
+  /** Create/select a PM with `nick` on `networkId` and send `text`. */
+  messageUser(networkId: number, nick: string, text: string): void
 }
 
 export type ChatStore = ChatState & ChatActions
