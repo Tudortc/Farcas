@@ -22,7 +22,7 @@
  */
 import { app, BrowserWindow, ipcMain, shell, screen, Tray, Notification } from 'electron'
 import { join } from 'node:path'
-import { isValidServerUrl, normalizeServerUrl } from './url'
+import { isExternalHttpUrl, isValidServerUrl, normalizeServerUrl } from './url'
 import { loadConfig, saveConfig } from './config'
 import { sanitizeBounds, loadWindowState, saveWindowState } from './window-state'
 import { createTray, setUnread } from './tray'
@@ -54,6 +54,19 @@ app.on('second-instance', () => {
     mainWindow.focus()
   }
 })
+
+// ---------------------------------------------------------------------------
+// Security helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Opens a URL in the default system browser ONLY for http/https schemes.
+ * All other schemes (file://, javascript:, custom protocols) are silently dropped
+ * to prevent OS-level scheme handler escalation.
+ */
+function openExternalSafe(u: string): void {
+  if (isExternalHttpUrl(u)) void shell.openExternal(u).catch(() => undefined)
+}
 
 // ---------------------------------------------------------------------------
 // Debounce helper
@@ -119,7 +132,7 @@ function createWindow(url: string): BrowserWindow {
       const target = new URL(navigationUrl)
       if (target.origin !== serverOrigin) {
         event.preventDefault()
-        shell.openExternal(navigationUrl).catch(() => undefined)
+        openExternalSafe(navigationUrl)
       }
     } catch {
       event.preventDefault()
@@ -127,7 +140,7 @@ function createWindow(url: string): BrowserWindow {
   })
 
   win.webContents.setWindowOpenHandler(({ url: openUrl }) => {
-    shell.openExternal(openUrl).catch(() => undefined)
+    openExternalSafe(openUrl)
     return { action: 'deny' }
   })
 
@@ -173,7 +186,7 @@ function createSetupWindow(): BrowserWindow {
   })
 
   win.webContents.setWindowOpenHandler(({ url: openUrl }) => {
-    shell.openExternal(openUrl).catch(() => undefined)
+    openExternalSafe(openUrl)
     return { action: 'deny' }
   })
 
@@ -284,10 +297,8 @@ ipcMain.handle(
     saveConfig(CONFIG_DIR, { serverUrl: normalised })
 
     if (mainWindow) {
-      // Allow the close to actually destroy the window when replacing it
-      appIsQuitting = true
-      mainWindow.close()
-      appIsQuitting = false
+      // destroy() bypasses the minimize-to-tray close handler cleanly
+      mainWindow.destroy()
     }
     mainWindow = createWindow(normalised)
 

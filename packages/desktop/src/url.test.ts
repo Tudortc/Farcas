@@ -1,5 +1,39 @@
 import { describe, it, expect } from 'vitest'
-import { isValidServerUrl, normalizeServerUrl } from './url.js'
+import { isExternalHttpUrl, isValidServerUrl, normalizeServerUrl } from './url.js'
+
+describe('isExternalHttpUrl', () => {
+  it('accepts https URL', () => {
+    expect(isExternalHttpUrl('https://x.com')).toBe(true)
+  })
+
+  it('accepts http URL', () => {
+    expect(isExternalHttpUrl('http://x')).toBe(true)
+  })
+
+  it('rejects file scheme', () => {
+    expect(isExternalHttpUrl('file:///etc/passwd')).toBe(false)
+  })
+
+  it('rejects javascript scheme', () => {
+    expect(isExternalHttpUrl('javascript:alert(1)')).toBe(false)
+  })
+
+  it('rejects data URI', () => {
+    expect(isExternalHttpUrl('data:text/html,<h1>x</h1>')).toBe(false)
+  })
+
+  it('rejects smb scheme', () => {
+    expect(isExternalHttpUrl('smb://x')).toBe(false)
+  })
+
+  it('rejects empty string', () => {
+    expect(isExternalHttpUrl('')).toBe(false)
+  })
+
+  it('rejects garbage input', () => {
+    expect(isExternalHttpUrl('not a url !!!')).toBe(false)
+  })
+})
 
 describe('isValidServerUrl', () => {
   it('accepts https URL with host', () => {

@@ -24,7 +24,7 @@ Electron wrapper that loads the bool web client from a self-hosted server and ad
    ```
 
    Electron loads and shows a first-run setup screen.
-   Enter your bool server URL (e.g. `https://bool.example.com`) and press **Save**.
+   Enter your bool server URL (e.g. `https://bool.example.com`) and press **Connect**.
    The app navigates to your server and from then on launches directly to it.
 
 > **Note:** The dev command runs `electron ./dist/main.js` directly — no hot-reload.
@@ -48,9 +48,7 @@ Icon files expected by the build:
 
 | Platform | Path |
 |----------|------|
-| macOS    | `packages/desktop/assets/icon.icns` |
-| Windows  | `packages/desktop/assets/icon.ico`  |
-| Linux    | `packages/desktop/assets/icon.png`  |
+| All      | `packages/desktop/assets/icon.png` (512x512; electron-builder derives icns/ico automatically) |
 
 > **Note:** Producing a real distributable (especially a code-signed `.dmg` or `.exe`) requires a desktop OS with the target platform's toolchain.  A CI/CD machine or a local macOS / Windows machine is needed for the final packaging step.  The `pnpm --filter @bool/desktop dev` workflow works on any desktop OS and does not require signing.
 

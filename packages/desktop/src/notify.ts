@@ -43,6 +43,21 @@ function truncate(str: string, max: number): string {
   return str.slice(0, max) + '...'
 }
 
+/**
+ * Strip ASCII control characters (0x00-0x1F, 0x7F) and collapse runs of
+ * whitespace/newlines into a single space. Cheap anti-spoof for notification
+ * title/body text sourced from untrusted server content.
+ */
+function sanitizeText(str: string): string {
+  return str
+    // Remove control chars (keep printable ASCII + Unicode)
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\x00-\x1F\x7F]/g, ' ')
+    // Collapse multiple whitespace/newline runs into a single space
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -51,15 +66,18 @@ function truncate(str: string, max: number): string {
  * Sanitises and truncates the title and body of a mention/DM notification
  * payload for display as a native OS notification.
  *
- * - Title: clamped to 80 chars; defaults to 'bool' if absent/empty.
- * - Body: clamped to 200 chars; defaults to '' if absent/empty.
+ * - Title: control chars stripped, clamped to 80 chars; defaults to 'bool' if absent/empty.
+ * - Body: trimmed before truthy check; control chars stripped, clamped to 200 chars; defaults to '' if absent/whitespace-only.
  */
 export function buildNotification(payload: NotificationPayload): NotificationResult {
   const rawTitle = typeof payload.title === 'string' ? payload.title : ''
   const rawBody = typeof payload.body === 'string' ? payload.body : ''
 
-  const title = rawTitle.trim() ? truncate(rawTitle, MAX_TITLE) : DEFAULT_TITLE
-  const body = rawBody ? truncate(rawBody, MAX_BODY) : ''
+  const cleanTitle = sanitizeText(rawTitle)
+  const cleanBody = sanitizeText(rawBody)
+
+  const title = cleanTitle ? truncate(cleanTitle, MAX_TITLE) : DEFAULT_TITLE
+  const body = cleanBody ? truncate(cleanBody, MAX_BODY) : ''
 
   return { title, body }
 }

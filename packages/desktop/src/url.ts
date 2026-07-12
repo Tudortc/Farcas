@@ -3,6 +3,20 @@
  */
 
 /**
+ * Returns true if `raw` is a valid external http/https URL (no file://, javascript:, etc.).
+ * Used to guard shell.openExternal calls.
+ */
+export function isExternalHttpUrl(raw: string): boolean {
+  if (!raw) return false
+  try {
+    const url = new URL(raw)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+/**
  * Returns true if `raw` is a valid http/https URL with a non-empty host.
  * Rejects empty strings, non-http/https schemes, and unparseable input.
  */

@@ -45,6 +45,23 @@ describe('buildNotification', () => {
     expect(result.body).toBe('')
   })
 
+  it('uses empty string for body when body is whitespace-only', () => {
+    const result = buildNotification({ title: 'Test', body: '   \t\n  ' })
+    expect(result.body).toBe('')
+  })
+
+  it('strips control characters from title and body', () => {
+    const result = buildNotification({ title: 'Ali\x01ce', body: 'Hel\x0Alo\x0D' })
+    expect(result.title).not.toContain('\x01')
+    expect(result.body).not.toContain('\x0A')
+    expect(result.body).not.toContain('\x0D')
+  })
+
+  it('collapses newlines in body to spaces', () => {
+    const result = buildNotification({ title: 'T', body: 'line1\nline2\nline3' })
+    expect(result.body).toBe('line1 line2 line3')
+  })
+
   it('handles tag and data fields without error', () => {
     const result = buildNotification({
       title: 'Mention',
