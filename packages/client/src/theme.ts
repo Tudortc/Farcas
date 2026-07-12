@@ -1,6 +1,7 @@
 import { create } from 'zustand'
+import type { ThemeId } from './theme-catalog.js'
 
-export type ThemeId = 'a' | 'b' | 'c' | 'shimmer'
+export type { ThemeId }
 export type Density = 'compact' | 'comfortable'
 
 export function applyAppearance(theme: ThemeId, density: Density): void {
