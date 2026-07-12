@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'unsafe-inline'" />
+  <title>bool — Connect to your server</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f0f10;
+      color: #e8e8ea;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      -webkit-app-region: drag;
+    }
+
+    .card {
+      background: #1a1a1f;
+      border: 1px solid #2a2a30;
+      border-radius: 12px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 440px;
+      -webkit-app-region: no-drag;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+      color: #ffffff;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 32px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #aaa;
+      margin-bottom: 8px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 14px;
+      background: #0f0f10;
+      border: 1px solid #2a2a30;
+      border-radius: 8px;
+      color: #e8e8ea;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="text"]:focus {
+      border-color: #5b5bef;
+    }
+
+    input[type="text"]::placeholder { color: #444; }
+
+    button {
+      margin-top: 16px;
+      width: 100%;
+      padding: 11px;
+      background: #5b5bef;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    button:hover:not(:disabled) { background: #4a4ae0; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #error {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #f87171;
+      min-height: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">bool</div>
+    <p class="subtitle">Enter your bool server address to get started.</p>
+
+    <label for="serverUrl">Server URL</label>
+    <input
+      type="text"
+      id="serverUrl"
+      placeholder="https://bool.example.com"
+      autocomplete="off"
+      spellcheck="false"
+    />
+
+    <button id="connectBtn">Connect</button>
+    <p id="error" aria-live="polite"></p>
+  </div>
+
+  <script>
+    const input = document.getElementById('serverUrl')
+    const btn   = document.getElementById('connectBtn')
+    const err   = document.getElementById('error')
+
+    async function connect() {
+      const url = input.value.trim()
+      if (!url) {
+        err.textContent = 'Please enter a server URL.'
+        return
+      }
+
+      btn.disabled = true
+      err.textContent = ''
+
+      try {
+        const result = await window.bool.setServerUrl(url)
+        if (!result.ok) {
+          err.textContent = result.error
+        }
+        // On success, main.ts closes this window and opens the server URL.
+      } catch (e) {
+        err.textContent = 'Unexpected error. Please try again.'
+        console.error(e)
+      } finally {
+        btn.disabled = false
+      }
+    }
+
+    btn.addEventListener('click', connect)
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') connect()
+    })
+  </script>
+</body>
+</html>

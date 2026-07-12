@@ -4,4 +4,5 @@ allowBuilds:
   '@prisma/client': false
   better-sqlite3: true
   core-js: false
+  electron: true
   esbuild: true
