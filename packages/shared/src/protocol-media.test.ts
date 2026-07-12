@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { parseServerMessage, PROTOCOL_VERSION } from './index.js'
 
 describe('media protocol v6', () => {
-  it('is version 6', () => expect(PROTOCOL_VERSION).toBe(6))
+  it('is version 7', () => expect(PROTOCOL_VERSION).toBe(7))
 
   it('parses preview:result with ok:true and all optional fields', () => {
     const m = parseServerMessage(

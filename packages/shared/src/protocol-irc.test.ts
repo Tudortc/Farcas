@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { parseClientMessage, parseServerMessage, PROTOCOL_VERSION } from './index.js'
 
 describe('irc protocol messages', () => {
-  it('bumped PROTOCOL_VERSION to 6', () => {
-    expect(PROTOCOL_VERSION).toBe(6)
+  it('bumped PROTOCOL_VERSION to 7', () => {
+    expect(PROTOCOL_VERSION).toBe(7)
   })
 
   it('parses net:add', () => {
