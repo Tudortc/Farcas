@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const PROTOCOL_VERSION = 5
+export const PROTOCOL_VERSION = 6
 
 // --- Client -> Server ---
 export const helloSchema = z.object({ type: z.literal('hello'), clientVersion: z.number().int() })
@@ -133,6 +133,16 @@ export const readListSchema = z.object({
 export const typingUpdateSchema = z.object({ type: z.literal('typing:update'), networkId: z.number().int(), target: z.string(), nick: z.string(), state: z.enum(['active', 'done']) })
 export const reactUpdateSchema = z.object({ type: z.literal('react:update'), networkId: z.number().int(), target: z.string(), msgid: z.string(), emoji: z.string(), nick: z.string(), action: z.enum(['add', 'remove']) })
 
+export const previewResultSchema = z.object({
+  type: z.literal('preview:result'),
+  url: z.string(),
+  ok: z.boolean(),
+  title: z.string().optional(),
+  description: z.string().optional(),
+  image: z.string().optional(),
+  siteName: z.string().optional(),
+})
+
 export const serverMessageSchema = z.discriminatedUnion('type', [
   welcomeSchema, pongSchema, errorSchema,
   netStateSchema, netListSchema, netErrorSchema,
@@ -141,6 +151,7 @@ export const serverMessageSchema = z.discriminatedUnion('type', [
   searchResultsSchema, historyBatchSchema,
   readUpdateSchema, readListSchema,
   typingUpdateSchema, reactUpdateSchema,
+  previewResultSchema,
 ])
 export type ServerMessage = z.infer<typeof serverMessageSchema>
 

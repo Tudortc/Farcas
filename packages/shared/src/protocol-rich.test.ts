@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { parseClientMessage, parseServerMessage, PROTOCOL_VERSION } from './index.js'
 
 describe('rich protocol v5', () => {
-  it('is version 5', () => expect(PROTOCOL_VERSION).toBe(5))
+  it('is version 6', () => expect(PROTOCOL_VERSION).toBe(6))
   it('parses typing/react client messages', () => {
     expect(parseClientMessage(JSON.stringify({ type: 'typing:set', networkId: 1, target: '#x', state: 'active' })).type).toBe('typing:set')
     expect(parseClientMessage(JSON.stringify({ type: 'react:add', networkId: 1, target: '#x', msgid: 'm1', emoji: '👍' })).type).toBe('react:add')
