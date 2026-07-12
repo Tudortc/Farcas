@@ -16,11 +16,32 @@ beforeEach(() => {
 })
 
 describe('AppearanceMenu', () => {
-  it('renders theme and density controls', () => {
+  it('renders bool and Classic group headings', () => {
     render(<AppearanceMenu />)
-    expect(screen.getByText(/comfortable/i)).toBeInTheDocument()
-    expect(screen.getByText(/compact/i)).toBeInTheDocument()
-    expect(screen.getByText(/shimmer/i, { exact: false })).toBeInTheDocument()
+    expect(screen.getByText(/^bool$/i)).toBeInTheDocument()
+    expect(screen.getByText(/^classic$/i)).toBeInTheDocument()
+  })
+
+  it('renders a card for each catalog theme', () => {
+    render(<AppearanceMenu />)
+    expect(screen.getByRole('radio', { name: /dracula/i })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /solarized light/i })).toBeInTheDocument()
+  })
+
+  it('clicking a theme card sets the theme and data-theme', () => {
+    render(<AppearanceMenu />)
+    fireEvent.click(screen.getByRole('radio', { name: /gruvbox dark/i }))
+    expect(useAppearance.getState().theme).toBe('gruvbox-dark')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('gruvbox-dark')
+  })
+
+  it('clicking the default "Terminal" theme clears data-theme', () => {
+    useAppearance.setState({ theme: 'dracula', density: 'compact' })
+    document.documentElement.setAttribute('data-theme', 'dracula')
+    render(<AppearanceMenu />)
+    fireEvent.click(screen.getByRole('radio', { name: /^terminal$/i }))
+    expect(useAppearance.getState().theme).toBe('a')
+    expect(document.documentElement.hasAttribute('data-theme')).toBe(false)
   })
 
   it('clicking Comfortable sets density to comfortable and updates data-density', () => {
@@ -37,36 +58,6 @@ describe('AppearanceMenu', () => {
     fireEvent.click(screen.getByText(/^compact$/i))
     expect(useAppearance.getState().density).toBe('compact')
     expect(document.documentElement.getAttribute('data-density')).toBe('compact')
-  })
-
-  it('clicking Shimmer sets theme to shimmer and updates data-theme', () => {
-    render(<AppearanceMenu />)
-    fireEvent.click(screen.getByText(/shimmer/i))
-    expect(useAppearance.getState().theme).toBe('shimmer')
-    expect(document.documentElement.getAttribute('data-theme')).toBe('shimmer')
-  })
-
-  it('clicking theme A removes data-theme attribute (default theme)', () => {
-    useAppearance.setState({ theme: 'shimmer', density: 'compact' })
-    document.documentElement.setAttribute('data-theme', 'shimmer')
-    render(<AppearanceMenu />)
-    fireEvent.click(screen.getByText(/^A$/i))
-    expect(useAppearance.getState().theme).toBe('a')
-    expect(document.documentElement.hasAttribute('data-theme')).toBe(false)
-  })
-
-  it('clicking theme B sets data-theme to b', () => {
-    render(<AppearanceMenu />)
-    fireEvent.click(screen.getByText(/^B$/i))
-    expect(useAppearance.getState().theme).toBe('b')
-    expect(document.documentElement.getAttribute('data-theme')).toBe('b')
-  })
-
-  it('clicking theme C sets data-theme to c', () => {
-    render(<AppearanceMenu />)
-    fireEvent.click(screen.getByText(/^C$/i))
-    expect(useAppearance.getState().theme).toBe('c')
-    expect(document.documentElement.getAttribute('data-theme')).toBe('c')
   })
 
   it('renders a sign-out button that calls signOut', async () => {

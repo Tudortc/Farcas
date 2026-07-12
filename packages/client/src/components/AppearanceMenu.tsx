@@ -1,18 +1,18 @@
 import { useAppearance } from '../theme.js'
-import type { ThemeId, Density } from '../theme.js'
+import type { Density } from '../theme.js'
+import { THEME_CATALOG, type ThemeGroup } from '../theme-catalog.js'
+import { ThemeSwatch } from './ThemeSwatch.js'
 import { NotificationsToggle } from './NotificationsToggle.js'
 import { signOut } from '../auth-client.js'
-
-const THEMES: { id: ThemeId; label: string }[] = [
-  { id: 'a', label: 'A' },
-  { id: 'b', label: 'B' },
-  { id: 'c', label: 'C' },
-  { id: 'shimmer', label: 'Shimmer' },
-]
 
 const DENSITIES: { id: Density; label: string }[] = [
   { id: 'compact', label: 'Compact' },
   { id: 'comfortable', label: 'Comfortable' },
+]
+
+const GROUPS: { id: ThemeGroup; label: string }[] = [
+  { id: 'bool', label: 'bool' },
+  { id: 'classic', label: 'Classic' },
 ]
 
 export function AppearanceMenu() {
@@ -25,20 +25,16 @@ export function AppearanceMenu() {
     <div className="appearance-menu" aria-label="Appearance settings">
       <div className="appearance-section">
         <div className="appearance-label">Theme</div>
-        <div className="appearance-row" role="group" aria-label="Select theme">
-          {THEMES.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              className={`appearance-btn${theme === t.id ? ' on' : ''}`}
-              onClick={() => setTheme(t.id)}
-              aria-pressed={theme === t.id}
-              title={`Theme ${t.label}`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+        {GROUPS.map((g) => (
+          <div key={g.id} className="theme-group">
+            <div className="theme-group-label">{g.label}</div>
+            <div className="theme-grid" role="radiogroup" aria-label={`${g.label} themes`}>
+              {THEME_CATALOG.filter((t) => t.group === g.id).map((t) => (
+                <ThemeSwatch key={t.id} theme={t} selected={theme === t.id} onSelect={setTheme} />
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="appearance-section">
