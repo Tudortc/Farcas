@@ -53,6 +53,15 @@ export function ensureAppSchema(db: Database.Database): void {
       created_at INTEGER NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_push_subs_user ON push_subs(user_id);
+    CREATE TABLE IF NOT EXISTS media (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      filename TEXT NOT NULL,
+      mime TEXT NOT NULL,
+      size INTEGER NOT NULL,
+      created_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_media_user ON media(user_id);
   `)
 
   // Idempotent migration: add reply_to column to existing databases.
