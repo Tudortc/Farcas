@@ -295,3 +295,83 @@
   --glow-strong:color-mix(in srgb, var(--green) 40%, transparent);
   --focus:var(--green);
 }
+
+/* ---- A Light (completed from design/direction-a light block) ---- */
+[data-theme="a-light"] {
+  --bg-0:#f4f6f5; --bg-1:#eaeeec; --bg-2:#ffffff; --bg-3:#f2f5f4; --bg-4:#e6ece9;
+  --line:#dde4e1; --line-2:#cdd6d2;
+  --ink-0:#141a18; --ink-1:#41504a; --ink-2:#6d7d76; --ink-3:#a3b0aa;
+  --green:#0f9d58; --green-dim:#a7e0c2; --amber:#c47f00; --amber-dim:#f0dcb0;
+  --cyan:#0a8f9c; --red:#d1453b; --violet:#7c5cbf; --blue:#2b6fd6;
+  --m-red:#d1453b; --m-green:#0f9d58; --m-yellow:#b07500; --m-blue:#2b6fd6;
+  --m-magenta:#9a4fc4; --m-cyan:#0a8f9c; --m-orange:#c4611a;
+  --on-accent:#ffffff;
+  --glow:color-mix(in srgb, var(--green) 12%, transparent);
+  --glow-strong:color-mix(in srgb, var(--green) 30%, transparent);
+  --focus:var(--green);
+  --scrim:rgba(20,26,24,0.35); --shadow-overlay:rgba(20,26,24,0.25);
+}
+
+/* ---- B Light (completed from design/direction-b light block) ---- */
+[data-theme="b-light"] {
+  --bg-0:#efe7da; --bg-1:#f5efe4; --bg-2:#faf5ec; --bg-3:#fffdf7; --bg-4:#f0e4cf;
+  --line:#e6dccb; --line-2:#d8cbb4;
+  --ink-0:#2b2318; --ink-1:#5e5344; --ink-2:#8b7d69; --ink-3:#b3a68f;
+  --green:#6f8f4e; --green-dim:#cfe0b8; --amber:#c9793a; --amber-dim:#a55e22;
+  --cyan:#4f8fb0; --red:#c0564f; --violet:#9a5fa8; --blue:#4f8fb0;
+  --m-red:#c0564f; --m-green:#6f8f4e; --m-yellow:#b07d2a; --m-blue:#4f8fb0;
+  --m-magenta:#9a5fa8; --m-cyan:#4f8fb0; --m-orange:#c9793a;
+  --on-accent:#fffdf7;
+  --glow:color-mix(in srgb, var(--amber) 12%, transparent);
+  --glow-strong:color-mix(in srgb, var(--amber) 30%, transparent);
+  --focus:var(--amber);
+  --scrim:rgba(43,35,24,0.3); --shadow-overlay:rgba(43,35,24,0.2);
+}
+
+/* ---- C Light (completed from design/direction-c light block) ---- */
+[data-theme="c-light"] {
+  --bg-0:#eef0fb; --bg-1:#f4f5fd; --bg-2:#ffffff; --bg-3:#f2f2fc; --bg-4:#e6e5fa;
+  --line:#e3e3f4; --line-2:#d2d1ee;
+  --ink-0:#16142e; --ink-1:#464266; --ink-2:#75729a; --ink-3:#a5a2c4;
+  --green:#4b9e2f; --green-dim:#6a5af0; --amber:#d98a00; --amber-dim:#e0574d;
+  --cyan:#1b9e97; --red:#e0574d; --violet:#6a5af0; --blue:#2f8fdb;
+  --m-red:#e0574d; --m-green:#4b9e2f; --m-yellow:#c07d00; --m-blue:#2f8fdb;
+  --m-magenta:#6a5af0; --m-cyan:#1b9e97; --m-orange:#d9662f;
+  --on-accent:#ffffff;
+  --glow:color-mix(in srgb, var(--violet) 12%, transparent);
+  --glow-strong:color-mix(in srgb, var(--violet) 30%, transparent);
+  --focus:var(--violet);
+  --scrim:rgba(22,20,46,0.35); --shadow-overlay:rgba(22,20,46,0.25);
+}
+
+/* ---- Solarized Light (Ethan Schoonover) ---- */
+[data-theme="solarized-light"] {
+  --bg-0:#eee8d5; --bg-1:#f5efdc; --bg-2:#fdf6e3; --bg-3:#fdf6e3; --bg-4:#e7e0cb;
+  --line:#e5dfc8; --line-2:#d9d2b8;
+  --ink-0:#586e75; --ink-1:#657b83; --ink-2:#839496; --ink-3:#93a1a1;
+  --green:#859900; --green-dim:#c6c9a0; --amber:#b58900; --amber-dim:#e0d6a8;
+  --cyan:#2aa198; --red:#dc322f; --violet:#6c71c4; --blue:#268bd2;
+  --m-red:#dc322f; --m-green:#859900; --m-yellow:#b58900; --m-blue:#268bd2;
+  --m-magenta:#d33682; --m-cyan:#2aa198; --m-orange:#cb4b16;
+  --on-accent:#fdf6e3;
+  --glow:color-mix(in srgb, var(--blue) 12%, transparent);
+  --glow-strong:color-mix(in srgb, var(--blue) 30%, transparent);
+  --focus:var(--blue);
+  --scrim:rgba(88,110,117,0.3); --shadow-overlay:rgba(88,110,117,0.2);
+}
+
+/* ---- Gruvbox Light (morhetz) ---- */
+[data-theme="gruvbox-light"] {
+  --bg-0:#f9f5d7; --bg-1:#fbf1c7; --bg-2:#fbf1c7; --bg-3:#ebdbb2; --bg-4:#d5c4a1;
+  --line:#ebdbb2; --line-2:#d5c4a1;
+  --ink-0:#3c3836; --ink-1:#504945; --ink-2:#665c54; --ink-3:#7c6f64;
+  --green:#79740e; --green-dim:#c7c98f; --amber:#b57614; --amber-dim:#e6d5a0;
+  --cyan:#427b58; --red:#9d0006; --violet:#8f3f71; --blue:#076678;
+  --m-red:#9d0006; --m-green:#79740e; --m-yellow:#b57614; --m-blue:#076678;
+  --m-magenta:#8f3f71; --m-cyan:#427b58; --m-orange:#af3a03;
+  --on-accent:#fbf1c7;
+  --glow:color-mix(in srgb, var(--amber) 12%, transparent);
+  --glow-strong:color-mix(in srgb, var(--amber) 30%, transparent);
+  --focus:#af3a03;
+  --scrim:rgba(60,56,54,0.3); --shadow-overlay:rgba(60,56,54,0.2);
+}
