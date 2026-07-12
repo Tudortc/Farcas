@@ -59,6 +59,21 @@ describe('IrcManager', () => {
     expect(mgr.say('nobody', 999, '#x', 'hi')).toBe(false)
   })
 
+  it('routes command methods to the active connection', () => {
+    const mgr = new IrcManager(() => fakeClient())
+    const net = createNetwork('userCmd', { name: 'TestNet', host: 'h', port: 6697, tls: true, nick: 'bool' })
+    const userId = 'userCmd'
+    const networkId = net.id
+    mgr.connectNetwork(userId, networkId)
+
+    expect(mgr.setNick(userId, networkId, 'neo')).toBe(true)
+    expect(mgr.setTopic(userId, networkId, '#x', 't')).toBe(true)
+    expect(mgr.whois(userId, networkId, 'bob')).toBe(true)
+    expect(mgr.sendAction(userId, networkId, '#x', 'waves')).toBe(true)
+    // Unknown network returns false
+    expect(mgr.setNick(userId, 9999, 'neo')).toBe(false)
+  })
+
   it('disconnectNetwork removes the connection and marks it disconnected', () => {
     const mgr = new IrcManager(() => fakeClient())
     const net = createNetwork('userDN', { name: 'N', host: 'h', port: 6697, tls: true, nick: 'bool' })

@@ -129,6 +129,49 @@ export class IrcManager {
     c?.sendReaction(target, msgid, emoji, add)
   }
 
+  setNick(userId: string, networkId: number, nick: string): boolean {
+    const c = this.conns.get(keyOf(userId, networkId))
+    if (!c || !c.isConnected()) return false
+    c.setNick(nick)
+    return true
+  }
+  setTopic(userId: string, networkId: number, channel: string, topic: string): boolean {
+    const c = this.conns.get(keyOf(userId, networkId))
+    if (!c || !c.isConnected()) return false
+    c.setTopic(channel, topic)
+    return true
+  }
+  kick(userId: string, networkId: number, channel: string, nick: string, reason?: string): boolean {
+    const c = this.conns.get(keyOf(userId, networkId))
+    if (!c || !c.isConnected()) return false
+    c.kick(channel, nick, reason)
+    return true
+  }
+  setMode(userId: string, networkId: number, target: string, modes: string, args?: string): boolean {
+    const c = this.conns.get(keyOf(userId, networkId))
+    if (!c || !c.isConnected()) return false
+    c.setMode(target, modes, args)
+    return true
+  }
+  whois(userId: string, networkId: number, nick: string): boolean {
+    const c = this.conns.get(keyOf(userId, networkId))
+    if (!c || !c.isConnected()) return false
+    c.whois(nick)
+    return true
+  }
+  listChannels(userId: string, networkId: number, filter?: string): boolean {
+    const c = this.conns.get(keyOf(userId, networkId))
+    if (!c || !c.isConnected()) return false
+    c.listChannels(filter)
+    return true
+  }
+  sendAction(userId: string, networkId: number, target: string, text: string): boolean {
+    const c = this.conns.get(keyOf(userId, networkId))
+    if (!c || !c.isConnected()) return false
+    c.action(target, text)
+    return true
+  }
+
   getConnection(userId: string, networkId: number): IrcConnection | undefined {
     return this.conns.get(keyOf(userId, networkId))
   }

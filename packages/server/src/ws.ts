@@ -87,11 +87,37 @@ export function registerWebSocket(app: FastifyInstance): void {
         case 'chan:part':
           ircManager.part(userId, msg.networkId, msg.channel)
           break
-        case 'chat:send':
-          if (!ircManager.say(userId, msg.networkId, msg.target, msg.text, msg.replyTo)) {
+        case 'user:nick':
+          if (!ircManager.setNick(userId, msg.networkId, msg.nick))
             send({ type: 'net:error', networkId: msg.networkId, message: 'not connected' })
-          }
           break
+        case 'chan:topic:set':
+          if (!ircManager.setTopic(userId, msg.networkId, msg.channel, msg.topic))
+            send({ type: 'net:error', networkId: msg.networkId, message: 'not connected' })
+          break
+        case 'chan:kick':
+          if (!ircManager.kick(userId, msg.networkId, msg.channel, msg.nick, msg.reason))
+            send({ type: 'net:error', networkId: msg.networkId, message: 'not connected' })
+          break
+        case 'chan:mode':
+          if (!ircManager.setMode(userId, msg.networkId, msg.target, msg.modes, msg.args))
+            send({ type: 'net:error', networkId: msg.networkId, message: 'not connected' })
+          break
+        case 'user:whois':
+          if (!ircManager.whois(userId, msg.networkId, msg.nick))
+            send({ type: 'net:error', networkId: msg.networkId, message: 'not connected' })
+          break
+        case 'chan:list':
+          if (!ircManager.listChannels(userId, msg.networkId, msg.filter))
+            send({ type: 'net:error', networkId: msg.networkId, message: 'not connected' })
+          break
+        case 'chat:send': {
+          const ok = msg.action
+            ? ircManager.sendAction(userId, msg.networkId, msg.target, msg.text)
+            : ircManager.say(userId, msg.networkId, msg.target, msg.text, msg.replyTo)
+          if (!ok) send({ type: 'net:error', networkId: msg.networkId, message: 'not connected' })
+          break
+        }
         case 'typing:set':
           ircManager.setTyping(userId, msg.networkId, msg.target, msg.state)
           break
