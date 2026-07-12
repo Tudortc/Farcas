@@ -123,6 +123,7 @@
   --on-accent: #17130f;  /* darkest bg — ink on accent surfaces in B */
   --glow: color-mix(in srgb, var(--green) 12%, transparent);
   --glow-strong: color-mix(in srgb, var(--green) 40%, transparent);
+  --focus: var(--green);
 }
 
 /* ---- Direction C: Neo-Aurora — midnight indigo with aurora accents ---- */
@@ -169,6 +170,7 @@
   --on-accent: #0b0b16;  /* darkest bg — ink on accent surfaces in C */
   --glow: color-mix(in srgb, var(--green) 12%, transparent);
   --glow-strong: color-mix(in srgb, var(--green) 40%, transparent);
+  --focus: var(--green);
 }
 
 /* ---- Shimmer: warm-dark editorial — roasted espresso ---- */
@@ -216,4 +218,80 @@
   --on-accent: #141109;  /* darkest bg — ink on accent surfaces in shimmer */
   --glow: color-mix(in srgb, var(--green) 12%, transparent);
   --glow-strong: color-mix(in srgb, var(--green) 40%, transparent);
+  --focus: var(--green);
+}
+
+/* ---- Solarized Dark (Ethan Schoonover) ---- */
+[data-theme="solarized-dark"] {
+  --bg-0:#001e27; --bg-1:#002b36; --bg-2:#002b36; --bg-3:#073642; --bg-4:#0a4150;
+  --line:#073642; --line-2:#0e4b5a;
+  --ink-0:#93a1a1; --ink-1:#839496; --ink-2:#657b83; --ink-3:#586e75;
+  --green:#859900; --green-dim:#3d4d1a; --amber:#b58900; --amber-dim:#5c4400;
+  --cyan:#2aa198; --red:#dc322f; --violet:#6c71c4; --blue:#268bd2;
+  --m-red:#dc322f; --m-green:#859900; --m-yellow:#b58900; --m-blue:#268bd2;
+  --m-magenta:#d33682; --m-cyan:#2aa198; --m-orange:#cb4b16;
+  --on-accent:#002b36;
+  --glow:color-mix(in srgb, var(--blue) 12%, transparent);
+  --glow-strong:color-mix(in srgb, var(--blue) 40%, transparent);
+  --focus:var(--blue);
+}
+
+/* ---- Gruvbox Dark (morhetz) ---- */
+[data-theme="gruvbox-dark"] {
+  --bg-0:#1d2021; --bg-1:#282828; --bg-2:#282828; --bg-3:#3c3836; --bg-4:#504945;
+  --line:#3c3836; --line-2:#504945;
+  --ink-0:#ebdbb2; --ink-1:#d5c4a1; --ink-2:#a89984; --ink-3:#7c6f64;
+  --green:#b8bb26; --green-dim:#4b5320; --amber:#fabd2f; --amber-dim:#7a5a12;
+  --cyan:#8ec07c; --red:#fb4934; --violet:#d3869b; --blue:#83a598;
+  --m-red:#fb4934; --m-green:#b8bb26; --m-yellow:#fabd2f; --m-blue:#83a598;
+  --m-magenta:#d3869b; --m-cyan:#8ec07c; --m-orange:#fe8019;
+  --on-accent:#1d2021;
+  --glow:color-mix(in srgb, var(--amber) 12%, transparent);
+  --glow-strong:color-mix(in srgb, var(--amber) 40%, transparent);
+  --focus:#fe8019;
+}
+
+/* ---- Dracula ---- */
+[data-theme="dracula"] {
+  --bg-0:#21222c; --bg-1:#282a36; --bg-2:#282a36; --bg-3:#343746; --bg-4:#44475a;
+  --line:#343746; --line-2:#44475a;
+  --ink-0:#f8f8f2; --ink-1:#c8cae0; --ink-2:#8a8fb8; --ink-3:#6272a4;
+  --green:#50fa7b; --green-dim:#1f5c33; --amber:#ffb86c; --amber-dim:#7a5220;
+  --cyan:#8be9fd; --red:#ff5555; --violet:#bd93f9; --blue:#8be9fd;
+  --m-red:#ff5555; --m-green:#50fa7b; --m-yellow:#f1fa8c; --m-blue:#8be9fd;
+  --m-magenta:#ff79c6; --m-cyan:#8be9fd; --m-orange:#ffb86c;
+  --on-accent:#282a36;
+  --glow:color-mix(in srgb, var(--violet) 12%, transparent);
+  --glow-strong:color-mix(in srgb, var(--violet) 40%, transparent);
+  --focus:var(--violet);
+}
+
+/* ---- Nord ---- */
+[data-theme="nord"] {
+  --bg-0:#2b303b; --bg-1:#2e3440; --bg-2:#2e3440; --bg-3:#3b4252; --bg-4:#434c5e;
+  --line:#3b4252; --line-2:#4c566a;
+  --ink-0:#eceff4; --ink-1:#d8dee9; --ink-2:#7b88a1; --ink-3:#4c566a;
+  --green:#a3be8c; --green-dim:#3f4a34; --amber:#ebcb8b; --amber-dim:#6b5c33;
+  --cyan:#88c0d0; --red:#bf616a; --violet:#b48ead; --blue:#81a1c1;
+  --m-red:#bf616a; --m-green:#a3be8c; --m-yellow:#ebcb8b; --m-blue:#81a1c1;
+  --m-magenta:#b48ead; --m-cyan:#88c0d0; --m-orange:#d08770;
+  --on-accent:#2e3440;
+  --glow:color-mix(in srgb, var(--cyan) 12%, transparent);
+  --glow-strong:color-mix(in srgb, var(--cyan) 40%, transparent);
+  --focus:var(--cyan);
+}
+
+/* ---- Monokai ---- */
+[data-theme="monokai"] {
+  --bg-0:#1e1f1c; --bg-1:#272822; --bg-2:#272822; --bg-3:#3e3d32; --bg-4:#49483e;
+  --line:#3e3d32; --line-2:#49483e;
+  --ink-0:#f8f8f2; --ink-1:#cfcfc2; --ink-2:#a6a28c; --ink-3:#75715e;
+  --green:#a6e22e; --green-dim:#4a5a17; --amber:#fd971f; --amber-dim:#7a4a10;
+  --cyan:#66d9ef; --red:#f92672; --violet:#ae81ff; --blue:#66d9ef;
+  --m-red:#f92672; --m-green:#a6e22e; --m-yellow:#e6db74; --m-blue:#66d9ef;
+  --m-magenta:#ae81ff; --m-cyan:#66d9ef; --m-orange:#fd971f;
+  --on-accent:#272822;
+  --glow:color-mix(in srgb, var(--green) 12%, transparent);
+  --glow-strong:color-mix(in srgb, var(--green) 40%, transparent);
+  --focus:var(--green);
 }
