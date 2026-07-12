@@ -4,6 +4,7 @@ import { useChat } from '../store/chat-store.js'
 import { MessageList } from './MessageList.js'
 import { Composer } from './Composer.js'
 import { AppearanceMenu } from './AppearanceMenu.js'
+import { ConnDot } from './ConnDot.js'
 import { TypingLine } from './TypingLine.js'
 
 export function MainPane() {
@@ -65,6 +66,7 @@ export function MainPane() {
             </span>
           </div>
         )}
+        <ConnDot />
         <button
           ref={appearanceBtnRef}
           type="button"

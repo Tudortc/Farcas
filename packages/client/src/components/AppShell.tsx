@@ -61,18 +61,6 @@ function ErrorBanner() {
   )
 }
 
-/** Connection status dot — driven by useChat().connection */
-function ConnDot() {
-  const connection = useChat((s) => s.connection)
-  return (
-    <span
-      className={`conn-dot${connection === 'open' ? ' open' : connection === 'connecting' ? ' connecting' : ''}`}
-      title={connection}
-      aria-label={`Connection: ${connection}`}
-    />
-  )
-}
-
 /** Hook: Cmd/Ctrl-Shift-F and bool:open-search event open the search panel */
 function useSearchShortcut(): [boolean, () => void] {
   const [open, setOpen] = useState(false)
