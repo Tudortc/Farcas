@@ -1,6 +1,12 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { useAppearance } from '../theme.js'
+
+vi.mock('../auth-client.js', () => ({
+  signOut: vi.fn().mockResolvedValue({}),
+}))
+
+import * as authClient from '../auth-client.js'
 import { AppearanceMenu } from './AppearanceMenu.js'
 
 beforeEach(() => {
@@ -61,5 +67,12 @@ describe('AppearanceMenu', () => {
     fireEvent.click(screen.getByText(/^C$/i))
     expect(useAppearance.getState().theme).toBe('c')
     expect(document.documentElement.getAttribute('data-theme')).toBe('c')
+  })
+
+  it('renders a sign-out button that calls signOut', async () => {
+    const spy = vi.spyOn(authClient, 'signOut').mockResolvedValue({} as any)
+    render(<AppearanceMenu />)
+    fireEvent.click(screen.getByRole('button', { name: /sign out/i }))
+    expect(spy).toHaveBeenCalled()
   })
 })

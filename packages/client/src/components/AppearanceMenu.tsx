@@ -1,6 +1,7 @@
 import { useAppearance } from '../theme.js'
 import type { ThemeId, Density } from '../theme.js'
 import { NotificationsToggle } from './NotificationsToggle.js'
+import { signOut } from '../auth-client.js'
 
 const THEMES: { id: ThemeId; label: string }[] = [
   { id: 'a', label: 'A' },
@@ -61,6 +62,15 @@ export function AppearanceMenu() {
         <div className="appearance-label">Notifications</div>
         <NotificationsToggle />
       </div>
+
+      <button
+        type="button"
+        className="appearance-signout"
+        onClick={() => void signOut()}
+        style={{ marginTop: 8, width: '100%', textAlign: 'left', background: 'none', border: 'none', color: 'var(--ink-1)', cursor: 'pointer', fontFamily: 'var(--mono)', fontSize: 12, padding: '6px 8px' }}
+      >
+        Sign out
+      </button>
     </div>
   )
 }
