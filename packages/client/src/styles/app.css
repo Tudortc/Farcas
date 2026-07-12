@@ -440,7 +440,7 @@
 .cp-scrim {
   position: fixed;
   inset: 0;
-  background: rgba(4, 6, 7, 0.68);
+  background: var(--scrim);
   backdrop-filter: blur(3px);
   z-index: 900;
   animation: cp-fade 0.18s ease;
@@ -743,7 +743,7 @@
 .sp-scrim {
   position: fixed;
   inset: 0;
-  background: rgba(4, 6, 7, 0.55);
+  background: var(--scrim);
   backdrop-filter: blur(4px);
   z-index: 900;
   animation: cp-fade 0.18s ease;
@@ -825,9 +825,9 @@
   border: 1px solid var(--green-dim);
 }
 .sp-token-from {
-  background: rgba(122, 162, 247, 0.1);
+  background: color-mix(in srgb, var(--blue) 12%, transparent);
   color: var(--blue);
-  border: 1px solid rgba(47, 69, 112, 1);
+  border: 1px solid color-mix(in srgb, var(--blue) 35%, var(--bg-2));
 }
 
 /* Meta row */
@@ -944,7 +944,7 @@
 
 /* Highlighted terms */
 .sp-mark {
-  background: rgba(255, 180, 84, 0.22);
+  background: color-mix(in srgb, var(--amber) 22%, transparent);
   color: var(--amber);
   border-radius: 3px;
   padding: 0 2px;
