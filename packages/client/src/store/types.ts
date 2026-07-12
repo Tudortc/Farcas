@@ -1,5 +1,15 @@
 import type { StoredMsg } from '@bool/shared'
 
+export interface PreviewResult {
+  type: 'preview:result'
+  url: string
+  ok: true
+  title?: string
+  description?: string
+  image?: string
+  siteName?: string
+}
+
 export type ConnectionState = 'connecting' | 'open' | 'closed'
 
 export type TargetKind = 'channel' | 'pm'
@@ -46,6 +56,8 @@ export interface ChatState {
   reactions: Record<string, Record<string, string[]>>
   /** The msgid of the message currently being replied to, or null */
   replyingTo: string | null
+  /** url → PreviewResult (only ok:true results stored) */
+  previews: Record<string, PreviewResult>
 }
 
 export interface ChatActions {
@@ -78,6 +90,8 @@ export interface ChatActions {
   sendReply(text: string, replyToMsgid: string): void
   /** Set the msgid of the message being replied to (null to clear). */
   setReplyTarget(msgid: string | null): void
+  /** Upload a file to /api/upload and return the media URL, or null on failure. */
+  uploadFile(file: File): Promise<string | null>
 }
 
 export type ChatStore = ChatState & ChatActions

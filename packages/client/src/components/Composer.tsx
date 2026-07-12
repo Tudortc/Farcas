@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type KeyboardEvent } from 'react'
+import { useState, useRef, useEffect, type KeyboardEvent, type DragEvent } from 'react'
 import { useChat } from '../store/chat-store.js'
 import { truncate } from '../utils/truncate.js'
 
@@ -34,7 +34,9 @@ const IDLE_MS = 5000
 export function Composer({ onSend, placeholder = 'Message · / for commands' }: ComposerProps) {
   const [value, setValue] = useState('')
   const [selectedHint, setSelectedHint] = useState(0)
+  const [uploading, setUploading] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Typing indicator state
   const selected = useChat((s) => s.selected)
@@ -59,6 +61,36 @@ export function Composer({ onSend, placeholder = 'Message · / for commands' }: 
       if (idleTimerRef.current != null) clearTimeout(idleTimerRef.current)
     }
   }, [])
+
+  async function handleFile(file: File) {
+    setUploading(true)
+    try {
+      const url = await useChat.getState().uploadFile(file)
+      if (url) {
+        setValue((prev) => (prev.trim() ? prev.trim() + ' ' + url : url))
+        textareaRef.current?.focus()
+      }
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) void handleFile(file)
+    // Reset so the same file can be re-selected
+    e.target.value = ''
+  }
+
+  function handleDragOver(e: DragEvent<HTMLTextAreaElement>) {
+    e.preventDefault()
+  }
+
+  function handleDrop(e: DragEvent<HTMLTextAreaElement>) {
+    e.preventDefault()
+    const file = e.dataTransfer.files?.[0]
+    if (file) void handleFile(file)
+  }
 
   function dispatchTypingDone() {
     if (selected) setTyping(selected, 'done')
@@ -193,6 +225,8 @@ export function Composer({ onSend, placeholder = 'Message · / for commands' }: 
             if (e.target.value.trim()) handleTypingActive()
           }}
           onKeyDown={handleKeyDown}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
           style={{
             resize: 'none',
             background: 'none',
@@ -206,6 +240,33 @@ export function Composer({ onSend, placeholder = 'Message · / for commands' }: 
             minHeight: '20px',
           }}
         />
+        <input
+          ref={fileInputRef}
+          type="file"
+          aria-hidden="true"
+          tabIndex={-1}
+          style={{ display: 'none' }}
+          onChange={handleFileInputChange}
+        />
+        <button
+          type="button"
+          aria-label="Upload file"
+          disabled={uploading}
+          title={uploading ? 'Uploading…' : 'Upload file'}
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: uploading ? 'wait' : 'pointer',
+            padding: '0 4px',
+            color: uploading ? 'var(--ink-2)' : 'var(--ink-1)',
+            fontSize: '14px',
+            lineHeight: 1,
+            flexShrink: 0,
+          }}
+        >
+          {uploading ? '…' : '📎'}
+        </button>
       </div>
 
       <div className="comp-foot">

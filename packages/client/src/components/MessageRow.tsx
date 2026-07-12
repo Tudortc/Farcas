@@ -3,6 +3,43 @@ import { IrcBody } from './IrcBody.js'
 import { Reactions } from './Reactions.js'
 import { ReplyContext } from './ReplyContext.js'
 import { useChat } from '../store/chat-store.js'
+import { linkify } from './irc-format.js'
+import { InlineMedia, isImageUrl } from './InlineMedia.js'
+import { LinkPreview } from './LinkPreview.js'
+
+// ---- URL extraction ----
+
+/** Extract all http(s) URLs from a message body using linkify. */
+function extractUrls(text: string): string[] {
+  return linkify(text)
+    .filter((seg) => seg.url != null)
+    .map((seg) => seg.url!)
+}
+
+// ---- MessageMedia: inline images + first link preview ----
+
+interface MessageMediaProps {
+  body: string
+}
+
+function MessageMedia({ body }: MessageMediaProps) {
+  const previews = useChat((s) => s.previews)
+  const urls = extractUrls(body)
+  if (urls.length === 0) return null
+
+  const imageUrls = urls.filter(isImageUrl)
+  const nonImageUrls = urls.filter((u) => !isImageUrl(u))
+  const firstPreviewUrl = nonImageUrls.find((u) => previews[u] != null) ?? null
+
+  return (
+    <>
+      {imageUrls.map((url) => (
+        <InlineMedia key={url} url={url} />
+      ))}
+      {firstPreviewUrl && <LinkPreview preview={previews[firstPreviewUrl] ?? null} />}
+    </>
+  )
+}
 
 // ---- Nick color hashing ----
 // Deterministically map a nick to one of the --m-* palette variables.
@@ -75,6 +112,7 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
               * <span style={{ color: nickColor }}>{msg.sender}</span>{' '}
               <IrcBody text={msg.body} />
             </div>
+            <MessageMedia body={msg.body} />
             {msg.msgid && <Reactions msgid={msg.msgid} />}
           </div>
           {msg.msgid && <ReplyButton msgid={msg.msgid} />}
@@ -90,6 +128,7 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
             * <span style={{ color: nickColor }}>{msg.sender}</span>{' '}
             <IrcBody text={msg.body} />
           </div>
+          <MessageMedia body={msg.body} />
           {msg.msgid && <Reactions msgid={msg.msgid} />}
         </div>
         {msg.msgid && <ReplyButton msgid={msg.msgid} />}
@@ -115,6 +154,7 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
             >
               <IrcBody text={msg.body} />
             </div>
+            <MessageMedia body={msg.body} />
             {msg.msgid && <Reactions msgid={msg.msgid} />}
           </div>
           {msg.msgid && <ReplyButton msgid={msg.msgid} />}
@@ -142,6 +182,7 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
           >
             <IrcBody text={msg.body} />
           </div>
+          <MessageMedia body={msg.body} />
           {msg.msgid && <Reactions msgid={msg.msgid} />}
         </div>
         {msg.msgid && <ReplyButton msgid={msg.msgid} />}
@@ -159,6 +200,7 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
           <div className="text">
             <IrcBody text={msg.body} />
           </div>
+          <MessageMedia body={msg.body} />
           {msg.msgid && <Reactions msgid={msg.msgid} />}
         </div>
         {msg.msgid && <ReplyButton msgid={msg.msgid} />}
@@ -179,6 +221,7 @@ export function MessageRow({ msg, grouped }: MessageRowProps) {
         <div className="text">
           <IrcBody text={msg.body} />
         </div>
+        <MessageMedia body={msg.body} />
         {msg.msgid && <Reactions msgid={msg.msgid} />}
       </div>
       {msg.msgid && <ReplyButton msgid={msg.msgid} />}

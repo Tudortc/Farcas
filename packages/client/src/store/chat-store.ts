@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { PROTOCOL_VERSION, type StoredMsg, type ServerMessage } from '@bool/shared'
 import { createWsClient, type WebSocketLike } from '../ws-client.js'
 import type { ChatStore, ChatState, TargetKind } from './types.js'
+import { uploadFile as _uploadFile } from '../upload-client.js'
 
 export function targetKey(networkId: number, target: string): string {
   return `${networkId}:${target}`
@@ -19,6 +20,7 @@ const emptyState: ChatState = {
   typing: {},
   reactions: {},
   replyingTo: null,
+  previews: {},
 }
 
 let _msgIdCounter = 0
@@ -300,6 +302,24 @@ function reduceServerMessage(state: ChatState, msg: ServerMessage): Partial<Chat
       return { reactions }
     }
 
+    case 'preview:result': {
+      if (!msg.ok) return {}
+      return {
+        previews: {
+          ...state.previews,
+          [msg.url]: {
+            type: 'preview:result' as const,
+            url: msg.url,
+            ok: true as const,
+            title: msg.title,
+            description: msg.description,
+            image: msg.image,
+            siteName: msg.siteName,
+          },
+        },
+      }
+    }
+
     default:
       return {}
   }
@@ -444,6 +464,10 @@ function createActions(
 
     setReplyTarget(msgid: string | null) {
       set({ replyingTo: msgid })
+    },
+
+    async uploadFile(file: File): Promise<string | null> {
+      return _uploadFile(file)
     },
   }
 }

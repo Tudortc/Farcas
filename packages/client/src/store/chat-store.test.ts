@@ -203,4 +203,36 @@ describe('chat store', () => {
       JSON.stringify({ type: 'chat:send', networkId: 3, target: '#general', text: 'hi', replyTo: 'm1' })
     )
   })
+
+  // --- preview:result ---
+  it('preview:result ok:true stores the preview by url', () => {
+    const { sock, emitServer, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    emitServer({
+      type: 'preview:result',
+      url: 'https://example.com/',
+      ok: true,
+      title: 'Example',
+      description: 'A website',
+      siteName: 'Example.com',
+    })
+    const previews = useChat.getState().previews
+    expect(previews['https://example.com/']).toBeDefined()
+    expect(previews['https://example.com/']?.title).toBe('Example')
+    expect(previews['https://example.com/']?.siteName).toBe('Example.com')
+  })
+
+  it('preview:result ok:false does NOT store the preview', () => {
+    const { sock, emitServer, open } = fakeSocket()
+    useChat.getState().init(() => sock)
+    open()
+    emitServer({
+      type: 'preview:result',
+      url: 'https://broken.com/',
+      ok: false,
+    })
+    const previews = useChat.getState().previews
+    expect(previews['https://broken.com/']).toBeUndefined()
+  })
 })
