@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor, renderHook, act } from '@testing-library/react'
 import { useChat, targetKey } from '../store/chat-store.js'
 import { useAppearance } from '../theme.js'
+import { THEME_CATALOG } from '../theme-catalog.js'
 import { CommandPalette, usePaletteShortcut } from './CommandPalette.js'
 
 // Seed store helper
@@ -178,6 +179,22 @@ describe('CommandPalette', () => {
     seedStore()
     render(<CommandPalette open onClose={() => {}} />)
     expect(screen.getByText(/sign out/i)).toBeInTheDocument()
+  })
+
+  it('exposes a Switch theme action for every entry in THEME_CATALOG (drift guard)', () => {
+    seedStore()
+    render(<CommandPalette open onClose={() => {}} />)
+    // Each theme produces an item whose name contains "Switch theme" and the theme's exact label.
+    // Use getAllByText to avoid errors when multiple items share a substring (e.g. "Terminal" / "Terminal Light").
+    for (const t of THEME_CATALOG) {
+      const matches = screen.getAllByText(new RegExp(`Switch theme.*·.*${t.label}`))
+      // At least one item must contain this theme's label in a "Switch theme" entry.
+      const exact = matches.filter((el) => el.textContent?.includes(`· ${t.label}`))
+      expect(exact.length).toBeGreaterThanOrEqual(1)
+    }
+    // Also verify total count matches catalog length so adding a theme without updating fails loudly.
+    const switchItems = screen.getAllByText(/Switch theme/)
+    expect(switchItems).toHaveLength(THEME_CATALOG.length)
   })
 })
 

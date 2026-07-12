@@ -8,7 +8,8 @@ import {
   CommandRoot,
 } from 'cmdk'
 import { useChat } from '../store/chat-store.js'
-import { useAppearance, type ThemeId } from '../theme.js'
+import { useAppearance } from '../theme.js'
+import { THEME_CATALOG, type ThemeId } from '../theme-catalog.js'
 import { useFocusRestore } from './Dialog.js'
 import { signOut } from '../auth-client.js'
 import { normalizeChannel } from '../commands.js'
@@ -101,13 +102,6 @@ export function usePaletteShortcut(): [boolean, () => void] {
 // ---------------------------------------------------------------------------
 // CommandPalette component
 // ---------------------------------------------------------------------------
-
-const THEMES: { id: ThemeId; label: string }[] = [
-  { id: 'a', label: 'Direction A — Terminal-Modern' },
-  { id: 'b', label: 'Direction B — Soft-Editorial' },
-  { id: 'c', label: 'Direction C — Neo-Aurora' },
-  { id: 'shimmer', label: 'Shimmer — Warm Dark' },
-]
 
 export function CommandPalette({ open, onClose, onOpenSearch }: CommandPaletteProps) {
   // Restore focus to the previously focused element when the palette closes
@@ -380,7 +374,7 @@ export function CommandPalette({ open, onClose, onOpenSearch }: CommandPalettePr
               </CommandItem>
 
               {/* Switch theme — one item per theme */}
-              {THEMES.map((t) => (
+              {THEME_CATALOG.map((t) => (
                 <CommandItem
                   key={`theme-${t.id}`}
                   value={`switch-theme-${t.id}`}

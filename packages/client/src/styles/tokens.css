@@ -75,8 +75,6 @@
   --group-gap: 18px;
 }
 
-/* TODO(m6): light mode — needs a full token set (mIRC palette, --on-accent, --glow, etc.) + wiring into ThemeId/menus before enabling */
-
 /* ---- Direction B: Soft-Editorial — warm espresso dark ---- */
 /* Ported from design/direction-b/index.html :root block.    */
 /* Variable names mapped to Direction A's naming convention.  */
