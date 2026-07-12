@@ -4,6 +4,10 @@ import { getNetwork } from '../networks.js'
 import { storeMessage } from '../messages.js'
 import { Hub } from './hub.js'
 import { maybeNotify } from '../notifier.js'
+import { fetchPreview } from '../link-preview.js'
+
+/** Regex to extract the first http(s) URL from a chat message body. */
+const URL_REGEX = /https?:\/\/[^\s<>"']+/i
 
 const keyOf = (userId: string, networkId: number) => `${userId}:${networkId}`
 
@@ -54,6 +58,29 @@ export class IrcManager {
           selfNick: conn.currentNick(),
           activeSockets: this.hub.subscriberCount(userId),
         }).catch((err) => console.error('[IrcManager] maybeNotify failed', err))
+
+        // Kick off a non-blocking link preview fetch for the first URL in the message.
+        // Failure must never affect relay or persistence.
+        const urlMatch = msg.text.match(URL_REGEX)
+        if (urlMatch) {
+          void fetchPreview(urlMatch[0]!)
+            .then((res) => {
+              if (res.ok) {
+                this.hub.publish(userId, {
+                  type: 'preview:result' as const,
+                  url: res.url,
+                  ok: res.ok,
+                  ...(res.title !== undefined ? { title: res.title } : {}),
+                  ...(res.description !== undefined ? { description: res.description } : {}),
+                  ...(res.image !== undefined ? { image: res.image } : {}),
+                  ...(res.siteName !== undefined ? { siteName: res.siteName } : {}),
+                })
+              }
+            })
+            .catch(() => {
+              // Silently swallow — preview failure is non-fatal
+            })
+        }
       }
     }
     const conn = new IrcConnection(
