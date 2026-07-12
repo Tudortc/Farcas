@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   CommandInput,
   CommandItem,
@@ -116,7 +116,19 @@ export function CommandPalette({ open, onClose, onOpenSearch }: CommandPalettePr
   const targets = useChat((s) => s.targets)
   const networks = useChat((s) => s.networks)
   const select = useChat((s) => s.select)
+  const selected = useChat((s) => s.selected)
+  const join = useChat((s) => s.join)
   const { density, setDensity, theme, setTheme } = useAppearance()
+
+  // Controlled search value so we can offer an inline "Join #x" action for
+  // channels the user hasn't joined yet.
+  const [query, setQuery] = useState('')
+  // Reset the query each time the palette opens so it's fresh.
+  const wasOpen = useRef(false)
+  useEffect(() => {
+    if (open && !wasOpen.current) setQuery('')
+    wasOpen.current = open
+  }, [open])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -132,6 +144,28 @@ export function CommandPalette({ open, onClose, onOpenSearch }: CommandPalettePr
 
   const channelTargets = Object.entries(targets).filter(([, t]) => t.kind === 'channel')
   const pmTargets = Object.entries(targets).filter(([, t]) => t.kind === 'pm')
+
+  // Network to join on: the active network (from the selected target), else the first.
+  const netList = Object.values(networks)
+  const activeNetId = selected ? parseInt(selected.split(':')[0] ?? '', 10) : NaN
+  const activeNet = (!isNaN(activeNetId) && networks[activeNetId]) || netList[0] || null
+
+  // Offer an inline join when the user has typed something that isn't already
+  // an open channel on the active network.
+  const trimmedQuery = query.trim()
+  const joinTarget = trimmedQuery ? normalizeChannel(trimmedQuery) : null
+  const alreadyOpen =
+    joinTarget != null &&
+    activeNet != null &&
+    channelTargets.some(
+      ([, t]) => t.networkId === activeNet.id && t.target.toLowerCase() === joinTarget.toLowerCase(),
+    )
+  const showJoin = joinTarget != null && activeNet != null && !alreadyOpen
+
+  function handleJoin() {
+    if (joinTarget && activeNet) join(activeNet.id, joinTarget)
+    onClose()
+  }
 
   function handleSelectChannel(key: string) {
     select(key)
@@ -175,7 +209,9 @@ export function CommandPalette({ open, onClose, onOpenSearch }: CommandPalettePr
             <span className="cp-prompt" aria-hidden>›</span>
             <CommandInput
               className="cp-input"
-              placeholder="Jump to a channel, DM, or run a command…"
+              placeholder="Jump to or join a channel, DM, or run a command…"
+              value={query}
+              onValueChange={setQuery}
               autoFocus
             />
             <span className="cp-esc-hint" aria-hidden>ESC</span>
@@ -192,7 +228,7 @@ export function CommandPalette({ open, onClose, onOpenSearch }: CommandPalettePr
 
           {/* List */}
           <CommandList className="cp-list">
-            <CommandEmpty className="cp-empty">No results found.</CommandEmpty>
+            {!showJoin && <CommandEmpty className="cp-empty">No results found.</CommandEmpty>}
 
             {/* Channels */}
             {channelTargets.length > 0 && (
@@ -257,6 +293,26 @@ export function CommandPalette({ open, onClose, onOpenSearch }: CommandPalettePr
               </CommandGroup>
             )}
 
+            {/* Inline join — appears when the typed text isn't an open channel */}
+            {showJoin && (
+              <CommandGroup heading="Join" className="cp-group" forceMount>
+                <CommandItem
+                  forceMount
+                  value={`join-new:${joinTarget}`}
+                  onSelect={handleJoin}
+                  className="cp-item"
+                  keywords={[trimmedQuery, joinTarget!, 'join']}
+                >
+                  <span className="cp-icon cp-icon-act" aria-hidden><IconConnect /></span>
+                  <span className="cp-main">
+                    <span className="cp-name">Join {joinTarget}</span>
+                    <span className="cp-sub">on {activeNet!.name}</span>
+                  </span>
+                  <Kbd keys={['↵']} />
+                </CommandItem>
+              </CommandGroup>
+            )}
+
             {/* Networks — connect / reconnect actions */}
             {Object.values(networks).length > 0 && (
               <CommandGroup heading="Networks" className="cp-group">
@@ -287,32 +343,6 @@ export function CommandPalette({ open, onClose, onOpenSearch }: CommandPalettePr
 
             {/* Actions */}
             <CommandGroup heading="Actions & Commands" className="cp-group">
-              {/* Join channel */}
-              {Object.values(networks).length > 0 && (
-                <CommandItem
-                  value="join-channel"
-                  onSelect={() => {
-                    const selected = useChat.getState().selected
-                    const activeNetworkId = selected ? parseInt(selected.split(':')[0] ?? '', 10) : NaN
-                    const net =
-                      (!isNaN(activeNetworkId) && networks[activeNetworkId]) ||
-                      Object.values(networks)[0]
-                    if (!net) return
-                    const chan = window.prompt('Join channel (e.g. #general):')?.trim()
-                    if (chan) useChat.getState().join(net.id, normalizeChannel(chan))
-                    onClose()
-                  }}
-                  className="cp-item"
-                  keywords={['join', 'channel', 'add']}
-                >
-                  <span className="cp-icon cp-icon-act" aria-hidden><IconConnect /></span>
-                  <span className="cp-main">
-                    <span className="cp-name">Join channel…</span>
-                    <span className="cp-sub">Join a channel on the active network</span>
-                  </span>
-                </CommandItem>
-              )}
-
               {/* Search */}
               <CommandItem
                 value="search-messages"

@@ -78,6 +78,7 @@ export function MessageList() {
 
   return (
     <Virtuoso
+      key={selected}
       ref={virtuosoRef}
       style={{ flex: 1, overflowY: 'auto' }}
       className="msgs"

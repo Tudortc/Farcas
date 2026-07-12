@@ -76,7 +76,7 @@ describe('CommandPalette', () => {
   it('filters channels via typed search — exact match "archlinux" filters to that channel', async () => {
     seedStore()
     render(<CommandPalette open onClose={() => {}} />)
-    const input = screen.getByPlaceholderText(/Jump to a channel/i)
+    const input = screen.getByPlaceholderText(/Jump to or join/i)
     // Use a very specific term that only matches #archlinux and not #python
     fireEvent.change(input, { target: { value: 'archlinux' } })
     // #archlinux should score highly; verify it appears in a cmdk item
@@ -122,7 +122,7 @@ describe('CommandPalette', () => {
     seedStore()
     const onClose = vi.fn()
     render(<CommandPalette open onClose={onClose} />)
-    const input = screen.getByPlaceholderText(/Jump to a channel/i)
+    const input = screen.getByPlaceholderText(/Jump to or join/i)
     fireEvent.keyDown(input, { key: 'Escape', code: 'Escape' })
     expect(onClose).toHaveBeenCalled()
   })
@@ -147,10 +147,31 @@ describe('CommandPalette', () => {
     document.removeEventListener('bool:open-search', handler)
   })
 
-  it('shows a Join channel action', () => {
+  it('offers an inline Join action for a channel that is not open, and joins it', async () => {
+    seedStore()
+    const joinSpy = vi.spyOn(useChat.getState(), 'join').mockImplementation(() => {})
+    const onClose = vi.fn()
+    render(<CommandPalette open onClose={onClose} />)
+
+    const input = screen.getByPlaceholderText(/jump to or join/i)
+    fireEvent.change(input, { target: { value: '#newchan' } })
+
+    const joinItem = await screen.findByText('Join #newchan')
+    expect(joinItem).toBeInTheDocument()
+
+    fireEvent.click(joinItem)
+    // Active network is the first seeded network (Libera.Chat, id 1) when nothing is selected.
+    expect(joinSpy).toHaveBeenCalledWith(1, '#newchan')
+    expect(onClose).toHaveBeenCalled()
+    joinSpy.mockRestore()
+  })
+
+  it('does not offer an inline Join for a channel that is already open', () => {
     seedStore()
     render(<CommandPalette open onClose={() => {}} />)
-    expect(screen.getByText(/join channel/i)).toBeInTheDocument()
+    const input = screen.getByPlaceholderText(/jump to or join/i)
+    fireEvent.change(input, { target: { value: '#python' } })
+    expect(screen.queryByText('Join #python')).not.toBeInTheDocument()
   })
 
   it('shows a Sign out action', () => {

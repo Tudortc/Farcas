@@ -1295,3 +1295,296 @@
   color: var(--red);
   background: var(--bg-4);
 }
+
+/* ===========================================================================
+   CHAT CONTENT — messages, composer, slash-command autocomplete, links.
+   Ported + adapted from design/direction-a mockup to the real component markup.
+   (These were never ported; without them the chat body rendered unstyled.)
+   =========================================================================== */
+
+/* ---- Message list container ---- */
+.msgs {
+  scroll-behavior: smooth;
+}
+/* Channel-switch reveal: MessageList is keyed by `selected`, so this plays
+   on every switch — the pane fades in fresh. */
+.msgs {
+  animation: msgs-in 0.22s ease;
+}
+@keyframes msgs-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ---- Message rows ---- */
+.msg,
+.cont {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 0 10px;
+  position: relative;
+  animation: msg-in 0.16s ease both;
+}
+.msg {
+  padding: var(--row-py) 16px var(--row-py) 8px;
+}
+.cont {
+  padding: var(--row-gap) 16px var(--row-gap) 8px;
+}
+.msg:hover,
+.cont:hover {
+  background: var(--bg-3);
+}
+
+/* New-message / scroll-into-view entrance */
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Gutter (timestamp). For grouped continuations it's hidden until row hover. */
+.msg > .gutter,
+.cont > .gutter {
+  font-family: var(--mono);
+  font-size: var(--meta-fs);
+  color: var(--ink-3);
+  text-align: right;
+  padding-top: 2px;
+  user-select: none;
+  letter-spacing: -0.3px;
+}
+.cont > .gutter {
+  color: transparent;
+  transition: color 0.12s;
+}
+.cont:hover > .gutter {
+  color: var(--ink-3);
+}
+
+.msg > .body,
+.cont > .body {
+  min-width: 0;
+}
+
+.msg-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 1px;
+}
+
+.nick {
+  font-weight: 600;
+  font-size: var(--msg-fs);
+  cursor: pointer;
+}
+.nick:hover {
+  text-decoration: underline;
+}
+
+.text {
+  font-size: var(--msg-fs);
+  line-height: var(--msg-lh);
+  color: var(--ink-0);
+  overflow-wrap: anywhere;
+}
+
+/* ---- Inline links (IrcBody) ---- */
+a.link {
+  color: var(--blue);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.12s;
+}
+a.link:hover {
+  border-bottom-color: var(--blue);
+}
+
+/* ===========================================================================
+   Composer
+   =========================================================================== */
+
+.composer {
+  flex: none;
+  padding: 8px 14px 12px;
+  border-top: 1px solid var(--line);
+  position: relative;
+}
+
+.input-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  background: var(--bg-3);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.input-wrap:focus-within {
+  border-color: var(--green-dim);
+  box-shadow: 0 0 0 3px var(--glow);
+}
+.input-wrap .prompt {
+  font-family: var(--mono);
+  color: var(--green);
+  font-weight: 700;
+  padding-bottom: 1px;
+  user-select: none;
+  align-self: flex-start;
+  line-height: 1.4;
+}
+
+.comp-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+  padding: 0 2px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+}
+.comp-foot .k {
+  border: 1px solid var(--line-2);
+  border-radius: 3px;
+  padding: 0 4px;
+  color: var(--ink-2);
+  margin-right: 4px;
+}
+
+.composer-error {
+  animation: msg-in 0.16s ease;
+}
+
+/* ---- Slash-command autocomplete (the "/" popover) ---- */
+.autocomplete {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: calc(100% - 4px);
+  background: var(--bg-1);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  box-shadow: 0 -14px 44px -14px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--glow);
+  overflow: hidden;
+  z-index: 50;
+  animation: ac-rise 0.14s cubic-bezier(0.3, 1, 0.4, 1);
+}
+@keyframes ac-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.ac-h {
+  padding: 7px 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--line);
+}
+
+.ac-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.1s;
+}
+.ac-item.sel {
+  background: var(--bg-4);
+  box-shadow: inset 2px 0 0 var(--green);
+}
+.ac-item:hover {
+  background: var(--bg-3);
+}
+.ac-item .cmd {
+  font-family: var(--mono);
+  color: var(--green);
+  font-weight: 600;
+  min-width: 84px;
+  flex: none;
+}
+.ac-item .desc {
+  color: var(--ink-2);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ac-item .args {
+  font-family: var(--mono);
+  color: var(--ink-3);
+  font-size: 11px;
+  margin-left: auto;
+  flex: none;
+}
+
+/* ===========================================================================
+   Sidebar — join-channel affordance
+   =========================================================================== */
+
+.grp-add {
+  border-radius: var(--radius-sm);
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1;
+  transition: color 0.12s, background 0.12s;
+}
+.grp-add:hover {
+  color: var(--green) !important;
+  background: var(--bg-3);
+}
+
+.join-input {
+  width: 100%;
+  margin: 4px 0 6px;
+  padding: 6px 9px;
+  background: var(--bg-3);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  color: var(--ink-0);
+  font-family: var(--mono);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  animation: ac-rise 0.14s ease;
+}
+.join-input:focus {
+  border-color: var(--green-dim);
+  box-shadow: 0 0 0 3px var(--glow);
+}
+.join-input::placeholder {
+  color: var(--ink-3);
+}
+
+/* ===========================================================================
+   Typing indicator — the keyframe was referenced by TypingLine but never
+   defined, so the blinking dot was dead. Define it here.
+   =========================================================================== */
+@keyframes typing-blink {
+  0%, 100% { opacity: 0.25; }
+  50%      { opacity: 1; }
+}
+
+/* ===========================================================================
+   Motion accessibility — honour reduced-motion for everything above.
+   =========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
