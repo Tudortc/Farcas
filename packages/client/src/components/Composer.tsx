@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, type KeyboardEvent, type DragEvent } from 'react'
 import { useChat } from '../store/chat-store.js'
+import { parseCommand } from '../commands.js'
 import { truncate } from '../utils/truncate.js'
 
 const REPLY_SNIPPET_MAX = 60
@@ -43,6 +44,9 @@ export function Composer({ onSend, placeholder = 'Message · / for commands' }: 
   const setTyping = useChat((s) => s.setTyping)
   const lastTypingSentRef = useRef<number>(0)
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const targets = useChat((s) => s.targets)
+  const [cmdError, setCmdError] = useState<string | null>(null)
 
   // Reply state
   const replyingTo = useChat((s) => s.replyingTo)
@@ -115,6 +119,34 @@ export function Composer({ onSend, placeholder = 'Message · / for commands' }: 
     ? SLASH_COMMANDS.filter((c) => c.cmd.startsWith(hintFilter))
     : []
 
+  function dispatchInput(text: string): boolean {
+    // returns true if the input was consumed (clear the box), false to keep it
+    const isChannel = selected != null && targets[selected]?.kind === 'channel'
+    const parsed = parseCommand(text, { activeTarget: selected, isChannel })
+    const store = useChat.getState()
+    const nid = selected != null ? Number(selected.slice(0, selected.indexOf(':'))) : null
+    const curTarget = selected != null ? selected.slice(selected.indexOf(':') + 1) : null
+
+    if (parsed.kind !== 'text' && nid == null) {
+      setCmdError('Select a channel or DM first')
+      return false
+    }
+    switch (parsed.kind) {
+      case 'text': onSend(parsed.text); return true
+      case 'action': store.sendAction(parsed.text); return true
+      case 'join': store.join(nid!, parsed.channel); return true
+      case 'part': store.part(nid!, curTarget!); return true
+      case 'msg': store.messageUser(nid!, parsed.nick, parsed.text); return true
+      case 'nick': store.setNick(nid!, parsed.nick); return true
+      case 'topic': store.setTopic(nid!, curTarget!, parsed.topic); return true
+      case 'whois': store.whois(nid!, parsed.nick); return true
+      case 'kick': store.kick(nid!, curTarget!, parsed.nick, parsed.reason); return true
+      case 'mode': store.setMode(nid!, curTarget!, parsed.modes, parsed.args); return true
+      case 'list': store.listChannels(nid!, parsed.filter); return true
+      case 'error': setCmdError(parsed.message); return false
+    }
+  }
+
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -124,8 +156,10 @@ export function Composer({ onSend, placeholder = 'Message · / for commands' }: 
         sendReply(trimmed, replyingTo)
         setReplyTarget(null)
       } else {
-        onSend(trimmed)
+        const consumed = dispatchInput(trimmed)
+        if (!consumed) return // keep the text + show the error; don't clear or reset typing
       }
+      setCmdError(null)
       setValue('')
       setSelectedHint(0)
       // Clear idle timer and send done immediately on send
@@ -208,6 +242,12 @@ export function Composer({ onSend, placeholder = 'Message · / for commands' }: 
         </div>
       )}
 
+      {cmdError && (
+        <div className="composer-error" role="alert" style={{ color: 'var(--red)', fontFamily: 'var(--mono)', fontSize: 11, padding: '2px 8px' }}>
+          {cmdError}
+        </div>
+      )}
+
       <div className="input-wrap">
         <span className="prompt" aria-hidden="true">›</span>
         <textarea
@@ -222,6 +262,7 @@ export function Composer({ onSend, placeholder = 'Message · / for commands' }: 
           onChange={(e) => {
             setValue(e.target.value)
             setSelectedHint(0)
+            if (cmdError) setCmdError(null)
             if (e.target.value.trim()) handleTypingActive()
           }}
           onKeyDown={handleKeyDown}

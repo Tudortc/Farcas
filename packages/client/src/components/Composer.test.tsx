@@ -76,6 +76,42 @@ describe('Composer', () => {
   })
 })
 
+describe('Composer slash-command dispatch', () => {
+  let joinSpy: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    // Reset store to clean state then select a channel target on network 1
+    useChat.setState((useChat as any).getInitialState(), true)
+    useChat.setState({
+      selected: '1:#general',
+      targets: {
+        '1:#general': { networkId: 1, target: '#general', kind: 'channel', unread: 0 },
+      },
+    })
+    joinSpy = vi.fn()
+    useChat.setState({ join: joinSpy } as any)
+  })
+
+  it('/join dispatches store.join instead of sending literal text', () => {
+    const onSend = vi.fn()
+    render(<Composer onSend={onSend} />)
+    const box = screen.getByRole('textbox', { name: /message input/i }) as HTMLTextAreaElement
+    fireEvent.change(box, { target: { value: '/join #newchan' } })
+    fireEvent.keyDown(box, { key: 'Enter', code: 'Enter', shiftKey: false })
+    expect(onSend).not.toHaveBeenCalled()
+    expect(box.value).toBe('')
+  })
+
+  it('shows an inline error for a bad command and keeps the text', () => {
+    render(<Composer onSend={vi.fn()} />)
+    const box = screen.getByRole('textbox', { name: /message input/i }) as HTMLTextAreaElement
+    fireEvent.change(box, { target: { value: '/frobnicate' } })
+    fireEvent.keyDown(box, { key: 'Enter', code: 'Enter', shiftKey: false })
+    expect(screen.getByText(/unknown command/i)).toBeInTheDocument()
+    expect(box.value).toBe('/frobnicate')
+  })
+})
+
 describe('Composer typing timer', () => {
   let sendMock: ReturnType<typeof vi.fn>
   let setTypingSpy: ReturnType<typeof vi.fn>
