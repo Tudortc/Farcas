@@ -1,0 +1,6 @@
+# Gitignored local files that Claude Code copies into every new worktree
+# (syntax: .gitignore patterns; only files that are gitignored are copied).
+.env
+.env.local
+packages/*/.env
+packages/*/.env.local

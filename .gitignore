@@ -11,3 +11,13 @@ playwright-report/
 test-results/
 blob-report/
 playwright/.cache/
+
+# Local env files (copy from .env.example)
+.env
+.env.local
+packages/*/.env
+packages/*/.env.local
+
+# Claude Code: worktrees live inside the repo; settings.local.json is per-machine
+.claude/worktrees/
+.claude/settings.local.json
